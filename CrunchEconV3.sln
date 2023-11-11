@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32630.194
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrunchEconV3", "CrunchEconV3\CrunchEconV3.csproj", "{6188B631-E2D0-4111-94A0-1FC8C7D21FD0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6188B631-E2D0-4111-94A0-1FC8C7D21FD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6188B631-E2D0-4111-94A0-1FC8C7D21FD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6188B631-E2D0-4111-94A0-1FC8C7D21FD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6188B631-E2D0-4111-94A0-1FC8C7D21FD0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {86074D3E-C1A3-474F-96C7-2F60A5BB6E73}
+	EndGlobalSection
+EndGlobal
