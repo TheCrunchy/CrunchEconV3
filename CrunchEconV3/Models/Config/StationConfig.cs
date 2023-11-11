@@ -18,5 +18,7 @@ namespace CrunchEconV3.Models
         public DateTime NextSellRefresh { get; set; } = DateTime.Now;
         public DateTime NextBuyRefresh { get; set; } = DateTime.Now;
         public string FileName { get; set; }
+
+        public List<long> ContractBlockIds { get; set; } = new List<long>();
     }
 }

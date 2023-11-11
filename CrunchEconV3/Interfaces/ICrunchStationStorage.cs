@@ -14,5 +14,6 @@ namespace CrunchEconV3.Interfaces
         public void LoadAll();
         public void Save(StationConfig PlayerData);
         public void GenerateExample();
+        public List<StationConfig> GetAll();
     }
 }

@@ -12,6 +12,7 @@ namespace CrunchEconV3.Interfaces
     {
         public CrunchContractTypes ContractType { get; set; }
         public long ContractId { get; set; }
+        public long BlockId { get; set; }
         public long AssignedPlayerIdentityId { get; set; }
         public long AssignedPlayerSteamId { get; set; }
         public int ReputationGainOnComplete { get; set; }
@@ -22,5 +23,10 @@ namespace CrunchEconV3.Interfaces
         public bool TryCompleteContract(ulong steamId, Vector3D? currentPosition);
         public bool CanAutoComplete { get; set; }
         public DateTime ExpireAt { get; set; }
+        public string DefinitionId { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public long SecondsToComplete { get; set; }
+
     }
 }

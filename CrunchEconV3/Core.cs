@@ -29,9 +29,9 @@ namespace CrunchEconV3
         public static Config config;
         public int ticks;
         public TorchSessionState TorchState;
-
-        public ICrunchPlayerStorage PlayerStorage;
-        public ICrunchStationStorage StationStorage;
+        public static Random random = new Random();
+        public static ICrunchPlayerStorage PlayerStorage;
+        public static ICrunchStationStorage StationStorage;
         private static string path;
         private static string basePath;
         public const string PluginName = "CrunchEconV3";
@@ -88,9 +88,10 @@ namespace CrunchEconV3
         private void SetupConfig()
         {
             FileUtils utils = new FileUtils();
-            var path = StoragePath + $"\\{PluginName}\\Config.xml";
+            var path = StoragePath + @$"\{PluginName}";
             basePath = StoragePath;
             Directory.CreateDirectory(path);
+            path += @"\Config.xml";
             if (File.Exists(path))
             {
                 config = utils.ReadFromXmlFile<Config>(path);

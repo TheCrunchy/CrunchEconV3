@@ -22,6 +22,18 @@ namespace CrunchEconV3.Handlers
             Directory.CreateDirectory(this.BasePath);
         }
 
+        public List<StationConfig> GetAll()
+        {
+            if (Configs.Any())
+            {
+                return Configs;
+            }
+
+            LoadAll();
+
+            return Configs;
+        }
+
         public void LoadAll()
         {
             Configs.Clear();

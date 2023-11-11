@@ -13,7 +13,7 @@ namespace CrunchEconV3.Handlers
 {
     public class JsonPlayerStorageHandler : ICrunchPlayerStorage
     {
-        private Dictionary<ulong, CrunchPlayerData> LoadedData { get; set; }
+        private static Dictionary<ulong, CrunchPlayerData> LoadedData { get; set; } = new Dictionary<ulong, CrunchPlayerData>();
         private string BasePath { get; set; }
         private FileUtils FileUtils { get; set; } = new FileUtils();
 
@@ -68,6 +68,7 @@ namespace CrunchEconV3.Handlers
                 PlayerSteamId = playerSteamId,
             };
             LoadedData.Add(playerSteamId, newData);
+            Save(newData);
             return newData;
         }
 

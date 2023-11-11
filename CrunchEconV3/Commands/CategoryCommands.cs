@@ -9,13 +9,14 @@ using VRage.Game.ModAPI;
 
 namespace CrunchEconV3.Commands
 {
-    [Category("categorycommands")]
+    [Category("newcontract")]
     public class CategoryCommands : CommandModule
     {
-        [Command("example", "example command usage !categorycommands example")]
+        [Command("reload", "example command usage !categorycommands example")]
         [Permission(MyPromoteLevel.Admin)]
         public void Example()
         {
+            Core.StationStorage.LoadAll();
         }
     }
 }
