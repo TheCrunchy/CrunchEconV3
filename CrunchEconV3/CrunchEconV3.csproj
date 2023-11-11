@@ -53,6 +53,14 @@
     <Reference Include="SpaceEngineers.Game">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\SpaceEngineers.Game.dll</HintPath>
     </Reference>
+    <Reference Include="SpaceEngineers.ObjectBuilders, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\4 Torch Server\DedicatedServer64\SpaceEngineers.ObjectBuilders.dll</HintPath>
+    </Reference>
+    <Reference Include="SpaceEngineers.ObjectBuilders.XmlSerializers, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\4 Torch Server\DedicatedServer64\SpaceEngineers.ObjectBuilders.XmlSerializers.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -71,20 +79,30 @@
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\VRage.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Game">
-      <HintPath>..\..\FixPlayerCommand\FixPlayerCommand\bin\Debug\VRage.Game.dll</HintPath>
+      <HintPath>..\..\..\4 Torch Server\DedicatedServer64\VRage.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="VRage.Library, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\4 Torch Server\DedicatedServer64\VRage.Library.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Math">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\VRage.Math.dll</HintPath>
+    </Reference>
+    <Reference Include="VRage.XmlSerializers">
+      <HintPath>..\..\..\4 Torch Server\DedicatedServer64\VRage.XmlSerializers.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands\CategoryCommands.cs" />
     <Compile Include="Commands\Commands.cs" />
     <Compile Include="Handlers\ContractGenerator.cs" />
+    <Compile Include="Handlers\InventoriesHandler.cs" />
     <Compile Include="Handlers\StationHandler.cs" />
     <Compile Include="Models\Config\Config.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="Patches\ContractPatches.cs" />
+    <Compile Include="Patches\DrillPatch.cs" />
+    <Compile Include="Utils\Econutils.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Handlers\JsonPlayerStorageHandler.cs" />
     <Compile Include="Handlers\JsonStationStorageHandler.cs" />

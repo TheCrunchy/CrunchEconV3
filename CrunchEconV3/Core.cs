@@ -12,6 +12,8 @@ using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models.Config;
 using CrunchEconV3.Utils;
 using NLog;
+using Sandbox.Engine.Multiplayer;
+using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
 using Torch;
 using Torch.API;
@@ -21,6 +23,7 @@ using Torch.API.Session;
 using Torch.Managers;
 using Torch.Managers.PatchManager;
 using Torch.Session;
+using VRageMath;
 
 namespace CrunchEconV3
 {
@@ -64,6 +67,20 @@ namespace CrunchEconV3
                 {
                     List<ICrunchContract> deleteThese = new List<ICrunchContract>();
                     var data = PlayerStorage.GetData(player.Id.SteamId);
+                    foreach (var contract in data.PlayersContracts.Where(x => x.Value.ExpireAt <= DateTime.Now))
+                    {
+                        deleteThese.Add(contract.Value);
+                    }
+                    foreach (var contract in deleteThese)
+                    {
+                        if (contract.ReputationLossOnAbandon != 0)
+                        {
+                            var rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(player.Identity.IdentityId, contract.FactionId);
+                            MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(player.Identity.IdentityId, contract.FactionId, rep.Item2 - contract.ReputationLossOnAbandon);
+                        }
+                        Core.SendMessage("Contracts", $"Contract {contract.Name} failed, time expired.", Color.Red, player.Id.SteamId);
+                        data.RemoveContract(contract);
+                    }
                     foreach (var contract in data.PlayersContracts.Where(x => x.Value.CanAutoComplete))
                     {
                         var completed = contract.Value.TryCompleteContract(player.Id.SteamId, player.Character?.PositionComp?.GetPosition());
@@ -84,7 +101,18 @@ namespace CrunchEconV3
                 }
             }
         }
-
+        public static void SendMessage(string author, string message, Color color, ulong steamID)
+        {
+            Logger _chatLog = LogManager.GetLogger("Chat");
+            ScriptedChatMsg scriptedChatMsg1 = new ScriptedChatMsg();
+            scriptedChatMsg1.Author = author;
+            scriptedChatMsg1.Text = message;
+            scriptedChatMsg1.Font = "White";
+            scriptedChatMsg1.Color = color;
+            scriptedChatMsg1.Target = Sync.Players.TryGetIdentityId(steamID);
+            ScriptedChatMsg scriptedChatMsg2 = scriptedChatMsg1;
+            MyMultiplayerBase.SendScriptedChatMessage(ref scriptedChatMsg2);
+        }
         private void SetupConfig()
         {
             FileUtils utils = new FileUtils();

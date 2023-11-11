@@ -9,12 +9,12 @@ namespace CrunchEconV3.Interfaces
 {
     public interface IContractConfig
     {
-        public CrunchContractTypes Type { get; set; }
         public int AmountOfContractsToGenerate { get; set; }
-        public long FactionId { get; set; }
         public long SecondsToComplete { get; set; }
-        public int ReputationGainOnComplete { get; set; }
+        public int ReputationGainOnCompleteMin { get; set; }
+        public int ReputationGainOnCompleteMax { get; set; }
         public int ReputationLossOnAbandon { get; set; }
+        public int ReputationRequired { get; set; }
         public float ChanceToAppear { get; set; }
     }
 }

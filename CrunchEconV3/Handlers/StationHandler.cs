@@ -29,14 +29,14 @@ namespace CrunchEconV3.Handlers
             var stationName = GetStationNameForBlock(blockId);
             if (stationName == null)
             {
-                RefreshAt.Add(blockId, DateTime.Now.AddMinutes(15));
-                return true;
+                Core.Log.Info("Station name not found");
+                return false;
             }
             var foundStation = Core.StationStorage.GetAll().FirstOrDefault(x => x.FileName == stationName);
-            if (foundStation != null)
+            if (foundStation == null)
             {
-                RefreshAt.Add(blockId, DateTime.Now.AddSeconds(foundStation.SecondsBetweenContractRefresh));
-                return true;
+                Core.Log.Info("FoundStation name not found");
+                return false;
             }
             RefreshAt.Add(blockId, DateTime.Now.AddMinutes(15));
 
@@ -58,6 +58,7 @@ namespace CrunchEconV3.Handlers
                 if (MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyContractBlock>()
                     .Where(x => !x.Closed).Any(block => block.EntityId == blockId && block.GetOwnerFactionTag() == station.FactionTag))
                 {
+                    MappedContractBlocks.Add(blockId, station.FileName);
                     return station.FileName;
                 }
             }

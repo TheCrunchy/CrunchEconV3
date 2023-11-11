@@ -11,13 +11,12 @@ namespace CrunchEconV3.Models.Config
         public long PricePerItemMax { get; set; } = 3;
         public int AmountToMineThenDeliverMin { get; set; } = 1;
         public int AmountToMineThenDeliverMax { get; set; } = 10;
+        public int ReputationRequired { get; set; }
         public float ChanceToAppear { get; set; } = 0.5f;
-        public bool DeliverToStationTakenFrom { get; set; } = true;
         public List<String> OresToPickFrom { get; set; } = new List<string>() { "Iron", "Nickel", "Cobalt" };
-        public int ReputationGainOnComplete { get; set; }
+        public int ReputationGainOnCompleteMax { get; set; }
         public int ReputationLossOnAbandon { get; set; }
-        public long FactionId { get; set; }
         public long SecondsToComplete { get; set; }
-        public CrunchContractTypes Type { get; set; }
+        public int ReputationGainOnCompleteMin { get; set; }
     }
 }

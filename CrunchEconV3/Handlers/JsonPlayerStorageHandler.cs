@@ -45,6 +45,14 @@ namespace CrunchEconV3.Handlers
                 var loadedFromFile = Load(playerSteamId);
                 if (loadedFromFile != null)
                 {
+                    if (LoadedData.ContainsKey(playerSteamId))
+                    {
+                        LoadedData[playerSteamId] = loadedFromFile;
+                    }
+                    else
+                    {
+                        LoadedData.Add(playerSteamId, loadedFromFile);
+                    }
                     return loadedFromFile;
                 }
             }

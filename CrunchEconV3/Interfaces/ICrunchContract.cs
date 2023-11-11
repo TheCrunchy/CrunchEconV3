@@ -11,6 +11,8 @@ namespace CrunchEconV3.Interfaces
     public interface ICrunchContract
     {
         public CrunchContractTypes ContractType { get; set; }
+        public void Start();
+        public int ReputationRequired { get; set; }
         public long ContractId { get; set; }
         public long BlockId { get; set; }
         public long AssignedPlayerIdentityId { get; set; }
@@ -27,6 +29,8 @@ namespace CrunchEconV3.Interfaces
         public string Name { get; set; }
         public string Description { get; set; }
         public long SecondsToComplete { get; set; }
+
+        public void SendDeliveryGPS();
 
     }
 }
