@@ -47,12 +47,23 @@ namespace CrunchEconV3.Models.Contracts
             MyGps gpsRef = new MyGps();
             gpsRef.Coords = DeliverLocation;
             gpsRef.Name = $"Mining Delivery Location {this.OreSubTypeName}";
+            gpsRef.GPSColor = Color.Orange;
             gpsRef.ShowOnHud = true;
             gpsRef.AlwaysVisible = true;
             gpsRef.DiscardAt = TimeSpan.FromSeconds(6000);
             gpsRef.Description = sb.ToString();
             gpscol.SendAddGpsRequest(AssignedPlayerIdentityId, ref gpsRef);
+
+            GpsId = gpsRef.Hash;
         }
+
+        public void DeleteDeliveryGPS()
+        {
+            MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+            gpscol.SendDeleteGpsRequest(this.AssignedPlayerIdentityId, GpsId);
+        }
+        public int GpsId { get; set; }
+        public bool ReadyToDeliver { get; set; }
 
         public void Start()
         {

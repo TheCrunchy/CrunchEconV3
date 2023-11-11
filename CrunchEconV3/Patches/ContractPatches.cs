@@ -97,6 +97,12 @@ namespace CrunchEconV3.Patches
             Core.Log.Info(needsRefresh);
             if (needsRefresh)
             {
+                MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
+                foreach (var con in __result)
+                {
+                    component.RemoveContract(con.Id);
+                }
+                __result.Clear();
                 var contracts = StationHandler.GenerateNewContracts(blockId);
 
                 List<ICrunchContract> BlocksContracts = new List<ICrunchContract>();
@@ -190,7 +196,6 @@ namespace CrunchEconV3.Patches
         public static void PatchGetContract(MySessionComponentContractSystem __instance, long identityId, ref List<MyObjectBuilder_Contract> __result)
         {
             List<MyObjectBuilder_Contract> newList = new List<MyObjectBuilder_Contract>();
-            Core.Log.Info("Get accepted contracts");
             var steamid = MySession.Static.Players.TryGetSteamId(identityId);
             var playerData = Core.PlayerStorage.GetData(steamid);
             if (playerData != null)

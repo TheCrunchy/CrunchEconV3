@@ -41,7 +41,10 @@ namespace CrunchEconV3.Handlers
             {
                 var loaded = FileUtils.ReadFromJsonFile<StationConfig>(item);
                 loaded.FileName = Path.GetFileName(item);
-                Configs.Add(loaded);
+                if (loaded.Enabled)
+                {
+                    Configs.Add(loaded);
+                }
             }
         }
 
@@ -61,6 +64,7 @@ namespace CrunchEconV3.Handlers
             example.FactionTag = "SPRT";
             example.Contracts = new List<IContractConfig>();
             var mining = new MiningContractConfig();
+            mining.OresToPickFrom = new List<string>() { "Iron", "Nickel", "Cobalt" };
             example.Contracts.Add(mining);
 
             FileUtils.WriteToJsonFile($"{BasePath}/Example.json", example);

@@ -31,6 +31,9 @@ namespace CrunchEconV3.Interfaces
         public long SecondsToComplete { get; set; }
 
         public void SendDeliveryGPS();
+        public void DeleteDeliveryGPS();
+        public int GpsId { get; set; }
+        public bool ReadyToDeliver { get; set; }
 
     }
 }

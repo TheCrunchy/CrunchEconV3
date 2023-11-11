@@ -78,9 +78,11 @@ namespace CrunchEconV3.Handlers
             if (foundStation == null) return null;
             BlocksContracts.Remove(blockId);
             List<ICrunchContract> NewContracts = new List<ICrunchContract>();
+            Core.Log.Info($"{foundStation.FileName}");
             foreach (var contract in foundStation.Contracts)
             {
                 var i = 0;
+             
                 while (i <= contract.AmountOfContractsToGenerate)
                 {
                     if (contract.ChanceToAppear < 1)

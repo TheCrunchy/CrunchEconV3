@@ -16,12 +16,12 @@ namespace CrunchEconV3.Handlers
     {
         public static ICrunchContract GenerateContract(IContractConfig config, Vector3D location, long blockId = 1)
         {
-            Core.Log.Info("Generating 1");
             switch (config)
             {
                 case MiningContractConfig mining:
                 {
-                    var description = new StringBuilder();
+                    Core.Log.Info($"{string.Join(",",mining.OresToPickFrom)}");
+                        var description = new StringBuilder();
                     var contract = new CrunchMiningContract();
                     contract.AmountToMine = Core.random.Next(mining.AmountToMineThenDeliverMin, mining.AmountToMineThenDeliverMax);
                     contract.RewardMoney = contract.AmountToMine * (Core.random.Next((int)mining.PricePerItemMin, (int)mining.PricePerItemMax));
@@ -50,7 +50,6 @@ namespace CrunchEconV3.Handlers
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            Core.Log.Info("Generating 2");
             return null;
         }
     }

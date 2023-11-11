@@ -56,6 +56,7 @@ namespace CrunchEconV3
             StationStorage = new JsonStationStorageHandler(path);
         }
 
+        public DateTime NextContractGps = DateTime.Now;
         public override void Update()
         {
 
@@ -87,7 +88,16 @@ namespace CrunchEconV3
                         if (completed)
                         {
                             deleteThese.Add(contract.Value);
+                            Core.SendMessage("Contracts", $"Contract {contract.Value.Name} completed!, you have been paid.", Color.Red, player.Id.SteamId);
+                            contract.Value.DeleteDeliveryGPS();
                         }
+
+                        if (contract.Value.ReadyToDeliver && DateTime.Now >= NextContractGps)
+                        {
+                            contract.Value.DeleteDeliveryGPS();
+                            contract.Value.SendDeliveryGPS();
+                        }
+          
                     }
 
                     if (!deleteThese.Any()) continue;
@@ -98,6 +108,11 @@ namespace CrunchEconV3
                     }
                     PlayerStorage.Save(data);
 
+                }
+
+                if (DateTime.Now >= NextContractGps)
+                {
+                    NextContractGps = DateTime.Now.AddMinutes(10);
                 }
             }
         }

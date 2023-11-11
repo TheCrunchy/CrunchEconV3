@@ -81,10 +81,10 @@ namespace CrunchEconV3.Patches
                         MyFixedPoint amountItems1 = (MyFixedPoint)(num / physicalItemDefinition.Volume);
                         MyFixedPoint maxAmountPerDrop = (MyFixedPoint)(float)(0.150000005960464 / (double)physicalItemDefinition.Volume);
 
-                
-                
+
+
                         MyFixedPoint collectionRatio = (MyFixedPoint)drill.GetField("m_inventoryCollectionRatio", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(__instance);
-           
+
                         MyFixedPoint b = amountItems1 * ((MyFixedPoint)1 - collectionRatio);
                         MyFixedPoint amountItems2 = MyFixedPoint.Min(maxAmountPerDrop * 10 - (MyFixedPoint)0.001, b);
                         MyFixedPoint totalAmount = amountItems1 * collectionRatio - amountItems2;
@@ -110,12 +110,11 @@ namespace CrunchEconV3.Patches
                             var mining = contract.Value as CrunchMiningContract;
                             if (mining.OreSubTypeName != mined.Key) continue;
                             if (mining.MinedOreAmount >= mining.AmountToMine) continue;
-
                             mining.MinedOreAmount += mined.Value;
                             data.PlayersContracts[mining.ContractId] = mining;
-                            Core.PlayerStorage.Save(data);
                             if (mining.MinedOreAmount >= mining.AmountToMine)
                             {
+                                mining.ReadyToDeliver = true;
                                 mining.SendDeliveryGPS();
                                 Core.SendMessage("Contracts",
                                     "Contract Ready to be completed, Deliver " +
@@ -125,6 +124,7 @@ namespace CrunchEconV3.Patches
                                 messageCooldown.Remove(MySession.Static.Players.TryGetSteamId(owner));
                                 messageCooldown.Add(MySession.Static.Players.TryGetSteamId(owner),
                                     DateTime.Now.AddSeconds(0.5));
+                                Core.PlayerStorage.Save(data);
                                 return;
                             }
                             if (messageCooldown.TryGetValue(MySession.Static.Players.TryGetSteamId(owner),
@@ -138,7 +138,8 @@ namespace CrunchEconV3.Patches
                                     MySession.Static.Players.TryGetSteamId(owner));
                                 messageCooldown[MySession.Static.Players.TryGetSteamId(owner)] =
                                     DateTime.Now.AddSeconds(0.5);
-                                return;
+
+
                             }
                             else
                             {
@@ -149,11 +150,13 @@ namespace CrunchEconV3.Patches
                                     MySession.Static.Players.TryGetSteamId(owner));
                                 messageCooldown.Add(MySession.Static.Players.TryGetSteamId(owner),
                                     DateTime.Now.AddSeconds(0.5));
-                                return;
+
                             }
+                            Core.PlayerStorage.Save(data);
+                            return;
                         }
                     }
-                 
+
                 }
             }
 
