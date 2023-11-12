@@ -16,13 +16,14 @@ namespace CrunchEconV3.Interfaces
         public long ContractId { get; set; }
         public long BlockId { get; set; }
         public long AssignedPlayerIdentityId { get; set; }
-        public long AssignedPlayerSteamId { get; set; }
+        public ulong AssignedPlayerSteamId { get; set; }
         public int ReputationGainOnComplete { get; set; }
         public int ReputationLossOnAbandon { get; set; }
         public long FactionId { get; set; }
         public long RewardMoney { get; set; }
         public Vector3 DeliverLocation { get; set; }
         public bool TryCompleteContract(ulong steamId, Vector3D? currentPosition);
+        public void FailContract();
         public bool CanAutoComplete { get; set; }
         public DateTime ExpireAt { get; set; }
         public string DefinitionId { get; set; }
@@ -34,6 +35,7 @@ namespace CrunchEconV3.Interfaces
         public void DeleteDeliveryGPS();
         public int GpsId { get; set; }
         public bool ReadyToDeliver { get; set; }
+        public long CollateralToTake { get; set; }
 
     }
 }

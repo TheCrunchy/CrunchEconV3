@@ -32,6 +32,7 @@ namespace CrunchEconV3.Patches
             ctx.GetPattern(getContracts).Suffixes.Add(getContractPatch);
             ctx.GetPattern(getContracsForBlock).Suffixes.Add(getContractForBlockPatch);
             ctx.GetPattern(ActivateContract).Suffixes.Add(contractResultPatch);
+            ctx.GetPattern(abandonContract).Suffixes.Add(abandonContractPatch);
         }
 
         internal static readonly MethodInfo contract =
@@ -40,6 +41,15 @@ namespace CrunchEconV3.Patches
             throw new Exception("Failed to find patch method contract");
         internal static readonly MethodInfo contractPatch =
             typeof(ContractPatches).GetMethod(nameof(PatchContract), BindingFlags.Static | BindingFlags.Public) ??
+            throw new Exception("Failed to find patch method");
+
+        internal static readonly MethodInfo abandonContract =
+            typeof(MyContractBlock).GetMethod("AbandonContract",
+                BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(long), typeof(long) }, null) ??
+            throw new Exception("Failed to find patch method contract");
+
+        internal static readonly MethodInfo abandonContractPatch =
+            typeof(ContractPatches).GetMethod(nameof(PatchAbandonContract), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
         internal static readonly MethodInfo getContracts =
@@ -94,7 +104,6 @@ namespace CrunchEconV3.Patches
             ref List<MyObjectBuilder_Contract> __result)
         {
             var needsRefresh = StationHandler.NeedsRefresh(blockId);
-            Core.Log.Info(needsRefresh);
             if (needsRefresh)
             {
                 MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
@@ -125,7 +134,7 @@ namespace CrunchEconV3.Patches
                             Owners = new MySerializableList<long>(),
                             RewardMoney = contract.RewardMoney,
                             RewardReputation = contract.ReputationGainOnComplete,
-                            StartingDeposit = 0,
+                            StartingDeposit = contract.CollateralToTake,
                             FailReputationPrice = contract.ReputationLossOnAbandon,
                             StartFaction = 1,
                             StartStation = 0,
@@ -161,34 +170,11 @@ namespace CrunchEconV3.Patches
                 if (!StationHandler.BlocksContracts.TryGetValue(blockId, out var contracts)) return;
                 foreach (var contract in contracts)
                 {
-                    string definition = contract.DefinitionId;
-                    string contractName = contract.Name;
-                    string contractDescription = contract.Description;
-                    if (!MyDefinitionId.TryParse(definition, out var definitionId)) continue;
-                    MyObjectBuilder_Contract newContract;
-                    newContract = new MyObjectBuilder_ContractCustom
+                    var newContract = ContractGenerator.BuildFromUnacceptedExisting(contract);
+                    if (newContract != null)
                     {
-                        SubtypeName = definition.Replace("MyObjectBuilder_ContractTypeDefinition/", ""),
-                        Id = contract.ContractId,
-                        IsPlayerMade = false,
-                        State = MyContractStateEnum.Active,
-                        Owners = new MySerializableList<long>(),
-                        RewardMoney = contract.RewardMoney,
-                        RewardReputation = contract.ReputationGainOnComplete,
-                        StartingDeposit = 0,
-                        FailReputationPrice = contract.ReputationLossOnAbandon,
-                        StartFaction = 1,
-                        StartStation = 0,
-                        StartBlock = contract.BlockId,
-                        Creation = 1,
-                        TicksToDiscard = (int?)contract.SecondsToComplete,
-                        RemainingTimeInS = contract.SecondsToComplete,
-                        ContractCondition = null,
-                        DefinitionId = definitionId,
-                        ContractName = contractName,
-                        ContractDescription = contractDescription
-                    };
-                    __result.Add(newContract);
+                        __result.Add(newContract);
+                    }
                 }
             }
         }
@@ -202,49 +188,10 @@ namespace CrunchEconV3.Patches
             {
                 foreach (var contract in playerData.PlayersContracts.Values)
                 {
-                    string definition = contract.DefinitionId;
-                    string contractName = contract.Name;
-                    string contractDescription = contract.Description;
-                    if (contract is CrunchMiningContract mining)
+                    var builder = ContractGenerator.BuildFromPlayersExisting(contract);
+                    if (builder != null)
                     {
-                        if (mining.MinedOreAmount >= mining.AmountToMine)
-                        {
-                            contractDescription = $"Click Accept to complete contract!";
-                        }
-                        else
-                        {
-                            contractDescription = $"You must go mine {mining.AmountToMine - mining.MinedOreAmount:##,###} {mining.OreSubTypeName} using a ship drill, then return here.";
-                        }
-
-                    }
-                    if (MyDefinitionId.TryParse(definition, out var definitionId))
-                    {
-                        MyObjectBuilder_Contract newContract;
-                        newContract = new MyObjectBuilder_ContractCustom
-                        {
-                            SubtypeName = definition.Replace("MyObjectBuilder_ContractTypeDefinition/", ""),
-                            Id = contract.ContractId,
-                            IsPlayerMade = false,
-                            State = MyContractStateEnum.Active,
-                            Owners = new MySerializableList<long>(),
-                            RewardMoney = contract.RewardMoney,
-                            RewardReputation = contract.ReputationGainOnComplete,
-                            StartingDeposit = 0,
-                            FailReputationPrice = contract.ReputationLossOnAbandon,
-                            StartFaction = 1,
-                            StartStation = 0,
-                            StartBlock = contract.BlockId,
-                            Creation = 1,
-                            TicksToDiscard = (int?)(contract.ExpireAt - DateTime.Now).TotalSeconds,
-                            RemainingTimeInS = (contract.ExpireAt - DateTime.Now).TotalSeconds,
-                            ContractCondition = null,
-                            DefinitionId = definitionId,
-                            ContractName = contractName,
-                            ContractDescription = contractDescription
-                        };
-
-                        contract.ContractId = newContract.Id;
-                        __result.Add(newContract);
+                        __result.Add(builder);
                     }
                 }
             }
@@ -254,6 +201,20 @@ namespace CrunchEconV3.Patches
 
         private static Dictionary<long, MyContractResults>
             FailedContractIds = new Dictionary<long, MyContractResults>();
+
+        public static void PatchAbandonContract(MyContractBlock __instance, long identityId, long contractId)
+        {
+            var steamid = MySession.Static.Players.TryGetSteamId(identityId);
+            var playerData = Core.PlayerStorage.GetData(steamid);
+            if (playerData != null)
+            {
+                var contract = playerData.PlayersContracts.FirstOrDefault(x => x.Key == contractId).Value ?? null;
+                if (contract != null)
+                {
+                    playerData.RemoveContract(contract);
+                }
+            }
+        }
 
         public static bool PatchContract(MyContractBlock __instance, long identityId, long contractId)
         {
@@ -269,26 +230,13 @@ namespace CrunchEconV3.Patches
                     if (playerData != null)
                     {
                         DialogMessage message;
-                        var result = playerData.AddContract(contract, __instance.GetOwnerFactionTag(), identityId);
+                        var result = ContractAcceptor.TryAcceptContract(contract, playerData, identityId, __instance);
                         if (result.Item1)
                         {
-                            var faction = MySession.Static.Factions.TryGetFactionByTag(__instance.GetOwnerFactionTag());
-                            contract.FactionId = faction.FactionId;
-                            contracts.Remove(contract);
-                            contract.AssignedPlayerIdentityId = identityId;
-                            contract.AssignedPlayerSteamId = (long)steamid;
-                            if (contract is CrunchMiningContract)
-                            {
-                                contract.DeliverLocation = __instance.PositionComp.GetPosition();
-                            }
-                            contract.Start();
-                
-                            StationHandler.BlocksContracts[__instance.EntityId] = contracts;
                             AcceptedContractsIds.Add(contract.ContractId);
-                            Core.PlayerStorage.Save(playerData);
+                            contracts.Remove(contract);
                             return true;
                         }
-                        
                         FailedContractIds.Add(contract.ContractId, result.Item2);
                         return true;
                     }

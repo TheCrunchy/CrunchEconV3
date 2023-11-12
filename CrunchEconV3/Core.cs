@@ -74,12 +74,7 @@ namespace CrunchEconV3
                     }
                     foreach (var contract in deleteThese)
                     {
-                        if (contract.ReputationLossOnAbandon != 0)
-                        {
-                            var rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(player.Identity.IdentityId, contract.FactionId);
-                            MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(player.Identity.IdentityId, contract.FactionId, rep.Item2 - contract.ReputationLossOnAbandon);
-                        }
-                        Core.SendMessage("Contracts", $"Contract {contract.Name} failed, time expired.", Color.Red, player.Id.SteamId);
+                        contract.FailContract();
                         data.RemoveContract(contract);
                     }
                     foreach (var contract in data.PlayersContracts.Where(x => x.Value.CanAutoComplete))
@@ -88,7 +83,7 @@ namespace CrunchEconV3
                         if (completed)
                         {
                             deleteThese.Add(contract.Value);
-                            Core.SendMessage("Contracts", $"Contract {contract.Value.Name} completed!, you have been paid.", Color.Red, player.Id.SteamId);
+                            Core.SendMessage("Contracts", $"{contract.Value.Name} completed!, you have been paid.", Color.Red, player.Id.SteamId);
                             contract.Value.DeleteDeliveryGPS();
                         }
 
@@ -106,8 +101,11 @@ namespace CrunchEconV3
                     {
                         data.RemoveContract(contract);
                     }
-                    PlayerStorage.Save(data);
 
+                    Task.Run(async () =>
+                    {
+                        PlayerStorage.Save(data);
+                    });
                 }
 
                 if (DateTime.Now >= NextContractGps)

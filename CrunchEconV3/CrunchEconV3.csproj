@@ -95,6 +95,7 @@
   <ItemGroup>
     <Compile Include="Commands\CategoryCommands.cs" />
     <Compile Include="Commands\Commands.cs" />
+    <Compile Include="Handlers\ContractAcceptor.cs" />
     <Compile Include="Handlers\ContractGenerator.cs" />
     <Compile Include="Handlers\InventoriesHandler.cs" />
     <Compile Include="Handlers\StationHandler.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Patches\ContractPatches.cs" />
     <Compile Include="Patches\DrillPatch.cs" />
     <Compile Include="Utils\Econutils.cs" />
+    <Compile Include="Utils\FacUtils.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Handlers\JsonPlayerStorageHandler.cs" />
     <Compile Include="Handlers\JsonStationStorageHandler.cs" />

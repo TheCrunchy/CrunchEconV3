@@ -45,6 +45,10 @@ namespace CrunchEconV3.Patches
             bool collectOre,
             Action<bool> OnDrillingPerformed = null)
         {
+            if (!collectOre)
+            {
+                return;
+            }
             if (__instance.OutputInventory != null && __instance.OutputInventory.Owner != null)
             {
                 if (__instance.OutputInventory.Owner.GetBaseEntity() is MyShipDrill shipDrill)
@@ -124,7 +128,11 @@ namespace CrunchEconV3.Patches
                                 messageCooldown.Remove(MySession.Static.Players.TryGetSteamId(owner));
                                 messageCooldown.Add(MySession.Static.Players.TryGetSteamId(owner),
                                     DateTime.Now.AddSeconds(0.5));
-                                Core.PlayerStorage.Save(data);
+                                Task.Run(async () =>
+                                {
+                                    Core.PlayerStorage.Save(data);
+                                });
+
                                 return;
                             }
                             if (messageCooldown.TryGetValue(MySession.Static.Players.TryGetSteamId(owner),
@@ -152,7 +160,12 @@ namespace CrunchEconV3.Patches
                                     DateTime.Now.AddSeconds(0.5));
 
                             }
-                            Core.PlayerStorage.Save(data);
+
+                            Task.Run(async () =>
+                            {
+                                Core.PlayerStorage.Save(data);
+                            });
+                        
                             return;
                         }
                     }

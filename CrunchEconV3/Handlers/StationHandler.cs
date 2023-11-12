@@ -23,7 +23,10 @@ namespace CrunchEconV3.Handlers
         {
             if (RefreshAt.TryGetValue(blockId, out var time))
             {
-                return time <= DateTime.Now;
+                if (time >= DateTime.Now)
+                {
+                    return false;
+                }
             }
 
             var stationName = GetStationNameForBlock(blockId);
@@ -38,8 +41,9 @@ namespace CrunchEconV3.Handlers
                 Core.Log.Info("FoundStation name not found");
                 return false;
             }
-            RefreshAt.Add(blockId, DateTime.Now.AddMinutes(15));
 
+            RefreshAt.Remove(blockId);
+            RefreshAt.Add(blockId, DateTime.Now.AddSeconds(foundStation.SecondsBetweenContractRefresh));
             return true;
         }
 
@@ -78,7 +82,7 @@ namespace CrunchEconV3.Handlers
             if (foundStation == null) return null;
             BlocksContracts.Remove(blockId);
             List<ICrunchContract> NewContracts = new List<ICrunchContract>();
-            Core.Log.Info($"{foundStation.FileName}");
+          //  Core.Log.Info($"{foundStation.FileName}");
             foreach (var contract in foundStation.Contracts)
             {
                 var i = 0;

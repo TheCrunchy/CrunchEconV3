@@ -16,5 +16,7 @@ namespace CrunchEconV3.Interfaces
         public int ReputationLossOnAbandon { get; set; }
         public int ReputationRequired { get; set; }
         public float ChanceToAppear { get; set; }
+        public long CollateralMin { get; set; }
+        public long CollateralMax { get; set; }
     }
 }

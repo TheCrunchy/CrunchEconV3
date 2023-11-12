@@ -5,9 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
+using Sandbox.ModAPI.Ingame;
 using VRage;
 using VRage.Game;
+using VRage.Game.ModAPI.Ingame;
+using VRage.ObjectBuilders.Private;
 using VRageMath;
+using IMyCargoContainer = Sandbox.ModAPI.IMyCargoContainer;
 
 namespace CrunchEconV3.Handlers
 {
@@ -94,6 +98,36 @@ namespace CrunchEconV3.Handlers
                 }
             }
             return targetAmount;
+        }
+
+        public static bool SpawnItems(MyDefinitionId id, MyFixedPoint amount, List<VRage.Game.ModAPI.IMyInventory> inventories)
+        {
+            //  CrunchEconCore.Log.Info("SPAWNING 1 " + amount);
+
+            foreach (var inv in from inv in inventories let cargo = inv.Owner as IMyCargoContainer where cargo.DisplayNameText != null && cargo.DisplayNameText.ToLower().Contains("priority") select inv)
+            {
+                //   CrunchEconCore.Log.Info("priority cargo");
+                MyItemType itemType = new MyInventoryItemFilter(id.TypeId + "/" + id.SubtypeName).ItemType;
+                if (inv.CanItemsBeAdded(amount, itemType))
+                {
+                    inv.AddItems(amount,
+                        (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializerKeen.CreateNewObject(id));
+                    return true;
+                }
+            }
+            foreach (var inv in inventories)
+            {
+
+                MyItemType itemType = new MyInventoryItemFilter(id.TypeId + "/" + id.SubtypeName).ItemType;
+                if (inv.CanItemsBeAdded(amount, itemType))
+                {
+                    inv.AddItems(amount,
+                        (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializerKeen.CreateNewObject(id));
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

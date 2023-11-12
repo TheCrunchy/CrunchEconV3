@@ -97,8 +97,15 @@ namespace CrunchEconV3.Handlers
         }
         public void Save(CrunchPlayerData PlayerData)
         {
-            var path = $"{BasePath}/{PlayerData.PlayerSteamId}.json";
-            FileUtils.WriteToJsonFile(path, PlayerData);
+            try
+            {
+                var path = $"{BasePath}/{PlayerData.PlayerSteamId}.json";
+                FileUtils.WriteToJsonFile(path, PlayerData);
+            }
+            catch (Exception)
+            {
+
+            }
         }
     }
 }
