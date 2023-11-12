@@ -10,6 +10,7 @@ namespace CrunchEconV3.Models.Config
         public float ChanceToAppear { get; set; } = 0.5f;
         public long CollateralMin { get; set; } = 1;
         public long CollateralMax { get; set; } = 3;
+        public List<string> DeliveryGPSes { get; set; }
         public long PricePerPassengerMin { get; set; } = 1;
         public long PricePerPassengerMax { get; set; } = 3;
         public long BonusPerDistance { get; set; } = 1;

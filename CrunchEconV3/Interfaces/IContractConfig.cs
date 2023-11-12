@@ -18,5 +18,6 @@ namespace CrunchEconV3.Interfaces
         public float ChanceToAppear { get; set; }
         public long CollateralMin { get; set; }
         public long CollateralMax { get; set; }
+        public List<String> DeliveryGPSes { get; set; }
     }
 }

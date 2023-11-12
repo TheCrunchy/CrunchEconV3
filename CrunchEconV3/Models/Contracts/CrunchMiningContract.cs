@@ -38,8 +38,7 @@ namespace CrunchEconV3.Models.Contracts
         {
             if (this.ReputationLossOnAbandon != 0)
             {
-                var rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(this.AssignedPlayerIdentityId, this.FactionId);
-                MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(this.AssignedPlayerIdentityId, this.FactionId, rep.Item2 - this.ReputationLossOnAbandon);
+                MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1);
             }
 
             Core.SendMessage("Contracts",

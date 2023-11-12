@@ -18,6 +18,7 @@ namespace CrunchEconV3.Models.Config
         public float ChanceToAppear { get; set; } = 1;
         public long CollateralMin { get; set; } = 1000;
         public long CollateralMax { get; set; } = 5000;
+        public List<string> DeliveryGPSes { get; set; }
         public string GasSubType { get; set; } = "Hydrogen";
         public long AmountInLitresMin { get; set; } = 200 * 1000;
         public long AmountInLitresMax { get; set; } = 480 * 1000;

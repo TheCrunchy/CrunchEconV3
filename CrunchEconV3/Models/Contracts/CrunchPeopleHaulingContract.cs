@@ -76,6 +76,11 @@ namespace CrunchEconV3.Models.Contracts
 
         public void FailContract()
         {
+            if (this.ReputationLossOnAbandon != 0)
+            {
+                MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1);
+            }
+
             Core.SendMessage("Contracts",
                       DateTime.Now > ExpireAt ? $"{this.Name} failed, time expired." : $"{this.Name} failed.", Color.Red,
                       this.AssignedPlayerSteamId);

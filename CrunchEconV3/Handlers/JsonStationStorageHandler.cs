@@ -113,6 +113,11 @@ namespace CrunchEconV3.Handlers
             var gas = new GasContractConfig();
             gas.GasSubType = "Hydrogen";
             examples.Add(gas);
+
+            var gas2 = new GasContractConfig();
+            gas2.GasSubType = "Hydrogen";
+            gas2.DeliveryGPSes = new List<string>() { "Put a gps here", "put a gps here 2" };
+            examples.Add(gas2);
             FileUtils.WriteToJsonFile($"{BasePath}/Example.json", example);
             Directory.CreateDirectory($"{BasePath}/Example");
             FileUtils.WriteToJsonFile($"{BasePath}/Example/Contracts.json", examples);

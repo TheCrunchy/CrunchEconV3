@@ -29,6 +29,15 @@ namespace CrunchEconV3.Handlers
                         contract.AmountToMine = Core.random.Next(mining.AmountToMineThenDeliverMin, mining.AmountToMineThenDeliverMax);
                         contract.RewardMoney = contract.AmountToMine * (Core.random.Next((int)mining.PricePerItemMin, (int)mining.PricePerItemMax));
                         contract.DeliverLocation = location;
+                        if (mining.DeliveryGPSes != null && mining.DeliveryGPSes.Any())
+                        {
+                            var random = mining.DeliveryGPSes.GetRandomItemFromList();
+                            var GPS = GPSHelper.ScanChat(random);
+                            if (GPS != null)
+                            {
+                                contract.DeliverLocation = GPS.Coords;
+                            }
+                        }
                         contract.ContractType = CrunchContractTypes.Mining;
                         contract.BlockId = blockId;
                         contract.CanAutoComplete = false;
@@ -55,6 +64,8 @@ namespace CrunchEconV3.Handlers
                     {
                         long distanceBonus = 0;
                         var contract = new CrunchPeopleHaulingContract();
+                        contract.RewardMoney = Core.random.Next((int)people.PricePerPassengerMin,
+                            (int)people.PricePerPassengerMax);
                         for (int i = 0; i < 10; i++)
                         {
                             var thisStation = StationHandler.GetStationNameForBlock(blockId);
@@ -66,19 +77,26 @@ namespace CrunchEconV3.Handlers
                             }
                             var GPS = GPSHelper.ScanChat(station.LocationGPS);
                             contract.DeliverLocation = GPS.Coords;
-                            contract.RewardMoney = Core.random.Next((int)people.PricePerPassengerMin,
-                                (int)people.PricePerPassengerMax);
-                      
-                            if (people.KilometerDistancePerBonus != 0)
-                            {
-                                var distance = Vector3.Distance(location, contract.DeliverLocation);
-                                var division = distance / people.KilometerDistancePerBonus;
-                                distanceBonus = (long)(division * people.BonusPerDistance);
-                                contract.DistanceReward += distanceBonus;
-                            }
+                 
                             break;
                         }
+                        if (people.DeliveryGPSes != null && people.DeliveryGPSes.Any())
+                        {
+                            var random = people.DeliveryGPSes.GetRandomItemFromList();
+                            var GPS = GPSHelper.ScanChat(random);
+                            if (GPS != null)
+                            {
+                                contract.DeliverLocation = GPS.Coords;
+                            }
+                        }
 
+                        if (people.KilometerDistancePerBonus != 0)
+                        {
+                            var distance = Vector3.Distance(location, contract.DeliverLocation);
+                            var division = distance / people.KilometerDistancePerBonus;
+                            distanceBonus = (long)(division * people.BonusPerDistance);
+                            contract.DistanceReward += distanceBonus;
+                        }
                         if (contract.RewardMoney == 0)
                         {
                             return null;
@@ -132,11 +150,20 @@ namespace CrunchEconV3.Handlers
                             contract.DeliverLocation = GPS.Coords;
                             break;
                         }
-
+                        if (gas.DeliveryGPSes != null && gas.DeliveryGPSes.Any())
+                        {
+                            var random = gas.DeliveryGPSes.GetRandomItemFromList();
+                            var GPS = GPSHelper.ScanChat(random);
+                            if (GPS != null)
+                            {
+                                contract.DeliverLocation = GPS.Coords;
+                            }
+                        }
                         if (contract.DeliverLocation.Equals(Vector3.Zero))
                         {
                             return null;
                         }
+
                         contract.GasAmount = Core.random.Next((int)gas.AmountInLitresMin, (int)gas.AmountInLitresMax);
                         contract.RewardMoney = contract.GasAmount * (Core.random.Next((int)gas.PricePerLitreMin, (int)gas.PricePerLitreMax));
                         contract.ContractType = CrunchContractTypes.Gas;
