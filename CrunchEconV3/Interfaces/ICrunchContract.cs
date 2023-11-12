@@ -21,6 +21,7 @@ namespace CrunchEconV3.Interfaces
         public int ReputationLossOnAbandon { get; set; }
         public long FactionId { get; set; }
         public long RewardMoney { get; set; }
+        public long DistanceReward { get; set; }
         public Vector3 DeliverLocation { get; set; }
         public bool TryCompleteContract(ulong steamId, Vector3D? currentPosition);
         public void FailContract();

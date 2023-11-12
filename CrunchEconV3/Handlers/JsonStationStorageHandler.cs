@@ -65,6 +65,14 @@ namespace CrunchEconV3.Handlers
             example.Contracts = new List<IContractConfig>();
             var mining = new MiningContractConfig();
             mining.OresToPickFrom = new List<string>() { "Iron", "Nickel", "Cobalt" };
+            var people = new PeopleHaulingContractConfig();
+            people.PassengerBlocksAvailable = new List<PassengerBlock>();
+            people.PassengerBlocksAvailable.Add(new PassengerBlock()
+            {
+                BlockPairName = "Bed",
+                PassengerSpace = 2
+            });
+            example.Contracts.Add(people);
             example.Contracts.Add(mining);
 
             FileUtils.WriteToJsonFile($"{BasePath}/Example.json", example);

@@ -87,7 +87,7 @@ namespace CrunchEconV3.Handlers
             {
                 var i = 0;
              
-                while (i <= contract.AmountOfContractsToGenerate)
+                while (i < contract.AmountOfContractsToGenerate)
                 {
                     if (contract.ChanceToAppear < 1)
                     {

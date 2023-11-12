@@ -79,20 +79,11 @@ namespace CrunchEconV3
                     }
                     foreach (var contract in data.PlayersContracts.Where(x => x.Value.CanAutoComplete))
                     {
-                        var completed = contract.Value.TryCompleteContract(player.Id.SteamId, player.Character?.PositionComp?.GetPosition());
-                        if (completed)
-                        {
-                            deleteThese.Add(contract.Value);
-                            Core.SendMessage("Contracts", $"{contract.Value.Name} completed!, you have been paid.", Color.Red, player.Id.SteamId);
-                            contract.Value.DeleteDeliveryGPS();
-                        }
-
                         if (contract.Value.ReadyToDeliver && DateTime.Now >= NextContractGps)
                         {
                             contract.Value.DeleteDeliveryGPS();
                             contract.Value.SendDeliveryGPS();
                         }
-          
                     }
 
                     if (!deleteThese.Any()) continue;

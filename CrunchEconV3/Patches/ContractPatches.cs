@@ -8,6 +8,7 @@ using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Models.Contracts;
+using CrunchEconV3.Utils;
 using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.SessionComponents;
@@ -20,6 +21,7 @@ using VRage.Game;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRage.Network;
 using VRage.ObjectBuilder;
+using VRageMath;
 
 namespace CrunchEconV3.Patches
 {
@@ -186,14 +188,40 @@ namespace CrunchEconV3.Patches
             var playerData = Core.PlayerStorage.GetData(steamid);
             if (playerData != null)
             {
+                List<ICrunchContract> deleteThese = new List<ICrunchContract>();
                 foreach (var contract in playerData.PlayersContracts.Values)
                 {
+                    MySession.Static.Players.TryGetPlayerBySteamId(playerData.PlayerSteamId, out var player);
+                    if (contract.ReadyToDeliver)
+                    {
+
+                        var completed = contract.TryCompleteContract(playerData.PlayerSteamId, player.Character.PositionComp.GetPosition());
+                        if (completed)
+                        {
+                            deleteThese.Add(contract);
+                            Core.SendMessage("Contracts", $"{contract.Name} completed!, you have been paid.", Color.Green, player.Id.SteamId);
+                            contract.DeleteDeliveryGPS();
+                            continue;
+                        }
+                    }
+
                     var builder = ContractGenerator.BuildFromPlayersExisting(contract);
                     if (builder != null)
                     {
                         __result.Add(builder);
                     }
                 }
+
+                if (!deleteThese.Any()) return;
+
+                foreach (var contract in deleteThese)
+                {
+                    playerData.RemoveContract(contract);
+                }
+                Task.Run(async () =>
+                {
+                    Core.PlayerStorage.Save(playerData);
+                });
             }
         }
 
@@ -211,7 +239,13 @@ namespace CrunchEconV3.Patches
                 var contract = playerData.PlayersContracts.FirstOrDefault(x => x.Key == contractId).Value ?? null;
                 if (contract != null)
                 {
+                    contract.FailContract();
                     playerData.RemoveContract(contract);
+                    Task.Run(async () =>
+                    {
+                        Core.PlayerStorage.Save(playerData);
+                    });
+                    return;
                 }
             }
         }
@@ -229,7 +263,14 @@ namespace CrunchEconV3.Patches
                     var playerData = Core.PlayerStorage.GetData(steamid);
                     if (playerData != null)
                     {
-                        DialogMessage message;
+                        var faction = MySession.Static.Factions.TryGetFactionByTag(__instance.GetOwnerFactionTag());
+                        if (faction == null)
+                        {
+                            FailedContractIds.Add(contract.ContractId, MyContractResults.Success);
+                            return true;
+                        }
+                        contract.FactionId = faction.FactionId;
+
                         var result = ContractAcceptor.TryAcceptContract(contract, playerData, identityId, __instance);
                         if (result.Item1)
                         {

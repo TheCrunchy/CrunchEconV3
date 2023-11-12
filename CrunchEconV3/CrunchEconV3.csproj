@@ -101,6 +101,11 @@
     <Compile Include="Handlers\StationHandler.cs" />
     <Compile Include="Models\Config\Config.cs" />
     <Compile Include="Core.cs" />
+    <Compile Include="Models\Config\MiningContractConfig.cs" />
+    <Compile Include="Models\Contracts\CrunchGasContract.cs" />
+    <Compile Include="Models\Contracts\CrunchPeopleHaulingContract.cs" />
+    <Compile Include="Models\PassengerBlock.cs" />
+    <Compile Include="Models\TankGroup.cs" />
     <Compile Include="Patches\ContractPatches.cs" />
     <Compile Include="Patches\DrillPatch.cs" />
     <Compile Include="Utils\Econutils.cs" />
@@ -112,13 +117,15 @@
     <Compile Include="Interfaces\ICrunchContract.cs" />
     <Compile Include="Interfaces\ICrunchStationStorage.cs" />
     <Compile Include="Interfaces\ICrunchPlayerStorage.cs" />
-    <Compile Include="Models\CrunchContractTypes.cs" />
+    <Compile Include="Models\Contracts\CrunchContractTypes.cs" />
     <Compile Include="Models\Contracts\CrunchMiningContract.cs" />
     <Compile Include="Models\CrunchPlayerData.cs" />
-    <Compile Include="Models\Config\MiningContractConfig.cs" />
+    <Compile Include="Models\Config\PeopleHaulingConfig.cs" />
     <Compile Include="Models\Config\StationConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\GPSHelper.cs" />
+    <Compile Include="Utils\TankHelper.cs" />
+    <Compile Include="Utils\TransportUtils.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

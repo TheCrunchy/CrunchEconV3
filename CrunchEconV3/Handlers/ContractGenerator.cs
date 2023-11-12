@@ -7,6 +7,7 @@ using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Models.Config;
 using CrunchEconV3.Models.Contracts;
+using CrunchEconV3.Utils;
 using VRage.Game;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRage.ObjectBuilder;
@@ -28,9 +29,9 @@ namespace CrunchEconV3.Handlers
                         contract.AmountToMine = Core.random.Next(mining.AmountToMineThenDeliverMin, mining.AmountToMineThenDeliverMax);
                         contract.RewardMoney = contract.AmountToMine * (Core.random.Next((int)mining.PricePerItemMin, (int)mining.PricePerItemMax));
                         contract.DeliverLocation = location;
+                        contract.ContractType = CrunchContractTypes.Mining;
                         contract.BlockId = blockId;
                         contract.CanAutoComplete = false;
-                        contract.ContractType = CrunchContractTypes.Mining;
                         contract.OreSubTypeName = mining.OresToPickFrom.GetRandomItemFromList();
                         contract.ReputationGainOnComplete = Core.random.Next(mining.ReputationGainOnCompleteMin, mining.ReputationGainOnCompleteMax);
                         contract.ReputationLossOnAbandon = mining.ReputationLossOnAbandon;
@@ -44,7 +45,64 @@ namespace CrunchEconV3.Handlers
                         description.AppendLine($"You must go mine {contract.AmountToMine:##,###} {contract.OreSubTypeName} using a ship drill, then return here.");
                         if (mining.ReputationRequired != 0)
                         {
-                            description.AppendLine($"Reputation with owner required: {mining.ReputationRequired}");
+                            description.AppendLine($" ||| Reputation with owner required: {mining.ReputationRequired}");
+                        }
+
+                        contract.Description = description.ToString();
+                        return contract;
+                    }
+                case PeopleHaulingContractConfig people:
+                    {
+                        long distanceBonus = 0;
+                        var contract = new CrunchPeopleHaulingContract();
+                        for (int i = 0; i < 10; i++)
+                        {
+                            var thisStation = StationHandler.GetStationNameForBlock(blockId);
+                            var station = Core.StationStorage.GetAll().GetRandomItemFromList();
+                            if (station.FileName == thisStation)
+                            {
+                                i++;
+                                continue;
+                            }
+                            var GPS = GPSHelper.ScanChat(station.LocationGPS);
+                            contract.DeliverLocation = GPS.Coords;
+                            contract.RewardMoney = Core.random.Next((int)people.PricePerPassengerMin,
+                                (int)people.PricePerPassengerMax);
+                      
+                            if (people.KilometerDistancePerBonus != 0)
+                            {
+                                var distance = Vector3.Distance(location, contract.DeliverLocation);
+                                var division = distance / people.KilometerDistancePerBonus;
+                                distanceBonus = (long)(division * people.BonusPerDistance);
+                                contract.DistanceReward += distanceBonus;
+                            }
+                        }
+
+                        var description = new StringBuilder();
+                        contract.ContractType = CrunchContractTypes.PeopleTransport;
+                        contract.BlockId = blockId;
+                        contract.CanAutoComplete = false;
+                        contract.PassengerBlocks = people.PassengerBlocksAvailable;
+                        contract.ReputationGainOnComplete = Core.random.Next(people.ReputationGainOnCompleteMin, people.ReputationGainOnCompleteMax);
+                        contract.ReputationLossOnAbandon = people.ReputationLossOnAbandon;
+                        contract.SecondsToComplete = people.SecondsToComplete;
+                        contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver";
+                        contract.Name = $"People Transport Contract";
+                        contract.ReputationRequired = people.ReputationRequired;
+                        contract.CanAutoComplete = true;
+                        contract.CollateralToTake = (Core.random.Next((int)people.CollateralMin, (int)people.CollateralMax));
+                        description.AppendLine($"Reward = {contract.RewardMoney} multiplied by Passenger count");
+                        description.AppendLine($" ||| Maximum possible passengers: {1500 * people.ReputationMultiplierForMaximumPassengers}");
+                        foreach (var passengerBlock in people.PassengerBlocksAvailable)
+                        {
+                            description.AppendLine($" ||| Passenger block {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace}");
+                        }
+                    
+                        description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###}");
+               
+                        if (people.ReputationRequired != 0)
+                        {
+                            description.AppendLine($" ||| Reputation with owner required: {people.ReputationRequired} ");
                         }
 
                         contract.Description = description.ToString();
@@ -61,7 +119,8 @@ namespace CrunchEconV3.Handlers
             MyObjectBuilder_Contract newContract = null;
             switch (contract)
             {
-                case CrunchMiningContract crunchMiningContract:
+                case CrunchPeopleHaulingContract:
+                case CrunchMiningContract:
                     {
                         string definition = contract.DefinitionId;
                         string contractName = contract.Name;
@@ -92,10 +151,9 @@ namespace CrunchEconV3.Handlers
                             ContractDescription = contractDescription
                         };
                     }
-
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(contract));
+                    break;
             }
 
             return newContract;
@@ -120,8 +178,15 @@ namespace CrunchEconV3.Handlers
                         }
                     }
                     break;
+                case CrunchPeopleHaulingContract crunchPeople:
+                {
+
+                    contractDescription = $"You must go deliver {crunchPeople.PassengerCount} passengers, using the ship that accepted the contract.";
+                    
+                }
+                    break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(contract));
+                    break;
             }
 
             newContract = BuildFromUnacceptedExisting(contract, contractDescription);

@@ -4,8 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Interfaces;
+using CrunchEconV3.Models.Contracts;
+using CrunchEconV3.Utils;
+using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
+using VRage.Game.ModAPI;
+using VRageMath;
 
 namespace CrunchEconV3.Models
 {
@@ -20,7 +25,7 @@ namespace CrunchEconV3.Models
             return PlayersContracts.Where(x => x.Value.ContractType == type).Select(x => x.Value).ToList();
         }
 
-        public Tuple<bool, MyContractResults> AddContract(ICrunchContract contract, string factionTag, long playerIdentity)
+        public Tuple<bool, MyContractResults> AddContract(ICrunchContract contract, string factionTag, long playerIdentity, MyContractBlock __instance)
         {
             if (contract.ReputationRequired != 0)
             {
@@ -46,22 +51,66 @@ namespace CrunchEconV3.Models
                 }
             }
             var current = GetContractsForType(contract.ContractType);
-            switch (contract.ContractType)
+            switch (contract)
             {
-                case CrunchContractTypes.Mining:
-                    if (current.Count >= 3)
+                case CrunchMiningContract:
                     {
-                        return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_ContractLimitReachedHard);
+                        if (current.Count >= 3)
+                        {
+                            return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_ContractLimitReachedHard);
+                        }
                     }
                     break;
-                case CrunchContractTypes.PeopleTransport:
-                    if (current.Count >= 1)
+                case CrunchPeopleHaulingContract people:
                     {
-                        return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_ContractLimitReachedHard);
+                        if (current.Count >= 1)
+                        {
+                            return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_ContractLimitReachedHard);
+                        }
+
+                        var test = __instance.CubeGrid.GetGridGroup(GridLinkTypeEnum.Physical);
+                        var grids = new List<IMyCubeGrid>();
+                        var myPlayersGrids = test.GetGrids(grids);
+                        var capacity = 0;
+                        foreach (var gridInGroup in grids)
+                        {
+
+                            var owner = FacUtils.IsOwnerOrFactionOwned(gridInGroup as MyCubeGrid, playerIdentity, true);
+                            if (owner)
+                            {
+                                capacity += TransportUtils.GetPassengerCount(gridInGroup as MyCubeGrid, people);
+                            }
+                        }
+
+                        if (capacity <= 0)
+                        {
+                            return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_InsufficientSpace);
+                        }
+
+                        var max = capacity;
+                        var calculated = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(playerIdentity,
+                                contract.FactionId);
+                        var maximumPossiblePassengers =
+                            calculated.Item2 * people.ReputationMultiplierForMaximumPassengers;
+                        if (maximumPossiblePassengers < max)
+                        {
+                            max = (int)maximumPossiblePassengers;
+                        }
+
+                        if (max < 1)
+                        {
+                            max = 1;
+                        }
+                        people.PassengerCount = max;
+                        people.RewardMoney = contract.RewardMoney * people.PassengerCount;
+                        people.RewardMoney += contract.DistanceReward;
+                        contract = people;
+                        contract.ReadyToDeliver = true;
+            
                     }
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException($"{contract.ContractType} contract type not added to switch");
+                    throw new ArgumentOutOfRangeException($"{contract.GetType()} contract type not added to switch");
             }
             PlayersContracts.Add(contract.ContractId, contract);
             return Tuple.Create(true, MyContractResults.Success);

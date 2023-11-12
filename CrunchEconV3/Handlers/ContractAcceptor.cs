@@ -8,8 +8,11 @@ using CrunchEconV3.Models;
 using CrunchEconV3.Models.Contracts;
 using CrunchEconV3.Utils;
 using Sandbox.Game.Contracts;
+using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
+using VRage.Game.ModAPI;
+using VRage.Utils;
 
 namespace CrunchEconV3.Handlers
 {
@@ -26,10 +29,14 @@ namespace CrunchEconV3.Handlers
                 }
             }
 
-            var result = playerData.AddContract(contract, __instance.GetOwnerFactionTag(), identityId);
+            var result = playerData.AddContract(contract, __instance.GetOwnerFactionTag(), identityId, __instance);
             if (result.Item1)
             {
-                EconUtils.takeMoney(identityId, contract.CollateralToTake);
+                if (contract.CollateralToTake > 0)
+                {
+                    EconUtils.takeMoney(identityId, contract.CollateralToTake);
+                }
+
                 var faction = MySession.Static.Factions.TryGetFactionByTag(__instance.GetOwnerFactionTag());
                 contract.FactionId = faction.FactionId;
 
@@ -41,7 +48,7 @@ namespace CrunchEconV3.Handlers
                 }
 
                 contract.Start();
-
+                contract.SendDeliveryGPS();
                 StationHandler.BlocksContracts[__instance.EntityId].Remove(contract);
                 Core.PlayerStorage.Save(playerData);
             }
