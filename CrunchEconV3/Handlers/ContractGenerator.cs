@@ -95,7 +95,7 @@ namespace CrunchEconV3.Handlers
                         description.AppendLine($" ||| Maximum possible passengers: {1500 * people.ReputationMultiplierForMaximumPassengers}");
                         foreach (var passengerBlock in people.PassengerBlocksAvailable)
                         {
-                            description.AppendLine($" ||| Passenger block {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace}");
+                            description.AppendLine($" ||| Passenger block {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace} capacity");
                         }
                     
                         description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###}");
