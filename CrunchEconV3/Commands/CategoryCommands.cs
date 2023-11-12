@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CrunchEconV3.Handlers;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
@@ -17,6 +18,8 @@ namespace CrunchEconV3.Commands
         public void Example()
         {
             Core.StationStorage.LoadAll();
+            StationHandler.BlocksContracts.Clear();
+            Context.Respond("Reloaded and cleared existing contracts");
         }
     }
 }
