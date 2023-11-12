@@ -9,6 +9,7 @@ using CrunchEconV3.Utils;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
+using Sandbox.ModAPI;
 using VRage.Game.ModAPI;
 using VRageMath;
 
@@ -53,6 +54,29 @@ namespace CrunchEconV3.Models
             var current = GetContractsForType(contract.ContractType);
             switch (contract)
             {
+                case CrunchGasContract gas:
+                    {
+                        if (current.Count >= 1)
+                        {
+                            return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_ContractLimitReachedHard);
+                        }
+                        var test = __instance.CubeGrid.GetGridGroup(GridLinkTypeEnum.Physical);
+                        var grids = new List<IMyCubeGrid>();
+                        var tanks = new List<IMyGasTank>();
+
+                        test.GetGrids(grids);
+                        foreach (var gridInGroup in grids)
+                        {
+                            tanks.AddRange(gridInGroup.GetFatBlocks<IMyGasTank>());
+                        }
+
+                        var playerTanks = TankHelper.MakeTankGroup(tanks, playerIdentity, __instance.OwnerId, gas.GasName);
+                        if (playerTanks.GasInTanks < gas.GasAmount)
+                        {
+                            return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_InsufficientSpace);
+                        }
+                    }
+                    break;
                 case CrunchMiningContract:
                     {
                         if (current.Count >= 3)
@@ -70,7 +94,7 @@ namespace CrunchEconV3.Models
 
                         var test = __instance.CubeGrid.GetGridGroup(GridLinkTypeEnum.Physical);
                         var grids = new List<IMyCubeGrid>();
-                        var myPlayersGrids = test.GetGrids(grids);
+                        test.GetGrids(grids);
                         var capacity = 0;
                         foreach (var gridInGroup in grids)
                         {
@@ -106,7 +130,7 @@ namespace CrunchEconV3.Models
                         people.RewardMoney += contract.DistanceReward;
                         contract = people;
                         contract.ReadyToDeliver = true;
-            
+
                     }
                     break;
                 default:

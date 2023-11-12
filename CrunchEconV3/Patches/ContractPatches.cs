@@ -203,6 +203,7 @@ namespace CrunchEconV3.Patches
                             contract.DeleteDeliveryGPS();
                             continue;
                         }
+                        contract.SendDeliveryGPS();
                     }
 
                     var builder = ContractGenerator.BuildFromPlayersExisting(contract);

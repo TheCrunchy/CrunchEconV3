@@ -8,18 +8,18 @@ namespace CrunchEconV3.Models.Config
     {
         public int AmountOfContractsToGenerate { get; set; } = 3;
         public float ChanceToAppear { get; set; } = 0.5f;
-        public long CollateralMin { get; set; }
-        public long CollateralMax { get; set; }
+        public long CollateralMin { get; set; } = 1;
+        public long CollateralMax { get; set; } = 1;
         public long PricePerItemMin { get; set; } = 1;
         public long PricePerItemMax { get; set; } = 3;
         public int AmountToMineThenDeliverMin { get; set; } = 1;
         public int AmountToMineThenDeliverMax { get; set; } = 10;
-        public long SecondsToComplete { get; set; }
-        public int ReputationRequired { get; set; }
-        public int ReputationGainOnCompleteMin { get; set; }
-        public int ReputationGainOnCompleteMax { get; set; }
-        public int ReputationLossOnAbandon { get; set; }
-        public List<String> OresToPickFrom { get; set; }
-        public bool SpawnOreInStation { get; set; }
+        public long SecondsToComplete { get; set; } = 1200;
+        public int ReputationRequired { get; set; } = 0;
+        public int ReputationGainOnCompleteMin { get; set; } = 1;
+        public int ReputationGainOnCompleteMax { get; set; } = 5;
+        public int ReputationLossOnAbandon { get; set; } = 10;
+        public List<String> OresToPickFrom { get; set; } 
+        public bool SpawnOreInStation { get; set; } 
     }
 }

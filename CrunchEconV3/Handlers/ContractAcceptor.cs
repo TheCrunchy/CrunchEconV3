@@ -50,7 +50,10 @@ namespace CrunchEconV3.Handlers
                 contract.Start();
                 contract.SendDeliveryGPS();
                 StationHandler.BlocksContracts[__instance.EntityId].Remove(contract);
-                Core.PlayerStorage.Save(playerData);
+                Task.Run(async () =>
+                {
+                    Core.PlayerStorage.Save(playerData);
+                });
             }
 
             return result;

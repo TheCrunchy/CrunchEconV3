@@ -42,10 +42,10 @@ namespace CrunchEconV3.Handlers
                         contract.CanAutoComplete = true;
                         contract.CollateralToTake = (Core.random.Next((int)mining.CollateralMin, (int)mining.CollateralMax));
                         contract.SpawnOreInStation = mining.SpawnOreInStation;
-                        description.AppendLine($"You must go mine {contract.AmountToMine:##,###} {contract.OreSubTypeName} using a ship drill, then return here.");
+                        description.AppendLine($"You must go mine {contract.AmountToMine:##,###} {contract.OreSubTypeName} using a ship drill, then return here.".PadRight(69, '_'));
                         if (mining.ReputationRequired != 0)
                         {
-                            description.AppendLine($" ||| Reputation with owner required: {mining.ReputationRequired}");
+                            description.AppendLine($"Reputation with owner required: {mining.ReputationRequired}".PadRight(69, '_'));
                         }
 
                         contract.Description = description.ToString();
@@ -91,24 +91,66 @@ namespace CrunchEconV3.Handlers
                         contract.ReputationRequired = people.ReputationRequired;
                         contract.CanAutoComplete = true;
                         contract.CollateralToTake = (Core.random.Next((int)people.CollateralMin, (int)people.CollateralMax));
-                        description.AppendLine($"Reward = {contract.RewardMoney} multiplied by Passenger count");
-                        description.AppendLine($" ||| Maximum possible passengers: {1500 * people.ReputationMultiplierForMaximumPassengers}");
+                        description.AppendLine($"Reward = {contract.RewardMoney} multiplied by Passenger count".PadRight(69, '_'));
+                        description.AppendLine($"Maximum possible passengers: {1500 * people.ReputationMultiplierForMaximumPassengers}".PadRight(69, '_'));
                         foreach (var passengerBlock in people.PassengerBlocksAvailable)
                         {
-                            description.AppendLine($" ||| Passenger block {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace} capacity");
+                            description.AppendLine($"Passenger block {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace} capacity".PadRight(69, '_'));
                         }
                     
-                        description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###}");
+                        description.AppendLine($"Distance bonus applied {contract.DistanceReward:##,###}".PadRight(69, '_'));
                
                         if (people.ReputationRequired != 0)
                         {
-                            description.AppendLine($" ||| Reputation with owner required: {people.ReputationRequired} ");
+                            description.AppendLine($"Reputation with owner required: {people.ReputationRequired}".PadRight(69, '_'));
                         }
 
                         contract.Description = description.ToString();
                         return contract;
                     }
                     break;
+                case GasContractConfig gas:
+                    {
+                        var description = new StringBuilder();
+                        var contract = new CrunchGasContract();
+
+                        for (int i = 0; i < 10; i++)
+                        {
+                            var thisStation = StationHandler.GetStationNameForBlock(blockId);
+                            var station = Core.StationStorage.GetAll().GetRandomItemFromList();
+                            if (station.FileName == thisStation)
+                            {
+                                i++;
+                                continue;
+                            }
+                            var GPS = GPSHelper.ScanChat(station.LocationGPS);
+                            contract.DeliverLocation = GPS.Coords;
+                        }
+
+                        contract.GasAmount = Core.random.Next((int)gas.AmountInLitresMin, (int)gas.AmountInLitresMax);
+                        contract.RewardMoney = contract.GasAmount * (Core.random.Next((int)gas.PricePerLitreMin, (int)gas.PricePerLitreMax));
+                        contract.ContractType = CrunchContractTypes.Gas;
+                        contract.BlockId = blockId;
+                        contract.CanAutoComplete = false;
+                        contract.GasName = gas.GasSubType;
+                        contract.ReputationGainOnComplete = Core.random.Next(gas.ReputationGainOnCompleteMin, gas.ReputationGainOnCompleteMax);
+                        contract.ReputationLossOnAbandon = gas.ReputationLossOnAbandon;
+                        contract.SecondsToComplete = gas.SecondsToComplete;
+                        contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver";
+                        contract.Name = $"{contract.GasName} Delivery Contract";
+                        contract.ReputationRequired = gas.ReputationRequired;
+                        contract.CanAutoComplete = true;
+                        contract.ReadyToDeliver = true;
+                        contract.CollateralToTake = (Core.random.Next((int)gas.CollateralMin, (int)gas.CollateralMax));
+                        description.AppendLine($"You must deliver {contract.GasAmount:##,###}L {contract.GasName} in non stockpile tanks.".PadRight(69, '_'));
+                        if (gas.ReputationRequired != 0)
+                        {
+                            description.AppendLine($"Reputation with owner required: {gas.ReputationRequired}".PadRight(69, '_'));
+                        }
+
+                        contract.Description = description.ToString();
+                        return contract;
+                    }
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -120,6 +162,7 @@ namespace CrunchEconV3.Handlers
             switch (contract)
             {
                 case CrunchPeopleHaulingContract:
+                case CrunchGasContract:
                 case CrunchMiningContract:
                     {
                         string definition = contract.DefinitionId;
@@ -168,21 +211,24 @@ namespace CrunchEconV3.Handlers
             {
                 case CrunchMiningContract crunchMiningContract:
                     {
-                        if (crunchMiningContract.MinedOreAmount >= crunchMiningContract.AmountToMine)
-                        {
-                            contractDescription = $"Click Accept to complete contract!";
-                        }
-                        else
-                        {
-                            contractDescription = $"You must go mine {crunchMiningContract.AmountToMine - crunchMiningContract.MinedOreAmount:##,###} {crunchMiningContract.OreSubTypeName} using a ship drill, then return here.";
-                        }
+                        contractDescription = $"You must go mine {crunchMiningContract.AmountToMine - crunchMiningContract.MinedOreAmount:##,###} {crunchMiningContract.OreSubTypeName} using a ship drill, then return here.";
                     }
                     break;
                 case CrunchPeopleHaulingContract crunchPeople:
                 {
 
-                    contractDescription = $"You must go deliver {crunchPeople.PassengerCount} passengers, using the ship that accepted the contract.";
-                    
+                    contractDescription = $"You must go deliver {crunchPeople.PassengerCount} passengers, using the ship that accepted the contract.".PadRight(69, '_');
+                    foreach (var passengerBlock in crunchPeople.PassengerBlocks)
+                    {
+                        contractDescription += $"Passenger block {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace} capacity".PadRight(69, '_');
+                    }
+                }
+                    break;
+                case CrunchGasContract crunchGas:
+                {
+                    contractDescription =
+                        $"You must deliver {crunchGas.GasAmount:##,###}L {crunchGas.GasName} in non stockpile tanks.";
+
                 }
                     break;
                 default:

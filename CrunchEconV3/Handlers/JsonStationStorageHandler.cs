@@ -74,7 +74,10 @@ namespace CrunchEconV3.Handlers
             });
             example.Contracts.Add(people);
             example.Contracts.Add(mining);
-
+            var gas = new GasContractConfig();
+            gas.GasSubType = "Hydrogen";
+            gas.AmountInLitresMin = 480 * 1000;
+            example.Contracts.Add(gas);
             FileUtils.WriteToJsonFile($"{BasePath}/Example.json", example);
 
         }

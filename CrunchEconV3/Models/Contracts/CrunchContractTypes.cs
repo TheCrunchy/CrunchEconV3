@@ -10,5 +10,6 @@ namespace CrunchEconV3.Models
     {
         Mining,
         PeopleTransport,
+        Gas,
     }
 }
