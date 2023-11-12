@@ -13,9 +13,20 @@ namespace CrunchEconV3.Models
         public string LocationGPS { get; set; } = "Put a gps here";
         public string FactionTag { get; set; } = "SPRT";
         public int SecondsBetweenContractRefresh { get; set; }
-        public List<IContractConfig> Contracts = new List<IContractConfig>();
+        public List<string> ContractFiles { get; set; }
         public DateTime NextSellRefresh { get; set; } = DateTime.Now;
         public DateTime NextBuyRefresh { get; set; } = DateTime.Now;
         public string FileName { get; set; }
+        private List<IContractConfig> configs;
+
+        public List<IContractConfig> GetConfigs()
+        {
+            return configs;
+        }
+        public void SetConfigs(List<IContractConfig> Configs)
+        {
+            configs = Configs;
+        }
     }
 }
+//List<IContractConfig> Contracts = new List<IContractConfig>();

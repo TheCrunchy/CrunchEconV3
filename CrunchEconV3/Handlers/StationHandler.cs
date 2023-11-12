@@ -83,7 +83,7 @@ namespace CrunchEconV3.Handlers
             BlocksContracts.Remove(blockId);
             List<ICrunchContract> NewContracts = new List<ICrunchContract>();
           //  Core.Log.Info($"{foundStation.FileName}");
-            foreach (var contract in foundStation.Contracts)
+            foreach (var contract in foundStation.GetConfigs())
             {
                 var i = 0;
              

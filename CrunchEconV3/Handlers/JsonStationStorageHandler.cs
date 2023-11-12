@@ -14,12 +14,15 @@ namespace CrunchEconV3.Handlers
     public class JsonStationStorageHandler : ICrunchStationStorage
     {
         private List<StationConfig> Configs { get; set; } = new List<StationConfig>();
+
+        private Dictionary<string, List<IContractConfig>> MappedConfigs { get; set; } = new Dictionary<string, List<IContractConfig>>();
         private string BasePath { get; set; }
         private FileUtils FileUtils { get; set; } = new FileUtils();
         public JsonStationStorageHandler(string BasePath)
         {
             this.BasePath = $"{BasePath}/Stations/";
             Directory.CreateDirectory(this.BasePath);
+            LoadAll();
         }
 
         public List<StationConfig> GetAll()
@@ -37,14 +40,35 @@ namespace CrunchEconV3.Handlers
         public void LoadAll()
         {
             Configs.Clear();
+            MappedConfigs.Clear();
             foreach (var item in Directory.GetFiles(BasePath))
             {
                 var loaded = FileUtils.ReadFromJsonFile<StationConfig>(item);
                 loaded.FileName = Path.GetFileName(item);
-                if (loaded.Enabled)
+
+                if (loaded.ContractFiles != null)
                 {
-                    Configs.Add(loaded);
+                    foreach (var file in loaded.ContractFiles)
+                    {
+                        try
+                        {
+                            if (!MappedConfigs.ContainsKey(file))
+                            {
+                                MappedConfigs.Add(file, FileUtils.ReadFromJsonFile<List<IContractConfig>>($"{BasePath}/{file}"));
+                            }
+                            loaded.SetConfigs(MappedConfigs[file]);
+                        }
+                        catch (Exception exception)
+                        {
+                            Core.Log.Error(exception);
+                        }
+                    }
+                    if (loaded.Enabled)
+                    {
+                        Configs.Add(loaded);
+                    }
                 }
+              
             }
         }
 
@@ -62,7 +86,10 @@ namespace CrunchEconV3.Handlers
             example.FileName = "Example.Json";
             example.Enabled = false;
             example.FactionTag = "SPRT";
-            example.Contracts = new List<IContractConfig>();
+            example.ContractFiles = new List<string>();
+            example.ContractFiles.Add("/Example/Contracts.json");
+
+            var examples = new List<IContractConfig>();
             var mining = new MiningContractConfig();
             mining.OresToPickFrom = new List<string>() { "Iron", "Nickel", "Cobalt" };
             var people = new PeopleHaulingContractConfig();
@@ -72,14 +99,14 @@ namespace CrunchEconV3.Handlers
                 BlockPairName = "Bed",
                 PassengerSpace = 2
             });
-            example.Contracts.Add(people);
-            example.Contracts.Add(mining);
+            examples.Add(people);
+            examples.Add(mining);
             var gas = new GasContractConfig();
             gas.GasSubType = "Hydrogen";
-            gas.AmountInLitresMin = 480 * 1000;
-            example.Contracts.Add(gas);
+            examples.Add(gas);
             FileUtils.WriteToJsonFile($"{BasePath}/Example.json", example);
-
+            Directory.CreateDirectory($"{BasePath}/Example");
+            FileUtils.WriteToJsonFile($"{BasePath}/Example/Contracts.json", examples);
         }
     }
 }
