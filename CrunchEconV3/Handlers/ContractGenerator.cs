@@ -78,6 +78,10 @@ namespace CrunchEconV3.Handlers
                             }
                         }
 
+                        if (contract.RewardMoney == 0)
+                        {
+                            return null;
+                        }
                         var description = new StringBuilder();
                         contract.ContractType = CrunchContractTypes.PeopleTransport;
                         contract.BlockId = blockId;
