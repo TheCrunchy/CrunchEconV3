@@ -76,6 +76,7 @@ namespace CrunchEconV3.Handlers
                                 distanceBonus = (long)(division * people.BonusPerDistance);
                                 contract.DistanceReward += distanceBonus;
                             }
+                            break;
                         }
 
                         if (contract.RewardMoney == 0)
@@ -129,6 +130,7 @@ namespace CrunchEconV3.Handlers
                             }
                             var GPS = GPSHelper.ScanChat(station.LocationGPS);
                             contract.DeliverLocation = GPS.Coords;
+                            break;
                         }
 
                         if (contract.DeliverLocation.Equals(Vector3.Zero))
