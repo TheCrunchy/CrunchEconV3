@@ -68,6 +68,15 @@ namespace CrunchEconV3.Handlers
                         Configs.Add(loaded);
                     }
                 }
+                else
+                {
+                    loaded.ContractFiles = new List<string>();
+                    loaded.SetConfigs(new List<IContractConfig>());
+                    if (loaded.Enabled)
+                    {
+                        Configs.Add(loaded);
+                    }
+                }
               
             }
         }

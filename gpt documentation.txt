@@ -1,0 +1,23 @@
+Enabled (boolean):
+Indicates whether the system is enabled or not. If set to false, the system is inactive.
+
+LocationGPS (string):
+Represents a GPS location. The placeholder "Put a gps here" should be replaced with the actual GPS coordinates.
+
+FactionTag (string):
+Specifies a faction tag, likely relevant to the system's functionality. In this case, the value is "SPRT."
+
+SecondsBetweenContractRefresh (integer):
+Determines the interval, in seconds, between contract refresh operations. The current value is set to 0, indicating a potentially immediate refresh.
+
+ContractFiles (array of strings):
+Contains a list of file paths pointing to contract configuration files. In this example, there is one entry: "/Example/Contracts.json.", If no files are specified, the station can only function as a delivery point for contracts.
+
+NextSellRefresh (string - ISO 8601 DateTime):
+Indicates the date and time for the next scheduled sell contract refresh. The example date is "2023-11-12T18:17:51.5879981+00:00."
+
+NextBuyRefresh (string - ISO 8601 DateTime):
+Specifies the date and time for the next scheduled buy contract refresh. The example date is "2023-11-12T18:17:51.5879981+00:00."
+
+FileName (string):
+Represents the name of the file itself, which is "Example.Json."
