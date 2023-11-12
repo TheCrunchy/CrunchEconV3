@@ -131,7 +131,7 @@ namespace CrunchEconV3.Handlers
                             contract.DeliverLocation = GPS.Coords;
                         }
 
-                        if (contract.DeliverLocation == Vector3.Zero)
+                        if (contract.DeliverLocation.Equals(Vector3.Zero))
                         {
                             return null;
                         }
