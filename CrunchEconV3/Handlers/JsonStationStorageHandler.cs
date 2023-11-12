@@ -108,6 +108,26 @@ namespace CrunchEconV3.Handlers
                 BlockPairName = "Bed",
                 PassengerSpace = 2
             });
+            people.PassengerBlocksAvailable.Add(new PassengerBlock()
+            {
+                BlockPairName = "InsetBed",
+                PassengerSpace = 2
+            });
+            people.PassengerBlocksAvailable.Add(new PassengerBlock()
+            {
+                BlockPairName = "Bathroom",
+                PassengerSpace = 2
+            });
+            people.PassengerBlocksAvailable.Add(new PassengerBlock()
+            {
+                BlockPairName = "BathroomOpen",
+                PassengerSpace = 2
+            });
+            people.PassengerBlocksAvailable.Add(new PassengerBlock()
+            {
+                BlockPairName = "Kitchen",
+                PassengerSpace = 2
+            });
             examples.Add(people);
             examples.Add(mining);
             var gas = new GasContractConfig();

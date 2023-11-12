@@ -51,10 +51,10 @@ namespace CrunchEconV3.Handlers
                         contract.CanAutoComplete = true;
                         contract.CollateralToTake = (Core.random.Next((int)mining.CollateralMin, (int)mining.CollateralMax));
                         contract.SpawnOreInStation = mining.SpawnOreInStation;
-                        description.AppendLine($"You must go mine {contract.AmountToMine:##,###} {contract.OreSubTypeName} using a ship drill, then return here.".PadRight(69, '_'));
+                        description.AppendLine($"You must go mine {contract.AmountToMine:##,###} {contract.OreSubTypeName} using a ship drill, then return here.");
                         if (mining.ReputationRequired != 0)
                         {
-                            description.AppendLine($"Reputation with owner required: {mining.ReputationRequired}".PadRight(69, '_'));
+                            description.AppendLine($" ||| Reputation with owner required: {mining.ReputationRequired}".PadRight(69, '_'));
                         }
 
                         contract.Description = description.ToString();
@@ -114,18 +114,18 @@ namespace CrunchEconV3.Handlers
                         contract.ReputationRequired = people.ReputationRequired;
                         contract.CanAutoComplete = true;
                         contract.CollateralToTake = (Core.random.Next((int)people.CollateralMin, (int)people.CollateralMax));
-                        description.AppendLine($"Reward = {contract.RewardMoney} multiplied by Passenger count".PadRight(69, '_'));
-                        description.AppendLine($"Maximum possible passengers: {1500 * people.ReputationMultiplierForMaximumPassengers}".PadRight(69, '_'));
+                        description.AppendLine($"Reward = {contract.RewardMoney} multiplied by Passenger count");
+                        description.AppendLine($" ||| Maximum possible passengers: {1500 * people.ReputationMultiplierForMaximumPassengers}");
                         foreach (var passengerBlock in people.PassengerBlocksAvailable)
                         {
-                            description.AppendLine($"Passenger block {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace} capacity".PadRight(69, '_'));
+                            description.AppendLine($"||| {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace} capacity");
                         }
                     
-                        description.AppendLine($"Distance bonus applied {contract.DistanceReward:##,###}".PadRight(69, '_'));
+                        description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###}");
                
                         if (people.ReputationRequired != 0)
                         {
-                            description.AppendLine($"Reputation with owner required: {people.ReputationRequired}".PadRight(69, '_'));
+                            description.AppendLine($" ||| Reputation with owner required: {people.ReputationRequired}");
                         }
 
                         contract.Description = description.ToString();
@@ -179,10 +179,10 @@ namespace CrunchEconV3.Handlers
                         contract.CanAutoComplete = true;
                         contract.ReadyToDeliver = true;
                         contract.CollateralToTake = (Core.random.Next((int)gas.CollateralMin, (int)gas.CollateralMax));
-                        description.AppendLine($"You must deliver {contract.GasAmount:##,###}L {contract.GasName} in non stockpile tanks.".PadRight(69, '_'));
+                        description.AppendLine($"You must deliver {contract.GasAmount:##,###}L {contract.GasName} in non stockpile tanks.");
                         if (gas.ReputationRequired != 0)
                         {
-                            description.AppendLine($"Reputation with owner required: {gas.ReputationRequired}".PadRight(69, '_'));
+                            description.AppendLine($" ||| Reputation with owner required: {gas.ReputationRequired}");
                         }
 
                         contract.Description = description.ToString();
@@ -254,10 +254,10 @@ namespace CrunchEconV3.Handlers
                 case CrunchPeopleHaulingContract crunchPeople:
                 {
 
-                    contractDescription = $"You must go deliver {crunchPeople.PassengerCount} passengers, using the ship that accepted the contract.".PadRight(69, '_');
+                    contractDescription = $"You must go deliver {crunchPeople.PassengerCount} passengers, using the ship that accepted the contract.";
                     foreach (var passengerBlock in crunchPeople.PassengerBlocks)
                     {
-                        contractDescription += $"Passenger block {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace} capacity".PadRight(69, '_');
+                        contractDescription += $" ||| block {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace} capacity";
                     }
                 }
                     break;
@@ -265,7 +265,6 @@ namespace CrunchEconV3.Handlers
                 {
                     contractDescription =
                         $"You must deliver {crunchGas.GasAmount:##,###}L {crunchGas.GasName} in non stockpile tanks.";
-
                 }
                     break;
                 default:
