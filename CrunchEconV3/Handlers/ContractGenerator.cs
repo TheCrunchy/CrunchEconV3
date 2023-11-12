@@ -131,6 +131,10 @@ namespace CrunchEconV3.Handlers
                             contract.DeliverLocation = GPS.Coords;
                         }
 
+                        if (contract.DeliverLocation == Vector3.Zero)
+                        {
+                            return null;
+                        }
                         contract.GasAmount = Core.random.Next((int)gas.AmountInLitresMin, (int)gas.AmountInLitresMax);
                         contract.RewardMoney = contract.GasAmount * (Core.random.Next((int)gas.PricePerLitreMin, (int)gas.PricePerLitreMax));
                         contract.ContractType = CrunchContractTypes.Gas;
