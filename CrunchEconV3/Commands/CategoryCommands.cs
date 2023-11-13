@@ -19,6 +19,7 @@ namespace CrunchEconV3.Commands
         {
             Core.StationStorage.LoadAll();
             StationHandler.BlocksContracts.Clear();
+            Core.ReloadConfig();
             Context.Respond("Reloaded and cleared existing contracts");
         }
     }

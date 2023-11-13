@@ -105,6 +105,7 @@
     <Compile Include="Models\Config\MiningContractConfig.cs" />
     <Compile Include="Models\Contracts\CrunchGasContract.cs" />
     <Compile Include="Models\Contracts\CrunchPeopleHaulingContract.cs" />
+    <Compile Include="Models\KeenNPCEntry.cs" />
     <Compile Include="Models\PassengerBlock.cs" />
     <Compile Include="Models\TankGroup.cs" />
     <Compile Include="Patches\ContractPatches.cs" />

@@ -16,6 +16,7 @@ namespace CrunchEconV3.Handlers
         private List<StationConfig> Configs { get; set; } = new List<StationConfig>();
 
         private Dictionary<string, List<IContractConfig>> MappedConfigs { get; set; } = new Dictionary<string, List<IContractConfig>>();
+        private Dictionary<string, List<IContractConfig>> MappedKeenConfigs { get; set; } = new Dictionary<string, List<IContractConfig>>();
         private string BasePath { get; set; }
         private FileUtils FileUtils { get; set; } = new FileUtils();
         public JsonStationStorageHandler(string BasePath)
@@ -37,10 +38,16 @@ namespace CrunchEconV3.Handlers
             return Configs;
         }
 
+        public List<IContractConfig> GetForKeen(string factionTag)
+        {
+            return MappedKeenConfigs.TryGetValue(factionTag, out var con) ? con : new List<IContractConfig>();
+        }
+
         public void LoadAll()
         {
             Configs.Clear();
             MappedConfigs.Clear();
+            MappedKeenConfigs.Clear();
             foreach (var item in Directory.GetFiles(BasePath))
             {
                 var loaded = FileUtils.ReadFromJsonFile<StationConfig>(item);
@@ -54,7 +61,15 @@ namespace CrunchEconV3.Handlers
                         {
                             if (!MappedConfigs.ContainsKey(file))
                             {
-                                MappedConfigs.Add(file, FileUtils.ReadFromJsonFile<List<IContractConfig>>($"{BasePath}/{file}"));
+                                try
+                                {
+                                    MappedConfigs.Add(file, FileUtils.ReadFromJsonFile<List<IContractConfig>>($"{BasePath}/{file}"));
+                                }
+                                catch (Exception e)
+                                {
+                                    Core.Log.Error(e);
+                                    continue;
+                                }
                             }
                             loaded.SetConfigs(MappedConfigs[file]);
                         }
@@ -78,6 +93,30 @@ namespace CrunchEconV3.Handlers
                     }
                 }
               
+            }
+
+            foreach (var NPC in Core.config.KeenNPCContracts)
+            {
+                foreach (var item in NPC.NPCFactionTags)
+                {
+                    MappedKeenConfigs.Remove(item);
+                    foreach (var con in NPC.ContractFiles)
+                    {
+                        if (!MappedConfigs.ContainsKey(con))
+                        {
+                            try
+                            {
+                                MappedConfigs.Add(con, FileUtils.ReadFromJsonFile<List<IContractConfig>>($"{BasePath.Replace("/Stations","")}/{con}"));
+                            }
+                            catch (Exception e)
+                            {
+                                Core.Log.Error(e);
+                                continue;
+                            }
+                        }
+                        MappedKeenConfigs.Add(item, MappedConfigs[con]);
+                    }
+                }
             }
         }
 

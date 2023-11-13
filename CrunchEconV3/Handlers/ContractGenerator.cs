@@ -8,6 +8,8 @@ using CrunchEconV3.Models;
 using CrunchEconV3.Models.Config;
 using CrunchEconV3.Models.Contracts;
 using CrunchEconV3.Utils;
+using Sandbox.Game.Entities.Blocks;
+using SpaceEngineers.Game.EntityComponents.Blocks;
 using VRage.Game;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRage.ObjectBuilder;
@@ -18,7 +20,7 @@ namespace CrunchEconV3.Handlers
 {
     public static class ContractGenerator
     {
-        public static ICrunchContract GenerateContract(IContractConfig config, Vector3D location, long blockId = 1)
+        public static ICrunchContract GenerateContract(IContractConfig config, Vector3D location, long blockId)
         {
             switch (config)
             {
@@ -62,24 +64,10 @@ namespace CrunchEconV3.Handlers
                     }
                 case PeopleHaulingContractConfig people:
                     {
-                        long distanceBonus = 0;
                         var contract = new CrunchPeopleHaulingContract();
                         contract.RewardMoney = Core.random.Next((int)people.PricePerPassengerMin,
                             (int)people.PricePerPassengerMax);
-                        for (int i = 0; i < 10; i++)
-                        {
-                            var thisStation = StationHandler.GetStationNameForBlock(blockId);
-                            var station = Core.StationStorage.GetAll().GetRandomItemFromList();
-                            if (station.FileName == thisStation)
-                            {
-                                i++;
-                                continue;
-                            }
-                            var GPS = GPSHelper.ScanChat(station.LocationGPS);
-                            contract.DeliverLocation = GPS.Coords;
-                 
-                            break;
-                        }
+     
                         if (people.DeliveryGPSes != null && people.DeliveryGPSes.Any())
                         {
                             var random = people.DeliveryGPSes.GetRandomItemFromList();
@@ -90,17 +78,6 @@ namespace CrunchEconV3.Handlers
                             }
                         }
 
-                        if (people.KilometerDistancePerBonus != 0)
-                        {
-                            var distance = Vector3.Distance(location, contract.DeliverLocation);
-                            var division = distance / people.KilometerDistancePerBonus;
-                            distanceBonus = (long)(division * people.BonusPerDistance);
-                            contract.DistanceReward += distanceBonus;
-                        }
-                        if (contract.RewardMoney == 0)
-                        {
-                            return null;
-                        }
                         var description = new StringBuilder();
                         contract.ContractType = CrunchContractTypes.PeopleTransport;
                         contract.BlockId = blockId;
@@ -131,7 +108,6 @@ namespace CrunchEconV3.Handlers
                         contract.Description = description.ToString();
                         return contract;
                     }
-                    break;
                 case GasContractConfig gas:
                     {
                         var description = new StringBuilder();
@@ -158,10 +134,6 @@ namespace CrunchEconV3.Handlers
                             {
                                 contract.DeliverLocation = GPS.Coords;
                             }
-                        }
-                        if (contract.DeliverLocation.Equals(Vector3.Zero))
-                        {
-                            return null;
                         }
 
                         contract.GasAmount = Core.random.Next((int)gas.AmountInLitresMin, (int)gas.AmountInLitresMax);

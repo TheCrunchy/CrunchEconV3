@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
+using CrunchEconV3.Models;
 using CrunchEconV3.Models.Config;
 using CrunchEconV3.Utils;
 using NLog;
@@ -132,10 +133,23 @@ namespace CrunchEconV3
             else
             {
                 config = new Config();
+                config.KeenNPCContracts = new List<KeenNPCEntry>();
+                var temp = new KeenNPCEntry();
+                temp.ContractFiles = new List<string>() { "/Stations/Example/Contracts.json" };
+                temp.NPCFactionTags = new List<string>() { "SPRT" };
+                config.KeenNPCContracts.Add(temp);
                 utils.WriteToXmlFile<Config>(path, config, false);
             }
 
         }
+
+        public static void ReloadConfig()
+        {
+            var path = basePath + @$"\{PluginName}\Config.xml";
+            FileUtils utils = new FileUtils();
+            config = utils.ReadFromXmlFile<Config>(path);
+        }
+
         public string CreatePath()
         {
 

@@ -15,5 +15,6 @@ namespace CrunchEconV3.Interfaces
         public void Save(StationConfig PlayerData);
         public void GenerateExample();
         public List<StationConfig> GetAll();
+        List<IContractConfig> GetForKeen(string factionTag);
     }
 }
