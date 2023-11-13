@@ -184,6 +184,8 @@ namespace CrunchEconV3.Patches
 
         public static void PatchGetContract(MySessionComponentContractSystem __instance, long identityId, ref List<MyObjectBuilder_Contract> __result)
         {
+            MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
+
             List<MyObjectBuilder_Contract> newList = new List<MyObjectBuilder_Contract>();
             var steamid = MySession.Static.Players.TryGetSteamId(identityId);
             var playerData = Core.PlayerStorage.GetData(steamid);
@@ -202,11 +204,12 @@ namespace CrunchEconV3.Patches
                             deleteThese.Add(contract);
                             Core.SendMessage("Contracts", $"{contract.Name} completed!, you have been paid.", Color.Green, player.Id.SteamId);
                             contract.DeleteDeliveryGPS();
-                            //MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            //{
-                            //    __instance.SendNotificationToPlayer(MyContractNotificationTypes.ContractSuccessful,
-                            //        identityId);
-                            //});
+                       
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                            {
+                                component.SendNotificationToPlayer(MyContractNotificationTypes.ContractSuccessful,
+                                    identityId);
+                            });
                             continue;
                         }
                         contract.SendDeliveryGPS();
