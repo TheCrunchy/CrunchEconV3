@@ -13,6 +13,7 @@ using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
+using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
 using Torch.Mod;
 using Torch.Mod.Messages;
@@ -201,6 +202,18 @@ namespace CrunchEconV3.Patches
                             deleteThese.Add(contract);
                             Core.SendMessage("Contracts", $"{contract.Name} completed!, you have been paid.", Color.Green, player.Id.SteamId);
                             contract.DeleteDeliveryGPS();
+                            //    var method = __instance.GetType().GetMethod("DisplayNotificationToPlayer", BindingFlags.Instance | BindingFlags.Public);
+                            //   MethodInfo displayNotificationToPlayerMethod = __instance.GetType().GetMethod("DisplayNotificationToPlayer", BindingFlags.NonPublic | BindingFlags.Static);
+                            //  Action<MyContractNotificationTypes> displayNotificationDelegate = (Action<MyContractNotificationTypes>)Delegate.CreateDelegate(typeof(Action<MyContractNotificationTypes>), displayNotificationToPlayerMethod);
+
+                            //Sandbox.Engine.Multiplayer.MyMultiplayer.RaiseStaticEvent<MyContractNotificationTypes>(
+                            //    (Func<IMyEventOwner, Action<MyContractNotificationTypes>>)(x => new Action<MyContractNotificationTypes>(displayNotificationDelegate)),
+                            //    MyContractNotificationTypes.ContractSuccessful, new EndpointId(player.Id.SteamId), new Vector3D?());
+                            //MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                            //{
+                            //    __instance.SendNotificationToPlayer(MyContractNotificationTypes.ContractSuccessful,
+                            //        identityId);
+                            //});
                             continue;
                         }
                         contract.SendDeliveryGPS();
