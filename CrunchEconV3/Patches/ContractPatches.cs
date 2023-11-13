@@ -309,6 +309,7 @@ namespace CrunchEconV3.Patches
                 if (contract != null)
                 {
                     contract.FailContract();
+                    contract.DeleteDeliveryGPS();
                     playerData.RemoveContract(contract);
                     Task.Run(async () =>
                     {

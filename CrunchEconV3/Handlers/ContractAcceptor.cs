@@ -87,6 +87,13 @@ namespace CrunchEconV3.Handlers
                     }
                 }
 
+                if (contract.DeliverLocation.Equals(Vector3.Zero))
+                {
+                    playerData.RemoveContract(contract);
+                    Core.Log.Error("Error getting a delivery point for this contract");
+                    return Tuple.Create(false, MyContractResults.Error_InvalidData);
+                }
+
                 contract.Start();
                 contract.SendDeliveryGPS();
                 StationHandler.BlocksContracts[contractDictionaryId].Remove(contract);
