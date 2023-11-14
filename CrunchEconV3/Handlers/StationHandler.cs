@@ -18,9 +18,15 @@ namespace CrunchEconV3.Handlers
     {
         private static Dictionary<long, string> MappedContractBlocks = new Dictionary<long, string>();
         private static Dictionary<long, DateTime> RefreshAt = new Dictionary<long, DateTime>();
-        private static Dictionary<long, MyStation> MappedStations = new Dictionary<long, MyStation>();
-
+        public static Dictionary<long, MyStation> MappedStations = new Dictionary<long, MyStation>();
+        public static List<MyStation> KeenStations = new List<MyStation>();
         public static Dictionary<long, List<ICrunchContract>> BlocksContracts = new Dictionary<long, List<ICrunchContract>>();
+
+        public static void ReadyForRefresh()
+        {
+            RefreshAt.Clear();
+        }
+
         public static bool NPCNeedsRefresh(long blockId)
         {
 
@@ -98,7 +104,7 @@ namespace CrunchEconV3.Handlers
             }
 
             MyStation station = null;
-            if (!MappedContractBlocks.ContainsKey(blockId) && !MappedContractBlocks.ContainsKey(blockId))
+            if (!MappedStations.ContainsKey(blockId) && !MappedContractBlocks.ContainsKey(blockId))
             {
                 object[] MethodInput = new object[] { blockId };
                 var result = GetByStationId.Invoke(MySession.Static.Factions, MethodInput);
@@ -106,6 +112,7 @@ namespace CrunchEconV3.Handlers
                 {
                     station = (MyStation)result;
                 }
+                MappedStations.Add(blockId, station);
             }
             if (station != null)
             {

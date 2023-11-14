@@ -58,6 +58,7 @@ namespace CrunchEconV3
         }
 
         public DateTime NextContractGps = DateTime.Now;
+        public DateTime NextKeenMap = DateTime.Now;
         public override void Update()
         {
 
@@ -104,6 +105,16 @@ namespace CrunchEconV3
                 {
                     NextContractGps = DateTime.Now.AddMinutes(10);
                 }
+                if (DateTime.Now >= NextKeenMap)
+                {
+                    NextKeenMap = DateTime.Now.AddMinutes(10);
+                    StationHandler.KeenStations.Clear();
+                    foreach (var faction in MySession.Static.Factions.Where(x => x.Value.Stations.Any()))
+                    {
+                        var stations = faction.Value.Stations;
+                        StationHandler.KeenStations.AddRange(stations.Select(x => x));
+                    }
+                }
             }
         }
         public static void SendMessage(string author, string message, Color color, ulong steamID)
@@ -145,9 +156,8 @@ namespace CrunchEconV3
 
         public static void ReloadConfig()
         {
-            var path = basePath + @$"\{PluginName}\Config.xml";
             FileUtils utils = new FileUtils();
-            config = utils.ReadFromXmlFile<Config>(path);
+            config = utils.ReadFromXmlFile<Config>($"{basePath}/{PluginName}/Config.xml");
         }
 
         public string CreatePath()

@@ -17,9 +17,13 @@ namespace CrunchEconV3.Commands
         [Permission(MyPromoteLevel.Admin)]
         public void Example()
         {
-            Core.StationStorage.LoadAll();
             StationHandler.BlocksContracts.Clear();
+            StationHandler.ReadyForRefresh();
+            StationHandler.MappedStations.Clear();
             Core.ReloadConfig();
+            Core.StationStorage.LoadAll();
+     
+
             Context.Respond("Reloaded and cleared existing contracts");
         }
     }

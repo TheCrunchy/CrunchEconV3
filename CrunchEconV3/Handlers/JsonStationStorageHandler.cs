@@ -114,7 +114,16 @@ namespace CrunchEconV3.Handlers
                                 continue;
                             }
                         }
-                        MappedKeenConfigs.Add(item, MappedConfigs[con]);
+
+                        if (MappedKeenConfigs.TryGetValue(item, out var cons))
+                        {
+                            cons.AddRange(MappedConfigs[con]);
+                            MappedKeenConfigs[item] = cons;
+                        }
+                        else
+                        {
+                            MappedKeenConfigs.Add(item, MappedConfigs[con]);
+                        }
                     }
                 }
             }

@@ -47,14 +47,26 @@ namespace CrunchEconV3.Handlers
                
                 if (keenstation != null)
                 {
-                    if (MySession.Static.Factions.GetRandomFriendlyStation(faction.FactionId, keenstation.Id,
-                            out var friendly, out var target, true))
+                    for (int i = 0; i < 10; i++)
                     {
-                        contract.DeliverLocation = target.Position;
-                    }
-                    else
-                    {
-                        Core.Log.Info("Couldnt find a fucking station");
+                        var found = StationHandler.KeenStations.GetRandomItemFromList();
+                        var foundFaction = MySession.Static.Factions.TryGetFactionById(found.FactionId);
+                        if (foundFaction == null)
+                        {
+                            i++;
+                            continue;
+                        }
+
+                        var relation =
+                            MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(identityId,
+                                foundFaction.FactionId);
+                        if (relation.Item2 >= -500)
+                        {
+                            contract.DeliverLocation = found.Position;
+                            i = 10;
+                        }
+
+                        i++;
                     }
                 }
 
