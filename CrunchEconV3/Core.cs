@@ -152,11 +152,20 @@ namespace CrunchEconV3
                 temp.NPCFactionTags = new List<string>() { "SPRT" };
                 config.KeenNPCContracts.Add(temp);
                 utils.WriteToXmlFile<Config>(path, config, false);
+     
             }
-            
-            var folder = StoragePath.Replace(@"\Instance","");
-            var plugins = $"{folder}/plugins/CrunchEconV3.zip";
-            ZipFile.ExtractToDirectory(plugins, $"{basePath}/{PluginName}/");
+
+            if (!File.Exists($"{basePath}/{PluginName}/CrunchEconV3.dll"))
+            {
+                File.Delete($"{basePath}/{PluginName}/CrunchEconV3.dll");
+                File.Delete($"{basePath}/{PluginName}/manifest.xml");
+                var folder = StoragePath.Replace(@"\Instance", "");
+                var plugins = $"{folder}/plugins/CrunchEconV3.zip";
+
+                ZipFile.ExtractToDirectory(plugins, $"{basePath}/{PluginName}/", Encoding.UTF8);
+            }
+    
+
         }
 
         public static void ReloadConfig()
