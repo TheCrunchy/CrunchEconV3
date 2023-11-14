@@ -95,12 +95,11 @@ namespace CrunchEconV3.Handlers
 
                 if (contract is CrunchPeopleHaulingContract people2)
                 {
-                    if (people2.KilometerDistancePerBonus != 0)
+                    if (people2.BonusPerKMDistance != 0)
                     {
                         var distance = Vector3.Distance(contract.DeliverLocation, __instance.PositionComp.GetPosition());
                         var division = distance / 1000;
-                        division /= people2.KilometerDistancePerBonus;
-                        var distanceBonus = (long)(division * people2.BonusPerDistance);
+                        var distanceBonus = (long)(division * people2.BonusPerKMDistance);
                         if (distanceBonus > 0)
                         {
                             contract.RewardMoney += distanceBonus;

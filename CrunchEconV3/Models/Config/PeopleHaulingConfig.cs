@@ -13,8 +13,7 @@ namespace CrunchEconV3.Models.Config
         public List<string> DeliveryGPSes { get; set; }
         public long PricePerPassengerMin { get; set; } = 1;
         public long PricePerPassengerMax { get; set; } = 3;
-        public long BonusPerDistance { get; set; } = 1;
-        public long KilometerDistancePerBonus { get; set; } = 100000;
+        public long BonusPerKMDistance { get; set; } = 1;
         public long SecondsToComplete { get; set; } = 1200;
         public int ReputationRequired { get; set; } = 0;
         public int ReputationGainOnCompleteMin { get; set; } = 1;

@@ -34,8 +34,7 @@ namespace CrunchEconV3.Models.Contracts
         public long RewardMoney { get; set; }
         public long DistanceReward { get; set; }
         public Vector3 DeliverLocation { get; set; }
-        public long BonusPerDistance { get; set; } = 1;
-        public long KilometerDistancePerBonus { get; set; } = 100000;
+        public long BonusPerKMDistance { get; set; } = 1;
         public List<PassengerBlock> PassengerBlocks { get; set; }
         public int PassengerCount { get; set; }
         public double ReputationMultiplierForMaximumPassengers { get; set; } = 0.3;
