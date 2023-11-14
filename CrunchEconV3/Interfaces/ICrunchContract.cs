@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Models;
+using CrunchEconV3.Models.Contracts;
 using VRageMath;
 
 namespace CrunchEconV3.Interfaces

@@ -42,7 +42,8 @@ namespace CrunchEconV3.Models.Contracts
             }
 
             Core.SendMessage("Contracts",
-                DateTime.Now > ExpireAt ? $"{this.Name} failed, time expired." : $"{this.Name} failed.", Color.Red,
+                DateTime.Now > ExpireAt ? string.Format("{0} failed, time expired.", this.Name) : string.Format(
+                    "{0} failed.", this.Name), Color.Red,
                 this.AssignedPlayerSteamId);
         }
 
@@ -65,7 +66,7 @@ namespace CrunchEconV3.Models.Contracts
             sb.AppendLine("Contract Delivery Location.");
             MyGps gpsRef = new MyGps();
             gpsRef.Coords = DeliverLocation;
-            gpsRef.Name = $"Mining Delivery Location {this.OreSubTypeName}";
+            gpsRef.Name = string.Format("Mining Delivery Location {0}", this.OreSubTypeName);
             gpsRef.GPSColor = Color.Orange;
             gpsRef.ShowOnHud = true;
             gpsRef.AlwaysVisible = true;
@@ -160,7 +161,7 @@ namespace CrunchEconV3.Models.Contracts
             }
             catch (Exception e)
             {
-                Core.Log.Error($"Mining try complete error {e}");
+                Core.Log.Error(string.Format("Mining try complete error {0}", e));
                 return true;
             }
             return true;

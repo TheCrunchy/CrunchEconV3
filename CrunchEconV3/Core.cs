@@ -25,6 +25,7 @@ using Torch.Managers;
 using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRageMath;
+using System.IO.Compression;
 
 namespace CrunchEconV3
 {
@@ -36,8 +37,9 @@ namespace CrunchEconV3
         public static Random random = new Random();
         public static ICrunchPlayerStorage PlayerStorage;
         public static ICrunchStationStorage StationStorage;
-        private static string path;
-        private static string basePath;
+        public static string path;
+        public static string basePath;
+
         public const string PluginName = "CrunchEconV3";
         public static Logger Log = LogManager.GetLogger(PluginName);
         public override void Init(ITorchBase torch)
@@ -151,7 +153,10 @@ namespace CrunchEconV3
                 config.KeenNPCContracts.Add(temp);
                 utils.WriteToXmlFile<Config>(path, config, false);
             }
-
+            
+            var folder = StoragePath.Replace(@"\Instance","");
+            var plugins = $"{folder}/plugins/CrunchEconV3.zip";
+            ZipFile.ExtractToDirectory(plugins, $"{basePath}/{PluginName}/");
         }
 
         public static void ReloadConfig()
