@@ -11,7 +11,7 @@ namespace CrunchEconV3.Interfaces
 {
     public interface ICrunchContract
     {
-        public CrunchContractTypes ContractType { get; set; }
+        public string ContractType { get; set; }
         public void Start();
         public int ReputationRequired { get; set; }
         public long ContractId { get; set; }

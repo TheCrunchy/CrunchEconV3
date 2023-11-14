@@ -17,7 +17,8 @@ namespace CrunchEconV3.Models.Contracts
 {
     public class CrunchGasContract : ICrunchContract
     {
-        public CrunchContractTypes ContractType { get; set; }
+        public string ContractType { get; set; } = "GasHauling";
+
         public void Start()
         {
             ExpireAt = DateTime.Now.AddSeconds(SecondsToComplete);

@@ -40,7 +40,7 @@ namespace CrunchEconV3.Handlers
                                 contract.DeliverLocation = GPS.Coords;
                             }
                         }
-                        contract.ContractType = CrunchContractTypes.Mining;
+                        contract.ContractType = "Mining";
                         contract.BlockId = blockId;
                         contract.CanAutoComplete = false;
                         contract.OreSubTypeName = mining.OresToPickFrom.GetRandomItemFromList();
@@ -79,7 +79,7 @@ namespace CrunchEconV3.Handlers
                         }
 
                         var description = new StringBuilder();
-                        contract.ContractType = CrunchContractTypes.PeopleTransport;
+                        contract.ContractType = "PeopleTransport";
                         contract.BlockId = blockId;
                         contract.CanAutoComplete = false;
                         contract.PassengerBlocks = people.PassengerBlocksAvailable;
@@ -138,7 +138,7 @@ namespace CrunchEconV3.Handlers
 
                         contract.GasAmount = Core.random.Next((int)gas.AmountInLitresMin, (int)gas.AmountInLitresMax);
                         contract.RewardMoney = contract.GasAmount * (Core.random.Next((int)gas.PricePerLitreMin, (int)gas.PricePerLitreMax));
-                        contract.ContractType = CrunchContractTypes.Gas;
+                        contract.ContractType = "GasHauling";
                         contract.BlockId = blockId;
                         contract.CanAutoComplete = false;
                         contract.GasName = gas.GasSubType;

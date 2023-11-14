@@ -19,6 +19,7 @@ namespace CrunchEconV3.Models.Contracts
 {
     public class CrunchMiningContract : ICrunchContract
     {
+        public string ContractType { get; set; } = "Mining";
         public long ContractId { get; set; }
         public long BlockId { get; set; }
         public long AssignedPlayerIdentityId { get; set; }
@@ -85,8 +86,6 @@ namespace CrunchEconV3.Models.Contracts
         public int GpsId { get; set; }
         public bool ReadyToDeliver { get; set; }
         public long CollateralToTake { get; set; }
-
-        public CrunchContractTypes ContractType { get; set; }
 
         public void Start()
         {

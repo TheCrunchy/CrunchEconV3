@@ -21,9 +21,9 @@ namespace CrunchEconV3.Models
 
         public Dictionary<long, ICrunchContract> PlayersContracts = new Dictionary<long, ICrunchContract>();
 
-        private List<ICrunchContract> GetContractsForType(CrunchContractTypes type)
+        private List<ICrunchContract> GetContractsForType(string type)
         {
-            return PlayersContracts.Where(x => x.Value.ContractType == type).Select(x => x.Value).ToList();
+            return PlayersContracts.Where(x => x.Value.ContractType.Equals(type)).Select(x => x.Value).ToList();
         }
 
         public Tuple<bool, MyContractResults> AddContract(ICrunchContract contract, string factionTag, long playerIdentity, MyContractBlock __instance)
