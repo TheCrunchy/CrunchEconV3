@@ -155,8 +155,7 @@ namespace CrunchEconV3
      
             }
 
-            if (!File.Exists($"{basePath}/{PluginName}/CrunchEconV3.dll"))
-            {
+           
                 var folder = StoragePath.Replace(@"\Instance", "");
                 var tempfolder = StoragePath +"/CRUNCHECONTEMP/";
                 if (Directory.Exists(tempfolder))
@@ -170,12 +169,12 @@ namespace CrunchEconV3
 
                 ZipFile.ExtractToDirectory(plugins, tempfolder);
 
-                foreach (var item in Directory.GetFiles(tempfolder))
+                foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".dll")))
                 {
-                    File.Copy(item, $"{basePath}/{PluginName}/{Path.GetFileName(item)}");
+                    File.Copy(item, $"{basePath}/{PluginName}/{Path.GetFileName(item)}",true);
                 }
-            }
-    
+            
+                Directory.Delete(tempfolder);
 
         }
 
