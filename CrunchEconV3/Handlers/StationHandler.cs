@@ -103,18 +103,20 @@ namespace CrunchEconV3.Handlers
                 GetByStationId = MySession.Static.Factions.GetType().GetMethod("GetStationByStationId", BindingFlags.Instance | BindingFlags.NonPublic);
             }
 
-            MyStation station = null;
             if (!MappedStations.ContainsKey(blockId) && !MappedContractBlocks.ContainsKey(blockId))
             {
+
+                MyStation stat = null;
                 object[] MethodInput = new object[] { blockId };
                 var result = GetByStationId.Invoke(MySession.Static.Factions, MethodInput);
                 if (result != null)
                 {
-                    station = (MyStation)result;
+                    stat = (MyStation)result;
                 }
-                MappedStations.Add(blockId, station);
+                MappedStations.Add(blockId, stat);
             }
-            if (station != null)
+
+            if (MappedStations.TryGetValue(blockId, out var station))
             {
                 var faction = MySession.Static.Factions.TryGetFactionById(station.FactionId);
                 foreach (var contract in Core.StationStorage.GetForKeen(faction.Tag))

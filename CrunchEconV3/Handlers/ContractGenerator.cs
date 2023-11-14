@@ -227,7 +227,8 @@ namespace CrunchEconV3.Handlers
                 {
 
                     contractDescription = $"You must go deliver {crunchPeople.PassengerCount} passengers, using the ship that accepted the contract.";
-                    foreach (var passengerBlock in crunchPeople.PassengerBlocks)
+                    contractDescription += $" ||| Distance bonus: {crunchPeople.DistanceReward:##,###}";
+                        foreach (var passengerBlock in crunchPeople.PassengerBlocks)
                     {
                         contractDescription += $" ||| block {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace} capacity";
                     }

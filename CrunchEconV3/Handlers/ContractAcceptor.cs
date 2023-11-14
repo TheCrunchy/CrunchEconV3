@@ -88,14 +88,24 @@ namespace CrunchEconV3.Handlers
                         }
                         var GPS = GPSHelper.ScanChat(station.LocationGPS);
                         contract.DeliverLocation = GPS.Coords;
-                        if (people.KilometerDistancePerBonus != 0)
+               
+                        break;
+                    }
+                }
+
+                if (contract is CrunchPeopleHaulingContract people2)
+                {
+                    if (people2.KilometerDistancePerBonus != 0)
+                    {
+                        var distance = Vector3.Distance(contract.DeliverLocation, __instance.PositionComp.GetPosition());
+                        var division = distance / 1000;
+                        division /= people2.KilometerDistancePerBonus;
+                        var distanceBonus = (long)(division * people2.BonusPerDistance);
+                        if (distanceBonus > 0)
                         {
-                            var distance = Vector3.Distance(contract.DeliverLocation, contract.DeliverLocation);
-                            var division = distance / people.KilometerDistancePerBonus;
-                            var distanceBonus = (long)(division * people.BonusPerDistance);
+                            contract.RewardMoney += distanceBonus;
                             contract.DistanceReward += distanceBonus;
                         }
-                        break;
                     }
                 }
 
