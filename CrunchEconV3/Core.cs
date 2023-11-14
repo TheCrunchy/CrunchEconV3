@@ -152,29 +152,29 @@ namespace CrunchEconV3
                 temp.NPCFactionTags = new List<string>() { "SPRT" };
                 config.KeenNPCContracts.Add(temp);
                 utils.WriteToXmlFile<Config>(path, config, false);
-     
+
             }
 
-           
-                var folder = StoragePath.Replace(@"\Instance", "");
-                var tempfolder = StoragePath +"/CRUNCHECONTEMP/";
-                if (Directory.Exists(tempfolder))
-                {
-                    Directory.Delete(tempfolder);
-                }
 
-                Directory.CreateDirectory(tempfolder);
+            var folder = StoragePath.Replace(@"\Instance", "");
+            var tempfolder = StoragePath + "/CRUNCHECONTEMP/";
+            if (Directory.Exists(tempfolder))
+            {
+                Directory.Delete(tempfolder, true);
+            }
 
-                var plugins = $"{folder}/plugins/CrunchEconV3.zip";
+            Directory.CreateDirectory(tempfolder);
 
-                ZipFile.ExtractToDirectory(plugins, tempfolder);
+            var plugins = $"{folder}/plugins/CrunchEconV3.zip";
 
-                foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".dll")))
-                {
-                    File.Copy(item, $"{basePath}/{PluginName}/{Path.GetFileName(item)}",true);
-                }
-            
-                Directory.Delete(tempfolder);
+            ZipFile.ExtractToDirectory(plugins, tempfolder);
+
+            foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".dll")))
+            {
+                File.Copy(item, $"{basePath}/{PluginName}/{Path.GetFileName(item)}", true);
+            }
+
+            Directory.Delete(tempfolder, true);
 
         }
 
