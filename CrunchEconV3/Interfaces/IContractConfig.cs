@@ -11,10 +11,11 @@ using VRageMath;
 namespace CrunchEconV3.Interfaces
 {
     public interface IContractConfig
-    {
+    {       
+        //run this whenever you want to generate a delivery location, always null check the keen station!
         public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation);
 
-        //run this whenever you want to generate a delivery location
+        //run this whenever you want to generate a delivery location, always null check the keen station!
         public Vector3 AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation);
         public int AmountOfContractsToGenerate { get; set; }
         public long SecondsToComplete { get; set; }
