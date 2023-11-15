@@ -4,11 +4,18 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Models;
+using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.World;
+using VRageMath;
 
 namespace CrunchEconV3.Interfaces
 {
     public interface IContractConfig
     {
+        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation);
+
+        //run this whenever you want to generate a delivery location
+        public Vector3 AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation);
         public int AmountOfContractsToGenerate { get; set; }
         public long SecondsToComplete { get; set; }
         public int ReputationGainOnCompleteMin { get; set; }

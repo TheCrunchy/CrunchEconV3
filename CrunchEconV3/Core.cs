@@ -72,16 +72,19 @@ namespace CrunchEconV3
                 {
                     List<ICrunchContract> deleteThese = new List<ICrunchContract>();
                     var data = PlayerStorage.GetData(player.Id.SteamId);
-                    foreach (var contract in data.PlayersContracts.Where(x => x.Value.ExpireAt <= DateTime.Now))
+                    foreach (var contract in data.PlayersContracts)
                     {
-                        deleteThese.Add(contract.Value);
+                        if (contract.Value.Update100(player.GetPosition()))
+                        {
+                            deleteThese.Add(contract.Value);
+                        }
                     }
                     foreach (var contract in deleteThese)
                     {
-                        contract.FailContract();
                         data.RemoveContract(contract);
                     }
-                    foreach (var contract in data.PlayersContracts.Where(x => x.Value.CanAutoComplete))
+
+                    foreach (var contract in data.PlayersContracts.Where(x => x.Value.ReadyToDeliver))
                     {
                         if (contract.Value.ReadyToDeliver && DateTime.Now >= NextContractGps)
                         {
