@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,8 +30,12 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NLog">
+      <HintPath>..\..\..\4 Torch Server\DedicatedServer64\NLog.dll</HintPath>
+    </Reference>
     <Reference Include="Sandbox.Common">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\Sandbox.Common.dll</HintPath>
     </Reference>
@@ -48,23 +53,26 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="Torch">
+      <HintPath>..\..\..\4 Torch Server\Torch.dll</HintPath>
+    </Reference>
     <Reference Include="VRage">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\VRage.dll</HintPath>
     </Reference>
     <Reference Include="VRage.Game">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\VRage.Game.dll</HintPath>
     </Reference>
+    <Reference Include="VRage.Library">
+      <HintPath>..\..\..\4 Torch Server\DedicatedServer64\VRage.Library.dll</HintPath>
+    </Reference>
     <Reference Include="VRage.Math">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\VRage.Math.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config\GasContractConfig.cs" />
-    <Compile Include="Config\MiningContractConfig.cs" />
-    <Compile Include="Config\PeopleHaulingConfig.cs" />
-    <Compile Include="Contracts\CrunchGasContract.cs" />
-    <Compile Include="Contracts\CrunchMiningContract.cs" />
-    <Compile Include="Contracts\CrunchPeopleHaulingContract.cs" />
+    <Compile Include="Contracts\CrunchGasContractImplementation.cs" />
+    <Compile Include="Contracts\CrunchMiningContractImplementation.cs" />
+    <Compile Include="Contracts\CrunchPeopleHaulingContractImplementation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

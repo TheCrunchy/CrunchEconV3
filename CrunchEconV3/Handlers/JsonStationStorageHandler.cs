@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Interfaces;
@@ -23,6 +24,7 @@ namespace CrunchEconV3.Handlers
         {
             this.BasePath = $"{BasePath}/Stations/";
             Directory.CreateDirectory(this.BasePath);
+            GenerateExample();
             LoadAll();
         }
 
@@ -139,56 +141,43 @@ namespace CrunchEconV3.Handlers
 
         public void GenerateExample()
         {
-            var example = new StationConfig();
-            example.FileName = "Example.Json";
-            example.Enabled = false;
-            example.FactionTag = "SPRT";
-            example.ContractFiles = new List<string>();
-            example.ContractFiles.Add("/Example/Contracts.json");
+            try
+            {
+                var example = new StationConfig();
+                example.FileName = "Example.Json";
+                example.Enabled = false;
+                example.FactionTag = "SPRT";
+                example.ContractFiles = new List<string>();
+                example.ContractFiles.Add("/Example/Contracts.json");
+                
+                var examples = new List<IContractConfig>();
 
-            var examples = new List<IContractConfig>();
-            var mining = new MiningContractConfig();
-            mining.OresToPickFrom = new List<string>() { "Iron", "Nickel", "Cobalt" };
-            var people = new PeopleHaulingContractConfig();
-            people.PassengerBlocksAvailable = new List<PassengerBlock>();
-            people.PassengerBlocksAvailable.Add(new PassengerBlock()
-            {
-                BlockPairName = "Bed",
-                PassengerSpace = 2
-            });
-            people.PassengerBlocksAvailable.Add(new PassengerBlock()
-            {
-                BlockPairName = "InsetBed",
-                PassengerSpace = 2
-            });
-            people.PassengerBlocksAvailable.Add(new PassengerBlock()
-            {
-                BlockPairName = "Bathroom",
-                PassengerSpace = 2
-            });
-            people.PassengerBlocksAvailable.Add(new PassengerBlock()
-            {
-                BlockPairName = "BathroomOpen",
-                PassengerSpace = 2
-            });
-            people.PassengerBlocksAvailable.Add(new PassengerBlock()
-            {
-                BlockPairName = "Kitchen",
-                PassengerSpace = 2
-            });
-            examples.Add(people);
-            examples.Add(mining);
-            var gas = new GasContractConfig();
-            gas.GasSubType = "Hydrogen";
-            examples.Add(gas);
+                var configs = from t in Core.myAssemblies.Select(x => x)
+                        .SelectMany(x => x.GetTypes()) 
+                    where t.IsClass && t.GetInterfaces().Contains(typeof(IContractConfig))
+                    select t;
 
-            var gas2 = new GasContractConfig();
-            gas2.GasSubType = "Hydrogen";
-            gas2.DeliveryGPSes = new List<string>() { "Put a gps here", "put a gps here 2" };
-            examples.Add(gas2);
-            FileUtils.WriteToJsonFile($"{BasePath}/Example.json", example);
-            Directory.CreateDirectory($"{BasePath}/Example");
-            FileUtils.WriteToJsonFile($"{BasePath}/Example/Contracts.json", examples);
+                Core.Log.Info(1);
+                foreach (var config in configs)
+                {
+                    Core.Log.Info(2);
+                    IContractConfig instance = (IContractConfig)Activator.CreateInstance(config);
+                    Core.Log.Info(3);
+                    instance.Setup();
+                    Core.Log.Info(4);
+                    examples.Add(instance);
+                    Core.Log.Info(5);
+
+                }
+                
+                FileUtils.WriteToJsonFile($"{BasePath}/Example.json", example);
+                Directory.CreateDirectory($"{BasePath}/Example");
+                FileUtils.WriteToJsonFile($"{BasePath}/Example/Contracts.json", examples);
+            }
+            catch (Exception e)
+            {
+                Core.Log.Error($"example error {e}");
+            }
         }
     }
 }

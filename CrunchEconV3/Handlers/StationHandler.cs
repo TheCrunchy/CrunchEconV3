@@ -135,7 +135,7 @@ namespace CrunchEconV3.Handlers
                             }
                         }
 
-                        var generated = ContractGenerator.GenerateContract(contract, station.Position, blockId);
+                        var generated = contract.GenerateFromConfig(null, station, station.Id);
                         if (generated == null) continue;
                         NewContracts.Add(generated);
                         i++;
@@ -151,7 +151,7 @@ namespace CrunchEconV3.Handlers
                 return NewContracts;
             }
             var foundStation = Core.StationStorage.GetAll().FirstOrDefault(x => x.FileName == stationName);
-            var location = MyAPIGateway.Entities.GetEntityById(blockId).PositionComp.GetPosition();
+            var location = MyAPIGateway.Entities.GetEntityById(blockId) as MyContractBlock;
             if (foundStation == null) return null;
 
             foreach (var contract in foundStation.GetConfigs())
@@ -160,17 +160,7 @@ namespace CrunchEconV3.Handlers
 
                 while (i < contract.AmountOfContractsToGenerate)
                 {
-                    if (contract.ChanceToAppear < 1)
-                    {
-                        var random = Core.random.NextDouble();
-                        if (random > contract.ChanceToAppear)
-                        {
-                            i++;
-                            continue;
-                        }
-                    }
-
-                    var generated = ContractGenerator.GenerateContract(contract, location, blockId);
+                    var generated = contract.GenerateFromConfig(location, null, blockId);
                     if (generated == null) continue;
                     NewContracts.Add(generated);
                     i++;

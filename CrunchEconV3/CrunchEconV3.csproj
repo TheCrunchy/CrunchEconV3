@@ -247,6 +247,7 @@
     <Compile Include="Models\TankGroup.cs" />
     <Compile Include="Patches\ContractPatches.cs" />
     <Compile Include="Patches\DrillPatch.cs" />
+    <Compile Include="Utils\Compiler.cs" />
     <Compile Include="Utils\Econutils.cs" />
     <Compile Include="Utils\FacUtils.cs" />
     <Compile Include="Utils\FileUtils.cs" />
@@ -261,7 +262,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\GPSHelper.cs" />
     <Compile Include="Utils\TankHelper.cs" />
-    <Compile Include="Utils\TransportUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

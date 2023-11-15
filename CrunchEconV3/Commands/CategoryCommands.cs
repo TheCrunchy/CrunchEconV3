@@ -28,7 +28,7 @@ namespace CrunchEconV3.Commands
     [Category("newcontract")]
     public class CategoryCommands : CommandModule
     {
-        private static List<Assembly> myAssemblies { get; set; } = new List<Assembly>();
+
         [Command("reload", "example command usage !categorycommands example")]
         [Permission(MyPromoteLevel.Admin)]
         public void Example()
@@ -50,132 +50,13 @@ namespace CrunchEconV3.Commands
           //  FileInfo sourceFile = new FileInfo();
             string outputName = string.Format($"{Core.path}/Example.dll");
 
-            bool success = Compile( new CompilerParameters()
-            {
-                GenerateExecutable = false, // compile as library (dll)
-                OutputAssembly = outputName,
-                GenerateInMemory = false, // as a physical file
-            });
 
             //  var assem = Assembly.LoadFrom(outputName);
             //     assem.GetReferencedAssemblies();
 
-            if (!success)
-            {
-                Context.Respond("Didnt work");
-            }
-            var q = from t in Assembly.GetExecutingAssembly().GetTypes()
-                where t.IsClass && t.Namespace == "CrunchEconV3.Models.Contracts" && t.GetInterfaces().Contains(typeof(ICrunchContract))
-                    select t;
-
-            foreach (var c in q)
-            {
-                Context.Respond(c.FullName);
-            }
-
-            try
-            {
-                IEnumerable<Type> _commands = myAssemblies.Select(x => x)
-                    .SelectMany(x => x.GetTypes())
-                    .Where(t => t.GetInterfaces().Contains(typeof(ICrunchContract)));
-
-                foreach (Type _type in _commands)
-                {
-                    Context.Respond(_type.FullName);
-                }
-            }
-            catch (ReflectionTypeLoadException ex)
-            {
-                foreach (var loaderException in ex.LoaderExceptions)
-                {
-                    // Log or inspect the loaderException to get specific details about the loading issue
-                    Core.Log.Error(loaderException.Message);
-                }
-            }
             Context.Respond("done outputting");
         }
-        public static MetadataReference[] GetRequiredRefernces()
-        {
-            List<MetadataReference> metadataReferenceList = new List<MetadataReference>();
-            foreach (Assembly assembly in ((IEnumerable<Assembly>)AppDomain.CurrentDomain.GetAssemblies()).Where<Assembly>((Func<Assembly, bool>)(a => !a.IsDynamic)))
-            {
-                if (!assembly.IsDynamic && assembly.Location != null & string.Empty != assembly.Location)
-                    metadataReferenceList.Add((MetadataReference)MetadataReference.CreateFromFile(assembly.Location));
-            }
-
-            metadataReferenceList.Add(MetadataReference.CreateFromFile(@$"C:\Users\Cameron\Documents\4 Torch Server\Instance\CrunchEconV3\CrunchEconV3.dll"));
-
-            return metadataReferenceList.ToArray();
-        }
-        private static bool Compile(CompilerParameters options)
-        {
-            var text = File.ReadAllText($"{Core.path}/test.cs");
-            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(text);
-
-            var compilation = CSharpCompilation.Create("MyAssembly")
-                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .AddReferences(GetRequiredRefernces()) // Add necessary references
-                .AddSyntaxTrees(syntaxTree);
-            
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                var result = compilation.Emit(memoryStream);
-
-                if (result.Success)
-                {
-                    Assembly assembly = Assembly.Load(memoryStream.ToArray());
-                    Core.Log.Error("Compilation successful!");
-                    myAssemblies.Add(assembly);
-                    // Use the compiled assembly as needed
-                }
-                else
-                {
-                    Console.WriteLine("Compilation failed:");
-                    foreach (var diagnostic in result.Diagnostics)
-                    {
-                        Core.Log.Error(diagnostic);
-                    }
-                }
-            }
-            //CodeDomProvider provider = new CSharpCodeProvider();
-            //foreach (Assembly @assembly in AppDomain.CurrentDomain.GetAssemblies())
-            //{
-            //    if (!assembly.IsDynamic && !assembly.GlobalAssemblyCache)
-            //    {
-            //        csu0.ReferencedAssemblies.Add($"{assembly.Location}");
-            //        Core.Log.Info($"{assembly.Location}");
-            //    }
-
-            //}
-#pragma warning disable CS0012
-            //  csu0.ReferencedAssemblies.Add(@$"C:\Users\Cameron\Documents\4 Torch Server\Instance\CrunchEconV3\CrunchEconV3.dll");
-            ////  csu0.ReferencedAssemblies.Add("System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a");
-            //  //  csu0.ReferencedAssemblies.Add(@$"C:\Users\Cameron\Documents\4 Torch Server\System.Runtime.dll");
-            //  CompilerResults results = provider.CompileAssemblyFromDom(new CompilerParameters() { GenerateInMemory = true }, csu0);
-
-
-            //CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp 9");
-
-            //CompilerResults results = provider.CompileAssemblyFromFile(options, sourceFile.FullName);
-
-            //if (results.Errors.Count > 0)
-            //{
-
-            //    foreach (CompilerError error in results.Errors)
-            //    {
-            //        Core.Log.Error($"{error.ToString()}");
-            //    }
-            //    return false;
-            //}
-            //else
-            //{
-            //    return true;
-            //}
-
-            return true;
-        }
-
-
+       
 
         public static CodeCompileUnit BuildHelloWorldGraph()
         {

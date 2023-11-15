@@ -31,6 +31,7 @@ namespace CrunchEconV3
 {
     public class Core : TorchPluginBase
     {
+        public static List<Assembly> myAssemblies { get; set; } = new List<Assembly>();
         public static Config config;
         public int ticks;
         public TorchSessionState TorchState;
@@ -55,8 +56,7 @@ namespace CrunchEconV3
 
             SetupConfig();
             CreatePath();
-            PlayerStorage = new JsonPlayerStorageHandler(path);
-            StationStorage = new JsonStationStorageHandler(path);
+  
         }
 
         public DateTime NextContractGps = DateTime.Now;
@@ -165,68 +165,37 @@ namespace CrunchEconV3
             {
                 Directory.Delete(tempfolder, true);
             }
-
+            Core.Log.Error(1);
             Directory.CreateDirectory(tempfolder);
-
+            Core.Log.Error(2);
             var plugins = $"{folder}/plugins/CrunchEconV3.zip";
-
+            Core.Log.Error(3);
             ZipFile.ExtractToDirectory(plugins, tempfolder);
-
+            Core.Log.Error(4);
             foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".dll")))
             {
+                Core.Log.Error(5);
                 File.Copy(item, $"{basePath}/{PluginName}/{Path.GetFileName(item)}", true);
+                Core.Log.Error(6);
             }
-            foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs")))
+            foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs") && x.Contains("Config")))
+            {
+                Core.Log.Error(7);
+                Directory.CreateDirectory($"{basePath}/{PluginName}/Scripts/");
+                File.Copy(item, $"{basePath}/{PluginName}/Scripts/{Path.GetFileName(item)}", true);
+                Core.Log.Error(8);
+
+            }
+            foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs") && x.Contains("Implementation")))
             {
                 Directory.CreateDirectory($"{basePath}/{PluginName}/Scripts/");
                 File.Copy(item, $"{basePath}/{PluginName}/Scripts/{Path.GetFileName(item)}", true);
+
             }
             Directory.Delete(tempfolder, true);
-
-            var q = from t in Assembly.GetExecutingAssembly().GetTypes()
-                where t.IsClass && t.Namespace == "CrunchEconV3.Models.Contracts" && t.GetInterfaces().Contains(typeof(ICrunchContract))
-                select t;
-
-            //foreach (var type in q)
-            //{
-            //    var code = GenerateClassCodeFromType(type, "CrunchEconContract");
-            //    File.WriteAllText($"{basePath}/{PluginName}/{type.Name}.cs", code);
-            //}
         }
 
-        static string GenerateClassCodeFromType(Type type, string @namespace)
-        {
-            string code = @$"using System;
-            using System.Collections.Generic;
-            using System.Linq;
-            using System.Text;
-            using System.Threading.Tasks;
-            using CrunchEconV3.Interfaces;
-            using CrunchEconV3.Utils;
-            using Sandbox.Game.Entities;
-            using Sandbox.Game.Multiplayer;
-            using Sandbox.Game.Screens.Helpers;
-            using Sandbox.Game.World;
-            using Sandbox.ModAPI;
-            using VRage.Game.ModAPI;
-            using VRageMath;";
-
-            code += $"\n\nnamespace {@namespace}\n{{\n";
-
-            // Add any additional using statements here as needed
-        
-
-            code += $"    public class {type.Name}\n    {{\n";
-
-            foreach (PropertyInfo prop in type.GetProperties())
-            {
-                code += $"        public {prop.PropertyType} {prop.Name} {{ get; set; }}\n";
-            }
-            code += "    }\n}";
-
-            return code;
-        }
-
+  
         public static void ReloadConfig()
         {
             FileUtils utils = new FileUtils();
@@ -248,9 +217,29 @@ namespace CrunchEconV3
             TorchState = newState;
             if (newState is TorchSessionState.Loaded)
             {
+                PlayerStorage = new JsonPlayerStorageHandler(path);
                 session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
+                try
+                {
+                    foreach (var item in Directory.GetFiles($"{path}/Scripts/").Where(x => x.EndsWith(".cs") && x.Contains("Config")))
+                    {
+                        Core.Log.Error($"compile first");
+                        Compiler.Compile(item);
+                        Core.Log.Error($"compile second");
+                    }
+                    foreach (var item in Directory.GetFiles($"{path}/Scripts/").Where(x => x.EndsWith(".cs") && x.Contains("Implementation")))
+                    {
+                        Compiler.Compile(item);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Core.Log.Error($"compile error {e}");
+                    throw;
+                }
 
-                StationStorage.GenerateExample();
+            
+                StationStorage = new JsonStationStorageHandler(path);
             }
         }
     }

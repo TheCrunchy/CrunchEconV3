@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
-using CrunchEconV3.Models.Contracts;
 using CrunchEconV3.Utils;
 using EmptyKeys.UserInterface.Generated.PlayerTradeView_Bindings;
 using Sandbox.Engine.Multiplayer;
@@ -147,7 +146,7 @@ namespace CrunchEconV3.Patches
                 if (!StationHandler.BlocksContracts.TryGetValue(stationId, out var contracts)) return;
                 foreach (var contract in contracts)
                 {
-                    var newContract = ContractGenerator.BuildFromUnacceptedExisting(contract);
+                    var newContract = contract.BuildUnassignedContract();
                     if (newContract != null)
                     {
                         __result.Add(newContract);
@@ -188,7 +187,7 @@ namespace CrunchEconV3.Patches
                 if (!StationHandler.BlocksContracts.TryGetValue(blockId, out var contracts)) return;
                 foreach (var contract in contracts)
                 {
-                    var newContract = ContractGenerator.BuildFromUnacceptedExisting(contract);
+                    var newContract = contract.BuildUnassignedContract();
                     if (newContract != null)
                     {
                         __result.Add(newContract);
@@ -256,7 +255,6 @@ namespace CrunchEconV3.Patches
                     MySession.Static.Players.TryGetPlayerBySteamId(playerData.PlayerSteamId, out var player);
                     if (contract.ReadyToDeliver)
                     {
-
                         var completed = contract.TryCompleteContract(playerData.PlayerSteamId, player.Character.PositionComp.GetPosition());
                         if (completed)
                         {
@@ -274,7 +272,7 @@ namespace CrunchEconV3.Patches
                         contract.SendDeliveryGPS();
                     }
 
-                    var builder = ContractGenerator.BuildFromPlayersExisting(contract);
+                    var builder = contract.BuildAssignedContract();
                     if (builder != null)
                     {
                         __result.Add(builder);
@@ -362,6 +360,5 @@ namespace CrunchEconV3.Patches
             }
             return true;
         }
-
     }
 }
