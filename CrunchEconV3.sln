@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.32630.194
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrunchEconV3", "CrunchEconV3\CrunchEconV3.csproj", "{6188B631-E2D0-4111-94A0-1FC8C7D21FD0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrunchEconContractModels", "CrunchEconContractModels\CrunchEconContractModels.csproj", "{9E3E7065-F3F4-4DDC-B75F-AF09211EB6D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{6188B631-E2D0-4111-94A0-1FC8C7D21FD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6188B631-E2D0-4111-94A0-1FC8C7D21FD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6188B631-E2D0-4111-94A0-1FC8C7D21FD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E3E7065-F3F4-4DDC-B75F-AF09211EB6D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E3E7065-F3F4-4DDC-B75F-AF09211EB6D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E3E7065-F3F4-4DDC-B75F-AF09211EB6D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E3E7065-F3F4-4DDC-B75F-AF09211EB6D9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
