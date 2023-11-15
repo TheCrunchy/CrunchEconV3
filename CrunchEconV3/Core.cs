@@ -208,8 +208,7 @@ namespace CrunchEconV3
             TorchState = newState;
             if (newState is TorchSessionState.Loaded)
             {
-                PlayerStorage = new JsonPlayerStorageHandler(path);
-                session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
+            
                 var patches = session.Managers.GetManager<PatchManager>();
                 try
                 {
@@ -254,6 +253,8 @@ namespace CrunchEconV3
 
             
                 StationStorage = new JsonStationStorageHandler(path);
+                PlayerStorage = new JsonPlayerStorageHandler(path);
+                session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
             }
         }
     }
