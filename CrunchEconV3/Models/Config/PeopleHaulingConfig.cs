@@ -1,11 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using CrunchEconV3.Interfaces;
+using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.World;
+using VRageMath;
 
 namespace CrunchEconV3.Models.Config
 {
     public class PeopleHaulingContractConfig : IContractConfig
     {
+        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Vector3 AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation)
+        {
+            throw new NotImplementedException();
+        }
+
         public int AmountOfContractsToGenerate { get; set; } = 3;
         public float ChanceToAppear { get; set; } = 0.5f;
         public long CollateralMin { get; set; } = 1;

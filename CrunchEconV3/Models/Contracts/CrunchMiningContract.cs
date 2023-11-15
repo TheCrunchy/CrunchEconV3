@@ -13,6 +13,7 @@ using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.ModAPI;
+using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRageMath;
 
 namespace CrunchEconV3.Models.Contracts
@@ -20,6 +21,21 @@ namespace CrunchEconV3.Models.Contracts
     public class CrunchMiningContract : ICrunchContract
     {
         public string ContractType { get; set; } = "Mining";
+        public MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
+        {
+            throw new NotImplementedException();
+        }
+
+        public MyObjectBuilder_Contract BuildAssignedContract()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Tuple<bool, MyContractResults> TryAcceptContract(CrunchPlayerData playerData, long identityId, MyContractBlock __instance)
+        {
+            throw new NotImplementedException();
+        }
+
         public long ContractId { get; set; }
         public long BlockId { get; set; }
         public long AssignedPlayerIdentityId { get; set; }
@@ -90,6 +106,11 @@ namespace CrunchEconV3.Models.Contracts
         public void Start()
         {
             ExpireAt = DateTime.Now.AddSeconds(SecondsToComplete);
+        }
+
+        public bool Update100(Vector3 PlayersCurrentPosition)
+        {
+            throw new NotImplementedException();
         }
 
         public int ReputationRequired { get; set; }

@@ -176,9 +176,55 @@ namespace CrunchEconV3
             {
                 File.Copy(item, $"{basePath}/{PluginName}/{Path.GetFileName(item)}", true);
             }
-
+            foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs")))
+            {
+                Directory.CreateDirectory($"{basePath}/{PluginName}/Scripts/");
+                File.Copy(item, $"{basePath}/{PluginName}/Scripts/{Path.GetFileName(item)}", true);
+            }
             Directory.Delete(tempfolder, true);
 
+            var q = from t in Assembly.GetExecutingAssembly().GetTypes()
+                where t.IsClass && t.Namespace == "CrunchEconV3.Models.Contracts" && t.GetInterfaces().Contains(typeof(ICrunchContract))
+                select t;
+
+            //foreach (var type in q)
+            //{
+            //    var code = GenerateClassCodeFromType(type, "CrunchEconContract");
+            //    File.WriteAllText($"{basePath}/{PluginName}/{type.Name}.cs", code);
+            //}
+        }
+
+        static string GenerateClassCodeFromType(Type type, string @namespace)
+        {
+            string code = @$"using System;
+            using System.Collections.Generic;
+            using System.Linq;
+            using System.Text;
+            using System.Threading.Tasks;
+            using CrunchEconV3.Interfaces;
+            using CrunchEconV3.Utils;
+            using Sandbox.Game.Entities;
+            using Sandbox.Game.Multiplayer;
+            using Sandbox.Game.Screens.Helpers;
+            using Sandbox.Game.World;
+            using Sandbox.ModAPI;
+            using VRage.Game.ModAPI;
+            using VRageMath;";
+
+            code += $"\n\nnamespace {@namespace}\n{{\n";
+
+            // Add any additional using statements here as needed
+        
+
+            code += $"    public class {type.Name}\n    {{\n";
+
+            foreach (PropertyInfo prop in type.GetProperties())
+            {
+                code += $"        public {prop.PropertyType} {prop.Name} {{ get; set; }}\n";
+            }
+            code += "    }\n}";
+
+            return code;
         }
 
         public static void ReloadConfig()

@@ -4,11 +4,24 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Interfaces;
+using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.World;
+using VRageMath;
 
 namespace CrunchEconV3.Models.Config
 {
     public class GasContractConfig : IContractConfig
     {
+        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Vector3 AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation)
+        {
+            throw new NotImplementedException();
+        }
+
         public int AmountOfContractsToGenerate { get; set; } = 2;
         public long SecondsToComplete { get; set; } = 1200;
         public int ReputationGainOnCompleteMin { get; set; } = 1;

@@ -65,8 +65,8 @@ namespace CrunchEconV3.Commands
                 Context.Respond("Didnt work");
             }
             var q = from t in Assembly.GetExecutingAssembly().GetTypes()
-                where t.IsClass && t.Namespace == "CrunchEconV3.Models.Contracts"
-                select t;
+                where t.IsClass && t.Namespace == "CrunchEconV3.Models.Contracts" && t.GetInterfaces().Contains(typeof(ICrunchContract))
+                    select t;
 
             foreach (var c in q)
             {
