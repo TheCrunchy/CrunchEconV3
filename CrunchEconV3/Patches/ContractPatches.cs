@@ -255,19 +255,22 @@ namespace CrunchEconV3.Patches
                     MySession.Static.Players.TryGetPlayerBySteamId(playerData.PlayerSteamId, out var player);
                     if (contract.ReadyToDeliver)
                     {
-                        var completed = contract.TryCompleteContract(playerData.PlayerSteamId, player.Character.PositionComp.GetPosition());
-                        if (completed)
+                        try
                         {
-                            deleteThese.Add(contract);
-                            Core.SendMessage("Contracts", $"{contract.Name} completed!, you have been paid.", Color.Green, player.Id.SteamId);
-                            contract.DeleteDeliveryGPS();
-
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                            var completed = contract.TryCompleteContract(playerData.PlayerSteamId, player.Character.PositionComp.GetPosition());
+                            if (completed)
                             {
-                                component.SendNotificationToPlayer(MyContractNotificationTypes.ContractSuccessful,
-                                    identityId);
-                            });
-                            continue;
+                                deleteThese.Add(contract);
+                                Core.SendMessage("Contracts", $"{contract.Name} completed!, you have been paid.", Color.Green, player.Id.SteamId);
+                                contract.DeleteDeliveryGPS();
+
+                                continue;
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            Core.Log.Error($"Error on try complete {exception}");
+                            deleteThese.Add(contract);
                         }
                         contract.SendDeliveryGPS();
                     }

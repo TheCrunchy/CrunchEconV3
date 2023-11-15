@@ -65,7 +65,7 @@ namespace CrunchEconV3
         {
 
             ticks++;
-            if (ticks % 256 == 0 && TorchState == TorchSessionState.Loaded)
+            if (ticks % 100 == 0 && TorchState == TorchSessionState.Loaded)
             {
 
                 foreach (var player in MySession.Static.Players.GetOnlinePlayers())
@@ -74,9 +74,16 @@ namespace CrunchEconV3
                     var data = PlayerStorage.GetData(player.Id.SteamId);
                     foreach (var contract in data.PlayersContracts)
                     {
-                        if (contract.Value.Update100(player.GetPosition()))
+                        try
                         {
-                            deleteThese.Add(contract.Value);
+                            if (contract.Value.Update100(player.GetPosition()))
+                            {
+                                deleteThese.Add(contract.Value);
+                            }
+                        }
+                        catch (Exception exception)
+                        {
+                            Core.Log.Error($"Error on update100 {exception}");
                         }
                     }
                     foreach (var contract in deleteThese)
