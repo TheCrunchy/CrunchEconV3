@@ -158,34 +158,25 @@ namespace CrunchEconV3
 
             }
 
-
             var folder = StoragePath.Replace(@"\Instance", "");
             var tempfolder = StoragePath + "/CRUNCHECONTEMP/";
             if (Directory.Exists(tempfolder))
             {
                 Directory.Delete(tempfolder, true);
             }
-            Core.Log.Error(1);
             Directory.CreateDirectory(tempfolder);
-            Core.Log.Error(2);
+   
             var plugins = $"{folder}/plugins/CrunchEconV3.zip";
-            Core.Log.Error(3);
+      
             ZipFile.ExtractToDirectory(plugins, tempfolder);
-            Core.Log.Error(4);
+
             foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".dll")))
             {
-                Core.Log.Error(5);
+         
                 File.Copy(item, $"{basePath}/{PluginName}/{Path.GetFileName(item)}", true);
-                Core.Log.Error(6);
+      
             }
-            foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs") && x.Contains("Config")))
-            {
-                Core.Log.Error(7);
-                Directory.CreateDirectory($"{basePath}/{PluginName}/Scripts/");
-                File.Copy(item, $"{basePath}/{PluginName}/Scripts/{Path.GetFileName(item)}", true);
-                Core.Log.Error(8);
 
-            }
             foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs") && x.Contains("Implementation")))
             {
                 Directory.CreateDirectory($"{basePath}/{PluginName}/Scripts/");
@@ -219,19 +210,42 @@ namespace CrunchEconV3
             {
                 PlayerStorage = new JsonPlayerStorageHandler(path);
                 session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
+                var patches = session.Managers.GetManager<PatchManager>();
                 try
                 {
-                    foreach (var item in Directory.GetFiles($"{path}/Scripts/").Where(x => x.EndsWith(".cs") && x.Contains("Config")))
-                    {
-                        Core.Log.Error($"compile first");
-                        Compiler.Compile(item);
-                        Core.Log.Error($"compile second");
-                    }
                     foreach (var item in Directory.GetFiles($"{path}/Scripts/").Where(x => x.EndsWith(".cs") && x.Contains("Implementation")))
                     {
                         Compiler.Compile(item);
                     }
+
+                    var typesWithPatchShimAttribute = Core.myAssemblies.Select(x => x)
+                        .SelectMany(x => x.GetTypes())
+                        .Where(type => type.IsClass && type.GetCustomAttributes(typeof(PatchShimAttribute), true).Length > 0);
+
+                    patches.AcquireContext();
+
+                    foreach (var type in typesWithPatchShimAttribute)
+                    {
+                        MethodInfo method = type.GetMethod("Patch", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
+                        if (method == null)
+                        {
+                            Core.Log.Error($"Patch shim type {type.FullName} doesn't have a static Patch method.");
+                            return;
+                        }
+                        ParameterInfo[] ps = method.GetParameters();
+                        if (ps.Length != 1 || ps[0].IsOut || ps[0].IsOptional || ps[0].ParameterType.IsByRef ||
+                            ps[0].ParameterType != typeof(PatchContext) || method.ReturnType != typeof(void))
+                        {
+                            Core.Log.Error($"Patch shim type {type.FullName} doesn't have a method with signature `void Patch(PatchContext)`");
+                            return;
+                        }
+
+                        var context = patches.AcquireContext();
+                        method.Invoke(null, new object[] { context });
+                    }
+                    patches.Commit();
                 }
+
                 catch (Exception e)
                 {
                     Core.Log.Error($"compile error {e}");

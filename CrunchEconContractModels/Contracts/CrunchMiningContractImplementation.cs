@@ -431,7 +431,7 @@ namespace CrunchEconContractModels.Contracts
         public void Setup()
         {
             DeliveryGPSes = new List<string>() { "Put a gps here" };
-            OresToPickFrom = new List<string>() { "Iron,Nickel,Cobalt,Stone,Magnesium,Gold" };
+            OresToPickFrom = new List<string>() { "Iron","Nickel","Gold","Silver" };
         }
         public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {

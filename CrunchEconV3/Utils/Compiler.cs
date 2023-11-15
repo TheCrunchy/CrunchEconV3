@@ -28,9 +28,9 @@ namespace CrunchEconV3.Utils
                 if (!assembly.IsDynamic && assembly.Location != null & string.Empty != assembly.Location)
                     metadataReferenceList.Add((MetadataReference)MetadataReference.CreateFromFile(assembly.Location));
             }
-            Core.Log.Info("compile 1");
+
             metadataReferenceList.Add(MetadataReference.CreateFromFile(@$"{Core.path}\CrunchEconV3.dll"));
-            Core.Log.Info("compile 2");
+   
             return metadataReferenceList.ToArray();
         }
         private static bool CompileFromFile(string file)

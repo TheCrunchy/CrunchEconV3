@@ -1,6 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
+using CrunchEconV3.Interfaces;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace CrunchEconV3.Utils
 {
@@ -15,6 +19,7 @@ namespace CrunchEconV3.Utils
                 var contentsToWriteToFile = JsonConvert.SerializeObject(objectToWrite, new JsonSerializerSettings()
                 {
                     TypeNameHandling = TypeNameHandling.Auto,
+                    Binder = new MySerializationBinder(),
                     Formatting = Newtonsoft.Json.Formatting.Indented
                 });
                 writer = new StreamWriter(filePath, append);
@@ -37,6 +42,7 @@ namespace CrunchEconV3.Utils
                 return JsonConvert.DeserializeObject<T>(fileContents, new JsonSerializerSettings()
                 {
                     TypeNameHandling = TypeNameHandling.Auto,
+                    Binder = new MySerializationBinder(),
                     Formatting = Newtonsoft.Json.Formatting.Indented
                 });
             }
@@ -46,6 +52,7 @@ namespace CrunchEconV3.Utils
                     reader.Close();
             }
         }
+
 
         public void WriteToXmlFile<T>(string filePath, T objectToWrite, bool append = false) where T : new()
         {
@@ -77,6 +84,18 @@ namespace CrunchEconV3.Utils
                 if (reader != null)
                     reader.Close();
             }
+        }
+    }
+    class MySerializationBinder : DefaultSerializationBinder
+    {
+        public override Type BindToType(string assemblyName, string typeName)
+        {
+            // Resolve type here or map specific type names to actual types
+            // Example:
+            var t = Core.myAssemblies.Select(x => x)
+                .SelectMany(x => x.GetTypes()).FirstOrDefault(x => x.FullName == typeName);
+
+            return t;
         }
     }
 }

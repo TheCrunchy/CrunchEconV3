@@ -326,7 +326,7 @@ namespace CrunchEconV3.Models.Contracts
             contract.ReputationLossOnAbandon = this.ReputationLossOnAbandon;
             contract.SecondsToComplete = this.SecondsToComplete;
             contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver";
-            contract.Name = $"People Transport Contract";
+            contract.Name = $"People Transport";
             contract.ReputationRequired = this.ReputationRequired;
             contract.CanAutoComplete = true;
             contract.CollateralToTake = (Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));
