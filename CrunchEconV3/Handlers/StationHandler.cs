@@ -27,6 +27,40 @@ namespace CrunchEconV3.Handlers
             RefreshAt.Clear();
         }
 
+        public static async Task DoStationLoop()
+        {
+            foreach (var station in Core.StationStorage.GetAll())
+            {
+                //first find the station ingame
+                var found = true;
+
+                if (found)
+                {
+                    if (station.Logics.Any())
+                    {
+                        foreach (var logic in station.Logics.OrderBy(x => x.Priority))
+                        {
+                            try
+                            {
+                                var ShouldBreakLoop = await logic.DoLogic(null);
+                                if (ShouldBreakLoop)
+                                {
+                                    break;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Core.Log.Error($"Station logic error {e}");
+                            }
+                        }
+                    }
+
+                    Core.StationStorage.Save(station);
+                }
+                
+            }
+        }
+
         public static bool NPCNeedsRefresh(long blockId)
         {
 

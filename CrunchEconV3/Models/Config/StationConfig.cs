@@ -27,6 +27,8 @@ namespace CrunchEconV3.Models
         {
             configs = Configs;
         }
+
+        public List<IStationLogic> Logics;
     }
 }
 //List<IContractConfig> Contracts = new List<IContractConfig>();

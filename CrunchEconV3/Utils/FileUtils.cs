@@ -90,8 +90,6 @@ namespace CrunchEconV3.Utils
     {
         public override Type BindToType(string assemblyName, string typeName)
         {
-            // Resolve type here or map specific type names to actual types
-            // Example:
             var t = Core.myAssemblies.Select(x => x)
                 .SelectMany(x => x.GetTypes()).FirstOrDefault(x => x.FullName == typeName);
 

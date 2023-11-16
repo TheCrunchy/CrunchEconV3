@@ -61,72 +61,85 @@ namespace CrunchEconV3
 
         public DateTime NextContractGps = DateTime.Now;
         public DateTime NextKeenMap = DateTime.Now;
-        public override void Update()
+        public override async void Update()
         {
 
-            ticks++;
-            if (ticks % 100 == 0 && TorchState == TorchSessionState.Loaded)
+            try
             {
+                ticks++;
 
-                foreach (var player in MySession.Static.Players.GetOnlinePlayers())
+
+                if (ticks % 100 == 0 && TorchState == TorchSessionState.Loaded)
                 {
-                    List<ICrunchContract> deleteThese = new List<ICrunchContract>();
-                    var data = PlayerStorage.GetData(player.Id.SteamId);
-                    foreach (var contract in data.PlayersContracts)
-                    {
-                        try
-                        {
-                            if (contract.Value.Update100(player.GetPosition()))
-                            {
-                                deleteThese.Add(contract.Value);
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            Core.Log.Error($"Error on update100 {exception}");
-                        }
-                    }
-                    foreach (var contract in deleteThese)
-                    {
-                        data.RemoveContract(contract);
-                    }
-
-                    foreach (var contract in data.PlayersContracts.Where(x => x.Value.ReadyToDeliver))
-                    {
-                        if (contract.Value.ReadyToDeliver && DateTime.Now >= NextContractGps)
-                        {
-                            contract.Value.DeleteDeliveryGPS();
-                            contract.Value.SendDeliveryGPS();
-                        }
-                    }
-
-                    if (!deleteThese.Any()) continue;
-
-                    foreach (var contract in deleteThese)
-                    {
-                        data.RemoveContract(contract);
-                    }
-
                     Task.Run(async () =>
                     {
-                        PlayerStorage.Save(data);
+                        StationHandler.DoStationLoop();
                     });
-                }
 
-                if (DateTime.Now >= NextContractGps)
-                {
-                    NextContractGps = DateTime.Now.AddMinutes(10);
-                }
-                if (DateTime.Now >= NextKeenMap)
-                {
-                    NextKeenMap = DateTime.Now.AddMinutes(10);
-                    StationHandler.KeenStations.Clear();
-                    foreach (var faction in MySession.Static.Factions.Where(x => x.Value.Stations.Any()))
+                    foreach (var player in MySession.Static.Players.GetOnlinePlayers())
                     {
-                        var stations = faction.Value.Stations;
-                        StationHandler.KeenStations.AddRange(stations.Select(x => x));
+                        List<ICrunchContract> deleteThese = new List<ICrunchContract>();
+                        var data = PlayerStorage.GetData(player.Id.SteamId);
+                        foreach (var contract in data.PlayersContracts)
+                        {
+                            try
+                            {
+                                if (contract.Value.Update100(player.GetPosition()))
+                                {
+                                    deleteThese.Add(contract.Value);
+                                }
+                            }
+                            catch (Exception exception)
+                            {
+                                Core.Log.Error($"Error on update100 {exception}");
+                            }
+                        }
+                        foreach (var contract in deleteThese)
+                        {
+                            data.RemoveContract(contract);
+                        }
+
+                        foreach (var contract in data.PlayersContracts.Where(x => x.Value.ReadyToDeliver))
+                        {
+                            if (contract.Value.ReadyToDeliver && DateTime.Now >= NextContractGps)
+                            {
+                                contract.Value.DeleteDeliveryGPS();
+                                contract.Value.SendDeliveryGPS();
+                            }
+                        }
+
+                        if (!deleteThese.Any()) continue;
+
+                        foreach (var contract in deleteThese)
+                        {
+                            data.RemoveContract(contract);
+                        }
+
+                        Task.Run(async () =>
+                        {
+                            PlayerStorage.Save(data);
+                        });
+                    }
+
+                    if (DateTime.Now >= NextContractGps)
+                    {
+                        NextContractGps = DateTime.Now.AddMinutes(10);
+                    }
+                    if (DateTime.Now >= NextKeenMap)
+                    {
+                        NextKeenMap = DateTime.Now.AddMinutes(10);
+                        StationHandler.KeenStations.Clear();
+                        foreach (var faction in MySession.Static.Factions.Where(x => x.Value.Stations.Any()))
+                        {
+                            var stations = faction.Value.Stations;
+                            StationHandler.KeenStations.AddRange(stations.Select(x => x));
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                Core.Log.Error($"Econ update loop error {e}");
             }
         }
         public static void SendMessage(string author, string message, Color color, ulong steamID)
@@ -144,7 +157,7 @@ namespace CrunchEconV3
         private void SetupConfig()
         {
             FileUtils utils = new FileUtils();
-            var path = StoragePath + @$"\{PluginName}";
+            path = StoragePath + @$"\{PluginName}";
             basePath = StoragePath;
             Directory.CreateDirectory(path);
             path += @"\Config.xml";
@@ -167,27 +180,30 @@ namespace CrunchEconV3
 
             var folder = StoragePath.Replace(@"\Instance", "");
             var tempfolder = StoragePath + "/CRUNCHECONTEMP/";
+
+            CreatePath();
             if (Directory.Exists(tempfolder))
             {
                 Directory.Delete(tempfolder, true);
             }
             Directory.CreateDirectory(tempfolder);
    
-            var plugins = $"{folder}/plugins/CrunchEconV3.zip";
-      
+            var plugins = $"{folder}/plugins/CrunchEconV3.zip"; 
+         
             ZipFile.ExtractToDirectory(plugins, tempfolder);
+            Directory.CreateDirectory($"{path}/Scripts/");
 
             foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".dll")))
             {
          
-                File.Copy(item, $"{basePath}/{PluginName}/{Path.GetFileName(item)}", true);
-      
-            }
+                File.Copy(item, $"{path}/{Path.GetFileName(item)}", true);
 
-            foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs") && x.Contains("Implementation")))
+            }
+       
+            foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs")))
             {
-                Directory.CreateDirectory($"{basePath}/{PluginName}/Scripts/");
-                File.Copy(item, $"{basePath}/{PluginName}/Scripts/{Path.GetFileName(item)}", true);
+      
+                File.Copy(item, $"{path}/Scripts/{Path.GetFileName(item)}", true);
 
             }
             Directory.Delete(tempfolder, true);
@@ -204,7 +220,7 @@ namespace CrunchEconV3
         {
 
             var folder = "";
-            folder = config.StoragePath.Equals("default") ? Path.Combine(StoragePath + $"\\{PluginName}\\") : config.StoragePath;
+            folder = config.StoragePath.Equals("default") ? Path.Combine(StoragePath + $"\\{PluginName}\\") : Path.Combine(config.StoragePath + $"\\{PluginName}\\");
             path = folder;
             Directory.CreateDirectory(folder);
 
@@ -219,7 +235,7 @@ namespace CrunchEconV3
                 var patches = session.Managers.GetManager<PatchManager>();
                 try
                 {
-                    foreach (var item in Directory.GetFiles($"{path}/Scripts/").Where(x => x.EndsWith(".cs") && x.Contains("Implementation")))
+                    foreach (var item in Directory.GetFiles($"{path}/Scripts/").Where(x => x.EndsWith(".cs")))
                     {
                         Compiler.Compile(item);
                     }

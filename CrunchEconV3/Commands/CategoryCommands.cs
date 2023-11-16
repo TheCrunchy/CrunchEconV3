@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
+using CrunchEconV3.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -25,7 +26,7 @@ using VRage.Game.ModAPI;
 
 namespace CrunchEconV3.Commands
 {
-    [Category("newcontract")]
+    [Category("cruncheconv3")]
     public class CategoryCommands : CommandModule
     {
 
@@ -41,101 +42,21 @@ namespace CrunchEconV3.Commands
      
 
             Context.Respond("Reloaded and cleared existing contracts");
+            Context.Respond("If changing scripts, use the compile command to apply changes");
         }
 
-        [Command("test", "example command usage !categorycommands example")]
+        [Command("compile", "compile the .cs files")]
         [Permission(MyPromoteLevel.Admin)]
-        public void OutputShit()
+        public void Compile()
         {
-          //  FileInfo sourceFile = new FileInfo();
-            string outputName = string.Format($"{Core.path}/Example.dll");
+            Core.myAssemblies.Clear();
+            foreach (var item in Directory.GetFiles($"{Core.path}/Scripts/").Where(x => x.EndsWith(".cs")))
+            {
+                Compiler.Compile(item);
+            }
 
-
-            //  var assem = Assembly.LoadFrom(outputName);
-            //     assem.GetReferencedAssemblies();
-
-            Context.Respond("done outputting");
+            Context.Respond("done, check logs for any errors");
         }
-       
-
-        public static CodeCompileUnit BuildHelloWorldGraph()
-        {
-            
-            CodeCompileUnit compileUnit = new CodeCompileUnit();
-            
-            CodeNamespace samples = new CodeNamespace("CrunchEconV3.Models.Contracts");
-   
-            compileUnit.Namespaces.Add(samples);
-
-            var text = File.ReadAllText($"{Core.path}/test.cs");
-            CodeSnippetExpression literalExpression =
-                new CodeSnippetExpression(text);
-
-            CodeEntryPointMethod start = new CodeEntryPointMethod();
-
-            start.Statements.Add(literalExpression);
-
-            return compileUnit;
-        }
-
-        public static bool CompileCSharpCode(string sourceFile, string exeFile)
-        {
-            CSharpCodeProvider provider = new CSharpCodeProvider();
-
-            // Build the parameters for source compilation.
-            CompilerParameters cp = new CompilerParameters();
-  
-            // Add an assembly reference.
-            foreach (Assembly @assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                if (!assembly.IsDynamic && !assembly.GlobalAssemblyCache)
-                {
-                    cp.ReferencedAssemblies.Add($"{assembly.Location}");
-                }
-
-                Core.Log.Info($"{assembly.FullName}");
-            }
-            Assembly currentAssembly = Assembly.GetExecutingAssembly();
-            cp.ReferencedAssemblies.Add(currentAssembly.Location);
-            // Generate an executable instead of
-            // a class library.
-            cp.GenerateExecutable = false;
-       
-            // Set the assembly file name to generate.
-            cp.OutputAssembly = exeFile;
-
-            // Save the assembly as a physical file.
-            cp.GenerateInMemory = true;
-
-            // Invoke compilation.
-            CompilerResults cr = provider.CompileAssemblyFromFile(cp, sourceFile);
-
-            if (cr.Errors.Count > 0)
-            {
-                // Display compilation errors.
-                Core.Log.Error("Errors building {0} into {1}",
-                    sourceFile, cr.PathToAssembly);
-                foreach (CompilerError ce in cr.Errors)
-                {
-                    Core.Log.Error(ce.ToString());
-                    Console.WriteLine();
-                }
-            }
-            else
-            {
-                Console.WriteLine("Source {0} built into {1} successfully.",
-                    sourceFile, cr.PathToAssembly);
-            }
-
-            // Return the results of compilation.
-            if (cr.Errors.Count > 0)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
-        }
+        
     }
 }

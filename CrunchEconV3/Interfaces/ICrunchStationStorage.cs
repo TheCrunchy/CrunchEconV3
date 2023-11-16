@@ -12,7 +12,7 @@ namespace CrunchEconV3.Interfaces
     public interface ICrunchStationStorage
     {
         public void LoadAll();
-        public void Save(StationConfig PlayerData);
+        public void Save(StationConfig StationData);
         public void GenerateExample();
         public List<StationConfig> GetAll();
         List<IContractConfig> GetForKeen(string factionTag);

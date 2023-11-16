@@ -146,8 +146,7 @@ namespace CrunchEconV3.Models.Contracts
                 max = 1;
             }
             this.PassengerCount = max;
-            this.RewardMoney = this.RewardMoney * this.PassengerCount;
-            this.RewardMoney += this.DistanceReward;
+            this.RewardMoney *= this.PassengerCount;
             this.ReadyToDeliver = true;
 
             if (this.CollateralToTake > 0)

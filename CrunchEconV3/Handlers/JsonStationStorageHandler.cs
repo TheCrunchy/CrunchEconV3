@@ -131,7 +131,7 @@ namespace CrunchEconV3.Handlers
             }
         }
 
-        public void Save(StationConfig PlayerData)
+        public void Save(StationConfig StationData)
         {
             foreach (var item in Configs)
             {
