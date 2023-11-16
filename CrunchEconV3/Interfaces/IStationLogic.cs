@@ -9,6 +9,7 @@ namespace CrunchEconV3.Interfaces
 {
     public interface IStationLogic
     {
+        public void Setup();
         public Task<Boolean> DoLogic(MyCubeGrid grid);
         public int Priority { get; set; }
     }
