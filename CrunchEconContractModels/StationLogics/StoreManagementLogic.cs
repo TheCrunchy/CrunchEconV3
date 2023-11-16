@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CrunchEconV3;
 using CrunchEconV3.Interfaces;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
@@ -29,10 +30,40 @@ namespace CrunchEconContractModels.StationLogics
 
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>())
             {
+                //clear existing stuff in the store block
+
+
                 var items = StoreItemsHandler.GetByBlockName(store.DisplayNameText);
                 foreach (var item in items)
                 {
+                    bool skip = false;
+                    if (item.BuyFromPlayers)
+                    {
+                   
+                        if (item.BuyFromChanceToAppear < 1)
+                        {
+                            var chance = CrunchEconV3.Core.random.NextDouble(); 
+                            skip = chance > item.BuyFromChanceToAppear;
+                        }
+                    }
 
+                    if (!skip)
+                    {
+
+                    }
+
+                    if (item.SellToPlayers)
+                    {
+                        if (item.SellToChanceToAppear < 1)
+                        {
+                            var chance = CrunchEconV3.Core.random.NextDouble();
+                            skip = chance > item.SellToChanceToAppear;
+                        }
+                    }
+                    if (!skip)
+                    {
+
+                    }
                 }
             }
 
