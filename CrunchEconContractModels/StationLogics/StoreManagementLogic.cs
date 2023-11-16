@@ -14,7 +14,7 @@ namespace CrunchEconContractModels.StationLogics
     {
         public void Setup()
         {
-            
+
         }
 
         public Task<bool> DoLogic(MyCubeGrid grid)
@@ -36,38 +36,49 @@ namespace CrunchEconContractModels.StationLogics
                 var items = StoreItemsHandler.GetByBlockName(store.DisplayNameText);
                 foreach (var item in items)
                 {
-                    bool skip = false;
-                    if (item.BuyFromPlayers)
+                    try
                     {
-                   
-                        if (item.BuyFromChanceToAppear < 1)
-                        {
-                            var chance = CrunchEconV3.Core.random.NextDouble(); 
-                            skip = chance > item.BuyFromChanceToAppear;
-                        }
+                        DoBuy(item);
+                        DoSell(item);
                     }
-
-                    if (!skip)
+                    catch (Exception e)
                     {
-
-                    }
-
-                    if (item.SellToPlayers)
-                    {
-                        if (item.SellToChanceToAppear < 1)
-                        {
-                            var chance = CrunchEconV3.Core.random.NextDouble();
-                            skip = chance > item.SellToChanceToAppear;
-                        }
-                    }
-                    if (!skip)
-                    {
-
+                        CrunchEconV3.Core.Log.Error(e);
                     }
                 }
             }
 
             throw new NotImplementedException();
+        }
+
+        public static void DoBuy(StoreEntryModel item)
+        {
+            var skip = false;
+            if (!item.BuyFromPlayers) return;
+            if (item.BuyFromChanceToAppear < 1)
+            {
+                var chance = CrunchEconV3.Core.random.NextDouble();
+                if (chance > item.BuyFromChanceToAppear)
+                {
+                    return;
+                }
+            }
+
+        }
+
+        public static void DoSell(StoreEntryModel item)
+        {
+            var skip = false;
+            if (!item.SellToPlayers) return;
+            if (item.SellToChanceToAppear < 1)
+            {
+                var chance = CrunchEconV3.Core.random.NextDouble();
+                if (chance > item.SellToChanceToAppear)
+                {
+                    return;
+                }
+            }
+
         }
 
         public int Priority { get; set; }
@@ -82,7 +93,7 @@ namespace CrunchEconContractModels.StationLogics
     public class StoreEntryModel
     {
         public string Type { get; set; } = "MyObjectBuilder_Ingot/";
-        public string Subtype{ get; set; } = "Iron";
+        public string Subtype { get; set; } = "Iron";
         public bool BuyFromPlayers { get; set; } = true;
         public long BuyFromPlayerPriceMin { get; set; } = 1;
         public long BuyFromPlayerPriceMax { get; set; } = 3;
