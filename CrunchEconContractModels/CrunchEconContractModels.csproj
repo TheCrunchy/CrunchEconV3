@@ -74,6 +74,7 @@
     <Compile Include="Contracts\CrunchMiningContractImplementation.cs" />
     <Compile Include="Contracts\CrunchPeopleHaulingContractImplementation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StationLogics\StoreManagementLogic.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CrunchEconV3\CrunchEconV3.csproj">
@@ -81,5 +82,6 @@
       <Name>CrunchEconV3</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

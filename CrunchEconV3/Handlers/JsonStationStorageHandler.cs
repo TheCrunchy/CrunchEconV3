@@ -149,7 +149,7 @@ namespace CrunchEconV3.Handlers
                 example.FactionTag = "SPRT";
                 example.ContractFiles = new List<string>();
                 example.ContractFiles.Add("/Example/Contracts.json");
-                
+                example.Logics = new List<IStationLogic>();
                 var examples = new List<IContractConfig>();
 
                 var configs = from t in Core.myAssemblies.Select(x => x)
@@ -157,19 +157,29 @@ namespace CrunchEconV3.Handlers
                     where t.IsClass && t.GetInterfaces().Contains(typeof(IContractConfig))
                     select t;
 
-                Core.Log.Info(1);
+                var configs2 = from t in Core.myAssemblies.Select(x => x)
+                        .SelectMany(x => x.GetTypes())
+                    where t.IsClass && t.GetInterfaces().Contains(typeof(IStationLogic))
+                    select t;
+
                 foreach (var config in configs)
                 {
-                    Core.Log.Info(2);
+              
                     IContractConfig instance = (IContractConfig)Activator.CreateInstance(config);
-                    Core.Log.Info(3);
                     instance.Setup();
-                    Core.Log.Info(4);
                     examples.Add(instance);
-                    Core.Log.Info(5);
 
                 }
-                
+                foreach (var config in configs2)
+                {
+                    IStationLogic instance = (IStationLogic)Activator.CreateInstance(config);
+                    instance.Setup();
+                    example.Logics.Add(instance);
+                    
+                }
+
+                example.Logics = example.Logics.OrderBy(x => x.Priority).ToList();
+
                 FileUtils.WriteToJsonFile($"{BasePath}/Example.json", example);
                 Directory.CreateDirectory($"{BasePath}/Example");
                 FileUtils.WriteToJsonFile($"{BasePath}/Example/Contracts.json", examples);
