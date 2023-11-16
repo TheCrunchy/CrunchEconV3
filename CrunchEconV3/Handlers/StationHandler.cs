@@ -42,8 +42,8 @@ namespace CrunchEconV3.Handlers
                         {
                             try
                             {
-                                var ShouldBreakLoop = await logic.DoLogic(null);
-                                if (ShouldBreakLoop)
+                                var ShouldNextOneRun = await logic.DoLogic(null);
+                                if (!ShouldNextOneRun)
                                 {
                                     break;
                                 }
