@@ -56,7 +56,7 @@ namespace CrunchEconV3
 
             SetupConfig();
             CreatePath();
-  
+
         }
 
         public DateTime NextContractGps = DateTime.Now;
@@ -71,10 +71,17 @@ namespace CrunchEconV3
 
                 if (ticks % 100 == 0 && TorchState == TorchSessionState.Loaded)
                 {
-                    Task.Run(async () =>
+                    try
                     {
-                        StationHandler.DoStationLoop();
-                    });
+                        Task.Run(async () =>
+                                {
+                                    StationHandler.DoStationLoop();
+                                });
+                    }
+                    catch (Exception e)
+                    {
+                        Core.Log.Error($"Station logic loop error {e}");
+                    }
 
                     foreach (var player in MySession.Static.Players.GetOnlinePlayers())
                     {
@@ -187,29 +194,29 @@ namespace CrunchEconV3
                 Directory.Delete(tempfolder, true);
             }
             Directory.CreateDirectory(tempfolder);
-   
-            var plugins = $"{folder}/plugins/CrunchEconV3.zip"; 
-         
+
+            var plugins = $"{folder}/plugins/CrunchEconV3.zip";
+
             ZipFile.ExtractToDirectory(plugins, tempfolder);
             Directory.CreateDirectory($"{path}/Scripts/");
 
             foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".dll")))
             {
-         
+
                 File.Copy(item, $"{path}/{Path.GetFileName(item)}", true);
 
             }
-       
+
             foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs")))
             {
-      
+
                 File.Copy(item, $"{path}/Scripts/{Path.GetFileName(item)}", true);
 
             }
             Directory.Delete(tempfolder, true);
         }
 
-  
+
         public static void ReloadConfig()
         {
             FileUtils utils = new FileUtils();
@@ -231,7 +238,7 @@ namespace CrunchEconV3
             TorchState = newState;
             if (newState is TorchSessionState.Loaded)
             {
-            
+
                 var patches = session.Managers.GetManager<PatchManager>();
                 try
                 {
@@ -274,7 +281,7 @@ namespace CrunchEconV3
                     throw;
                 }
 
-            
+
                 StationStorage = new JsonStationStorageHandler(path);
                 PlayerStorage = new JsonPlayerStorageHandler(path);
                 session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
