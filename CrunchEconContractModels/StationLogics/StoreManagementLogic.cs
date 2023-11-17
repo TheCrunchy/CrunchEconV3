@@ -188,7 +188,7 @@ namespace CrunchEconContractModels.StationLogics
 
     public class StoreEntryModel
     {
-        public string Type { get; set; } = "MyObjectBuilder_Ingot/";
+        public string Type { get; set; } = "MyObjectBuilder_Ingot";
         public string Subtype { get; set; } = "Iron";
         public bool BuyFromPlayers { get; set; } = true;
         public long BuyFromPlayerPriceMin { get; set; } = 1;
