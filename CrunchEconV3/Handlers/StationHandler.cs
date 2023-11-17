@@ -40,7 +40,7 @@ namespace CrunchEconV3.Handlers
                 {
                     if (station.Logics != null && station.Logics.Any())
                     {
-                        MyCubeGrid grid = null;
+                        MyCubeGrid grid = station.GetGrid();
                         //MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         //{
                         //    Core.Log.Info(station.GridEntityId);
@@ -54,8 +54,10 @@ namespace CrunchEconV3.Handlers
                             Core.Log.Error($"{station.FileName} faction not found");
                             continue;
                         }
-                        if (grid == null)
+                        if (grid == null && station.IsFirstLoad())
                         {
+                            station.SetFirstLoad(false);
+                            Core.Log.Info("Grids null, finding it");
                             var gps = GPSHelper.ScanChat(station.LocationGPS);
                             if (gps == null)
                             {
@@ -77,8 +79,8 @@ namespace CrunchEconV3.Handlers
                             Core.Log.Error($"{station.FileName} grid not found");
                             continue;
                         }
-
-                        station.GridEntityId = grid.EntityId;
+                        
+                        station.SetGrid(grid);
                         foreach (var logic in station.Logics.OrderBy(x => x.Priority))
                         {
                             try
