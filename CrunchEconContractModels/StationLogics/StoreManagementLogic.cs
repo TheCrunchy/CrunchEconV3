@@ -126,23 +126,21 @@ namespace CrunchEconContractModels.StationLogics
                 }
             }
 
-            if (MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id))
-            {
-                SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, item.Subtype);
-                int price = CrunchEconV3.Core.random.Next((int)item.BuyFromPlayerPriceMin, (int)item.BuyFromPlayerPriceMax);
+            if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id)) return;
+            SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, item.Subtype);
+            int price = CrunchEconV3.Core.random.Next((int)item.BuyFromPlayerPriceMin, (int)item.BuyFromPlayerPriceMax);
               
-                int amount = CrunchEconV3.Core.random.Next((int)item.AmountToBuyMin,
-                    (int)item.AmountToBuyMax);
-                MyStoreItemData itemInsert =
-                    new MyStoreItemData(itemId, amount, price,
-                        null, null);
-                MyStoreInsertResults result =
-                    store.InsertOrder(itemInsert,
-                        out long notUsingThis);
-                if (result != MyStoreInsertResults.Success)
-                {
-                    CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} {itemInsert.PricePerUnit} {result.ToString()}");
-                }
+            int amount = CrunchEconV3.Core.random.Next((int)item.AmountToBuyMin,
+                (int)item.AmountToBuyMax);
+            MyStoreItemData itemInsert =
+                new MyStoreItemData(itemId, amount, price,
+                    null, null);
+            MyStoreInsertResults result =
+                store.InsertOrder(itemInsert,
+                    out long notUsingThis);
+            if (result != MyStoreInsertResults.Success)
+            {
+                CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} {itemInsert.PricePerUnit} {result.ToString()}");
             }
         }
 
