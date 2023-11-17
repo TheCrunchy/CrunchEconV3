@@ -5,8 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
 using CrunchEconV3.Interfaces;
+using CrunchEconV3.Utils;
+using NLog.Fluent;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.World;
+using Sandbox.ModAPI.Ingame;
+using VRage.Game;
+using VRage.Game.ModAPI;
+using VRage.Game.ObjectBuilders.Definitions;
+using VRage.ObjectBuilders;
 
 namespace CrunchEconContractModels.StationLogics
 {
@@ -14,9 +22,61 @@ namespace CrunchEconContractModels.StationLogics
     {
         public void Setup()
         {
+            StoreItemsHandler.GetByBlockName("INIT THE LIST");
+        }
+        public static List<VRage.Game.ModAPI.IMyInventory> ClearInventories(MyCubeGrid grid)
+        {
+            List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();
+            var gridOwnerFac = FacUtils.GetOwner(grid);
+            foreach (var block in grid.GetFatBlocks().Where(x => x.OwnerId == gridOwnerFac))
+            {
+                if (block is MyReactor)
+                {
+                    continue;
+                }
 
+                for (int i = 0; i < block.InventoryCount; i++)
+                {
+                    VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)block).GetInventory(i);
+                    inv.Clear();
+                }
+            }
+            return inventories;
         }
 
+        public void ClearStoreOfPlayersBuyingOffers(MyStoreBlock store)
+        {
+
+            List<MyStoreItem> yeet = new List<MyStoreItem>();
+            foreach (MyStoreItem item in store.PlayerItems)
+            {
+                if (item.StoreItemType == StoreItemTypes.Offer)
+                {
+                    yeet.Add(item);
+                }
+            }
+            foreach (MyStoreItem item in yeet)
+            {
+                store.CancelStoreItem(item.Id);
+            }
+        }
+
+        public void ClearStoreOfPlayersSellingOrders(MyStoreBlock store)
+        {
+            List<MyStoreItem> yeet = new List<MyStoreItem>();
+            foreach (MyStoreItem item in store.PlayerItems)
+            {
+                if (item.StoreItemType == StoreItemTypes.Order)
+                {
+
+                    yeet.Add(item);
+                }
+            }
+            foreach (MyStoreItem item in yeet)
+            {
+                store.CancelStoreItem(item.Id);
+            }
+        }
         public Task<bool> DoLogic(MyCubeGrid grid)
         {
             if (DateTime.Now >= NextRefresh)
@@ -28,18 +88,20 @@ namespace CrunchEconContractModels.StationLogics
                 return Task.FromResult(true);
             }
 
-            foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>())
+            var gridOwnerFac = FacUtils.GetOwner(grid);
+            foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == gridOwnerFac))
             {
                 //clear existing stuff in the store block
-
+                ClearStoreOfPlayersBuyingOffers(store);
+                ClearStoreOfPlayersSellingOrders(store);
 
                 var items = StoreItemsHandler.GetByBlockName(store.DisplayNameText);
                 foreach (var item in items)
                 {
                     try
                     {
-                        DoBuy(item);
-                        DoSell(item);
+                        DoBuy(item, store);
+                        DoSell(item,store);
                     }
                     catch (Exception e)
                     {
@@ -48,10 +110,10 @@ namespace CrunchEconContractModels.StationLogics
                 }
             }
 
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
 
-        public static void DoBuy(StoreEntryModel item)
+        public static void DoBuy(StoreEntryModel item, MyStoreBlock store)
         {
             var skip = false;
             if (!item.BuyFromPlayers) return;
@@ -64,9 +126,27 @@ namespace CrunchEconContractModels.StationLogics
                 }
             }
 
+            if (MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id))
+            {
+                SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, item.Subtype);
+                int price = CrunchEconV3.Core.random.Next((int)item.BuyFromPlayerPriceMin, (int)item.BuyFromPlayerPriceMax);
+              
+                int amount = CrunchEconV3.Core.random.Next((int)item.AmountToBuyMin,
+                    (int)item.AmountToBuyMax);
+                MyStoreItemData itemInsert =
+                    new MyStoreItemData(itemId, amount, price,
+                        null, null);
+                MyStoreInsertResults result =
+                    store.InsertOrder(itemInsert,
+                        out long notUsingThis);
+                if (result != MyStoreInsertResults.Success)
+                {
+                    CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} {itemInsert.PricePerUnit} {result.ToString()}");
+                }
+            }
         }
 
-        public static void DoSell(StoreEntryModel item)
+        public static void DoSell(StoreEntryModel item, MyStoreBlock store)
         {
             var skip = false;
             if (!item.SellToPlayers) return;
