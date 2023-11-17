@@ -135,7 +135,7 @@ namespace CrunchEconV3.Handlers
         {
             foreach (var item in Configs)
             {
-                FileUtils.WriteToJsonFile($"{BasePath}/{item.FileName}.json", item);
+                FileUtils.WriteToJsonFile($"{BasePath}/{item.FileName}", item);
             }
         }
 

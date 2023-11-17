@@ -39,7 +39,11 @@ namespace CrunchEconV3.Commands
             StationHandler.MappedStations.Clear();
             Core.ReloadConfig();
             Core.StationStorage.LoadAll();
-     
+
+            foreach (var station in Core.StationStorage.GetAll())
+            {
+                station.SetFirstLoad(true);
+            }
 
             Context.Respond("Reloaded and cleared existing contracts");
             Context.Respond("If changing scripts, use the compile command to apply changes");

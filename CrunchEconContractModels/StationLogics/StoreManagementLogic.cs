@@ -197,6 +197,28 @@ namespace CrunchEconContractModels.StationLogics
         {
             if (!MappedBlockNames.Any())
             {
+                var list = new List<StoreEntryModel>();
+                list.Add(new StoreEntryModel
+                {
+                    Type = "MyObjectBuilder_Ore/",
+                    Subtype = "Iron",
+                    BuyFromPlayers = true,
+                    BuyFromPlayerPriceMin = 5000,
+                    BuyFromPlayerPriceMax = 7500,
+                    AmountToBuyMin = 2000,
+                    AmountToBuyMax = 5000,
+                    BuyFromChanceToAppear = 1,
+                    SellToPlayers = false,
+                    SellToPlayerPriceMin = 0,
+                    SellToPlayerPriceMax = 0,
+                    AmountToSellMin = 0,
+                    AmountToSellMax = 0,
+                    SellToChanceToAppear = 0,
+                    SpawnItemsIfMissing = false,
+                    SpawnIfBelowThisQuantity = 0
+                });
+
+                MappedBlockNames.Add("Test Store", list);
                 //populate the dictionary
             }
 

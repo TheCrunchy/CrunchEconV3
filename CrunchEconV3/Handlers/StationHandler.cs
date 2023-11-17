@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
+using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using VRage.Game.ModAPI;
 using VRageMath;
 
 namespace CrunchEconV3.Handlers
@@ -36,13 +38,44 @@ namespace CrunchEconV3.Handlers
 
                 if (found)
                 {
-                    if (station.Logics.Any())
+                    if (station.Logics != null && station.Logics.Any())
                     {
+                        var grid = MyAPIGateway.Entities.GetEntityById(station.GridEntityId) as MyCubeGrid;
+                        var faction = MySession.Static.Factions.TryGetFactionByTag(station.FactionTag);
+                        if (faction == null)
+                        {
+                            continue;
+                        }
+                        if (grid == null && station.IsFirstLoad())
+                        {
+                            station.SetFirstLoad(false);
+                            var gps = GPSHelper.ScanChat(station.LocationGPS);
+                            if (gps == null)
+                            {
+                                continue;
+                            }
+                            var sphere = new BoundingSphereD(gps.Coords, 2000);
+                         
+                            var storeGrid = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyCubeGrid>().Where(x => !x.Closed
+                                && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)) != null
+                                && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)).FactionId == faction.FactionId).ToList();
+                            if (storeGrid.Any())
+                            {
+                                grid = storeGrid.FirstOrDefault(x => x.GetFatBlocks().OfType<MyStoreBlock>().Any());
+                            }
+                        }
+
+                        if (grid == null)
+                        {
+                            continue;
+                        }
+
+                        station.GridEntityId = grid.EntityId;
                         foreach (var logic in station.Logics.OrderBy(x => x.Priority))
                         {
                             try
                             {
-                                var ShouldNextOneRun = await logic.DoLogic(null);
+                                var ShouldNextOneRun = await logic.DoLogic(grid);
                                 if (!ShouldNextOneRun)
                                 {
                                     break;
