@@ -224,7 +224,7 @@ namespace CrunchEconContractModels.Contracts
                             var owner = FacUtils.GetOwner(cargo);
                             var fac = MySession.Static.Factions.TryGetPlayerFaction(owner);
 
-                            if (fac != null && fac.FactionId == this.FactionId)
+                            if (fac != null && fac.FactionId == this.DeliveryFactionId)
                             {
                                 inventories.AddRange(InventoriesHandler.GetInventoriesForContract(cargo));
                             }
@@ -265,6 +265,7 @@ namespace CrunchEconContractModels.Contracts
         public int GpsId { get; set; }
         public bool ReadyToDeliver { get; set; }
         public long CollateralToTake { get; set; }
+        public long DeliveryFactionId { get; set; }
         public int ReputationRequired { get; set; }
 
     
@@ -447,7 +448,9 @@ namespace CrunchEconContractModels.Contracts
             var contract = new CrunchMiningContractImplementation();
             contract.AmountToMine = Core.random.Next(this.AmountToMineThenDeliverMin, this.AmountToMineThenDeliverMax);
             contract.RewardMoney = contract.AmountToMine * (Core.random.Next((int)this.PricePerItemMin, (int)this.PricePerItemMax));
-            contract.DeliverLocation = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
+            var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
+            contract.DeliverLocation = result.Item1;
+            contract.DeliveryFactionId = result.Item2;
             contract.ContractType = "CrunchMining";
             contract.BlockId = idUsedForDictionary;
             contract.OreSubTypeName = this.OresToPickFrom.GetRandomItemFromList();
@@ -470,9 +473,15 @@ namespace CrunchEconContractModels.Contracts
             return contract;
         }
 
-        public Vector3 AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {
-            return __instance != null ? __instance.PositionComp.GetPosition() : keenstation.Position;
+            if (keenstation != null)
+            {
+                return Tuple.Create(keenstation.Position, keenstation.FactionId);
+            }
+
+            var faction = MySession.Static.Factions.TryGetFactionByTag(__instance.GetOwnerFactionTag());
+            return Tuple.Create(__instance.PositionComp.GetPosition(), faction.FactionId);
         }
 
         public int AmountOfContractsToGenerate { get; set; } = 3;

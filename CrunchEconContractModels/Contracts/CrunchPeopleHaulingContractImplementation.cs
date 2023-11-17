@@ -255,7 +255,6 @@ namespace CrunchEconV3.Models.Contracts
         public long RewardMoney { get; set; }
         public long DistanceReward { get; set; }
         public Vector3 DeliverLocation { get; set; }
-        public long BonusPerKMDistance { get; set; } = 1;
         public List<PassengerBlock> PassengerBlocks { get; set; }
         public int PassengerCount { get; set; }
         public double ReputationMultiplierForMaximumPassengers { get; set; } = 0.3;
@@ -265,7 +264,9 @@ namespace CrunchEconV3.Models.Contracts
         public string Name { get; set; }
         public string Description { get; set; }
         public long SecondsToComplete { get; set; }
-     
+        
+        public long DeliveryFactionId { get; set; }
+
         public int GpsId { get; set; }
         public bool ReadyToDeliver { get; set; }
         public long CollateralToTake { get; set; }
@@ -329,7 +330,9 @@ namespace CrunchEconV3.Models.Contracts
             contract.ReputationRequired = this.ReputationRequired;
             contract.CanAutoComplete = true;
             contract.CollateralToTake = (Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));
-            contract.DeliverLocation = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
+            var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
+            contract.DeliverLocation = result.Item1;
+            contract.DeliveryFactionId = result.Item2;
             if (this.BonusPerKMDistance != 0)
             {
                 var distance = Vector3.Distance(contract.DeliverLocation, __instance != null ? __instance.PositionComp.GetPosition() : keenstation.Position);
@@ -359,7 +362,7 @@ namespace CrunchEconV3.Models.Contracts
             return contract;
         }
 
-        public Vector3 AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {
             if (keenstation != null)
             {
@@ -374,7 +377,8 @@ namespace CrunchEconV3.Models.Contracts
                         i++;
                         continue;
                     }
-                    return found.Position;
+
+                    return Tuple.Create(found.Position, foundFaction.FactionId);
                 }
             }
 
@@ -386,7 +390,7 @@ namespace CrunchEconV3.Models.Contracts
                     var GPS = GPSHelper.ScanChat(random);
                     if (GPS != null)
                     {
-                        return GPS.Coords;
+                        return Tuple.Create(GPS.Coords, 0l);
                     }
                 }
             }
@@ -394,17 +398,18 @@ namespace CrunchEconV3.Models.Contracts
             for (int i = 0; i < 10; i++)
             {
 
-                var station = Core.StationStorage.GetAll().GetRandomItemFromList();
+                var station = Core.StationStorage.GetAll().Where(x => x.UseAsDeliveryLocation).ToList().GetRandomItemFromList();
                 if (station.FileName == thisStation)
                 {
                     i++;
                     continue;
                 }
+                var foundFaction = MySession.Static.Factions.TryGetFactionByTag(station.FactionTag);
                 var GPS = GPSHelper.ScanChat(station.LocationGPS);
-                return GPS.Coords;
+                return Tuple.Create(GPS.Coords, foundFaction.FactionId);
             }
 
-            return Vector3.Zero;
+            return Tuple.Create(Vector3D.Zero, 0l);
         }
 
         public int AmountOfContractsToGenerate { get; set; } = 3;

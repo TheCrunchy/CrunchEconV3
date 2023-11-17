@@ -189,12 +189,11 @@ namespace CrunchEconV3.Models.Contracts
 
                 var storeGrid = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<IMyCubeGrid>().Where(x => !x.Closed
                     && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)) != null
-                    && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)).FactionId == this.FactionId).ToList();
+                    && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)).FactionId == this.DeliveryFactionId).ToList();
                 var tanks = new List<IMyGasTank>();
                 var storeTanks = new List<IMyGasTank>();
                 foreach (var grid in playersGrids)
                 {
-
                     tanks.AddRange(grid.GetFatBlocks<IMyGasTank>());
                 }
                 foreach (var grid in storeGrid)
@@ -258,6 +257,7 @@ namespace CrunchEconV3.Models.Contracts
         public int GpsId { get; set; }
         public bool ReadyToDeliver { get; set; }
         public long CollateralToTake { get; set; }
+        public long DeliveryFactionId { get; set; }
     }
 
     public class GasContractConfig : IContractConfig
@@ -299,13 +299,15 @@ namespace CrunchEconV3.Models.Contracts
             {
                 description.AppendLine($" ||| Reputation with owner required: {this.ReputationRequired}");
             }
-
-            contract.DeliverLocation = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
+            var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
+            contract.DeliverLocation = result.Item1;
+            contract.DeliveryFactionId = result.Item2;
             contract.Description = description.ToString();
             return contract;
         }
 
-        public Vector3 AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
+            long idUsedForDictionary)
         {
 
             if (keenstation != null)
@@ -321,7 +323,8 @@ namespace CrunchEconV3.Models.Contracts
                         i++;
                         continue;
                     }
-                    return found.Position;
+                    
+                    return Tuple.Create(found.Position, foundFaction.FactionId);
                 }
             }
 
@@ -333,7 +336,7 @@ namespace CrunchEconV3.Models.Contracts
                     var GPS = GPSHelper.ScanChat(random);
                     if (GPS != null)
                     {
-                        return GPS.Coords;
+                        return Tuple.Create(GPS.Coords, 0l);
                     }
                 }
             }
@@ -341,17 +344,18 @@ namespace CrunchEconV3.Models.Contracts
             for (int i = 0; i < 10; i++)
             {
 
-                var station = Core.StationStorage.GetAll().GetRandomItemFromList();
+                var station = Core.StationStorage.GetAll().Where(x => x.UseAsDeliveryLocation).ToList().GetRandomItemFromList();
                 if (station.FileName == thisStation)
                 {
                     i++;
                     continue;
                 }
+                var foundFaction = MySession.Static.Factions.TryGetFactionByTag(station.FactionTag);
                 var GPS = GPSHelper.ScanChat(station.LocationGPS);
-                return GPS.Coords;
+                return Tuple.Create(GPS.Coords, foundFaction.FactionId);
             }
 
-            return Vector3.Zero;
+            return Tuple.Create(Vector3D.Zero, 0l);
         }
 
         public int AmountOfContractsToGenerate { get; set; } = 2;

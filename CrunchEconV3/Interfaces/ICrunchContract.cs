@@ -101,5 +101,8 @@ namespace CrunchEconV3.Interfaces
         //how much they have to pay to take the contract 
         public long CollateralToTake { get; set; }
 
+        //fac id of the delivery point
+        public long DeliveryFactionId { get; set; }
+
     }
 }

@@ -20,7 +20,8 @@ namespace CrunchEconV3.Interfaces
         public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary);
 
         //run this whenever you want to generate a delivery location, always null check the keen station!
-        public Vector3 AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary);
+        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
+            long idUsedForDictionary);
         public int AmountOfContractsToGenerate { get; set; }
         public long SecondsToComplete { get; set; }
         public int ReputationGainOnCompleteMin { get; set; }
