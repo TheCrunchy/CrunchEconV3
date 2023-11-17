@@ -40,22 +40,29 @@ namespace CrunchEconV3.Handlers
                 {
                     if (station.Logics != null && station.Logics.Any())
                     {
-                        var grid = MyAPIGateway.Entities.GetEntityById(station.GridEntityId) as MyCubeGrid;
+                        MyCubeGrid grid = null;
+                        //MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        //{
+                        //    Core.Log.Info(station.GridEntityId);
+                        //    MyAPIGateway.Entities.TryGetEntityById(station.GridEntityId, out var thing);
+                        //    grid = (MyCubeGrid)thing;
+                        //});
+
                         var faction = MySession.Static.Factions.TryGetFactionByTag(station.FactionTag);
                         if (faction == null)
                         {
+                            Core.Log.Error($"{station.FileName} faction not found");
                             continue;
                         }
-                        if (grid == null && station.IsFirstLoad())
+                        if (grid == null)
                         {
-                            station.SetFirstLoad(false);
                             var gps = GPSHelper.ScanChat(station.LocationGPS);
                             if (gps == null)
                             {
                                 continue;
                             }
                             var sphere = new BoundingSphereD(gps.Coords, 2000);
-                         
+
                             var storeGrid = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyCubeGrid>().Where(x => !x.Closed
                                 && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)) != null
                                 && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)).FactionId == faction.FactionId).ToList();
@@ -67,6 +74,7 @@ namespace CrunchEconV3.Handlers
 
                         if (grid == null)
                         {
+                            Core.Log.Error($"{station.FileName} grid not found");
                             continue;
                         }
 
@@ -75,7 +83,9 @@ namespace CrunchEconV3.Handlers
                         {
                             try
                             {
-                                var ShouldNextOneRun = await logic.DoLogic(grid);
+                                Core.Log.Error($"RUNNING LOGIC");
+                                var ShouldNextOneRun = await logic.DoLogic((MyCubeGrid)grid);
+                                Core.Log.Error($"LOGIC RAN");
                                 if (!ShouldNextOneRun)
                                 {
                                     break;
@@ -90,7 +100,7 @@ namespace CrunchEconV3.Handlers
 
                     Core.StationStorage.Save(station);
                 }
-                
+
             }
         }
 

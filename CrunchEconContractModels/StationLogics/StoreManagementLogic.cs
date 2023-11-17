@@ -91,13 +91,15 @@ namespace CrunchEconContractModels.StationLogics
             var gridOwnerFac = FacUtils.GetOwner(grid);
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == gridOwnerFac))
             {
+                CrunchEconV3.Core.Log.Info($"before clear");
                 //clear existing stuff in the store block
                 ClearStoreOfPlayersBuyingOffers(store);
                 ClearStoreOfPlayersSellingOrders(store);
-
+                CrunchEconV3.Core.Log.Info($"before inserts");
                 var items = StoreItemsHandler.GetByBlockName(store.DisplayNameText);
                 foreach (var item in items)
                 {
+                    CrunchEconV3.Core.Log.Info($"before inserts 2");
                     try
                     {
                         DoBuy(item, store);
@@ -107,6 +109,7 @@ namespace CrunchEconContractModels.StationLogics
                     {
                         CrunchEconV3.Core.Log.Error(e);
                     }
+                    CrunchEconV3.Core.Log.Info($"after inserts");
                 }
             }
 
@@ -115,7 +118,6 @@ namespace CrunchEconContractModels.StationLogics
 
         public static void DoBuy(StoreEntryModel item, MyStoreBlock store)
         {
-            var skip = false;
             if (!item.BuyFromPlayers) return;
             if (item.BuyFromChanceToAppear < 1)
             {
@@ -126,22 +128,38 @@ namespace CrunchEconContractModels.StationLogics
                 }
             }
 
+            var i = 0;
+            i++;
+            CrunchEconV3.Core.Log.Info($"{i}");
             if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id)) return;
+            i++;
+            CrunchEconV3.Core.Log.Info($"{i}");
             SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, item.Subtype);
+            i++;
+            CrunchEconV3.Core.Log.Info($"{i}");
             int price = CrunchEconV3.Core.random.Next((int)item.BuyFromPlayerPriceMin, (int)item.BuyFromPlayerPriceMax);
-              
+            i++;
+            CrunchEconV3.Core.Log.Info($"{i}");
             int amount = CrunchEconV3.Core.random.Next((int)item.AmountToBuyMin,
                 (int)item.AmountToBuyMax);
+            i++;
+            CrunchEconV3.Core.Log.Info($"{i}");
             MyStoreItemData itemInsert =
                 new MyStoreItemData(itemId, amount, price,
                     null, null);
+            i++;
+            CrunchEconV3.Core.Log.Info($"{i}");
             MyStoreInsertResults result =
                 store.InsertOrder(itemInsert,
                     out long notUsingThis);
+            i++;
+            CrunchEconV3.Core.Log.Info($"{i}");
             if (result != MyStoreInsertResults.Success)
             {
                 CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} {itemInsert.PricePerUnit} {result.ToString()}");
             }
+            i++;
+            CrunchEconV3.Core.Log.Info($"{i}");
         }
 
         public static void DoSell(StoreEntryModel item, MyStoreBlock store)
@@ -200,7 +218,7 @@ namespace CrunchEconContractModels.StationLogics
                 var list = new List<StoreEntryModel>();
                 list.Add(new StoreEntryModel
                 {
-                    Type = "MyObjectBuilder_Ore/",
+                    Type = "MyObjectBuilder_Ore",
                     Subtype = "Iron",
                     BuyFromPlayers = true,
                     BuyFromPlayerPriceMin = 5000,
