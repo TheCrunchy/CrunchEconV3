@@ -43,7 +43,7 @@ namespace CrunchEconContractModels.StationLogics
                 {
                     continue;
                 }
-                var type = Type.GetType("System.Text.Json.JsonSerializer, System.Text.Json");
+
                 for (int i = 0; i < block.InventoryCount; i++)
                 {
                     VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)block).GetInventory(i);
