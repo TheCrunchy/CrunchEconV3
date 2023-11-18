@@ -58,7 +58,21 @@ namespace CrunchEconV3.Commands
             {
                 Compiler.Compile(item);
             }
+            var configs = from t in Core.myAssemblies.Select(x => x)
+                    .SelectMany(x => x.GetTypes())
+                where t.IsClass && t.GetInterfaces().Contains(typeof(IContractConfig))
+                select t;
 
+            var configs2 = from t in Core.myAssemblies.Select(x => x)
+                    .SelectMany(x => x.GetTypes())
+                where t.IsClass && t.GetInterfaces().Contains(typeof(IStationLogic))
+                select t;
+
+            foreach (var config in configs2)
+            {
+                IStationLogic instance = (IStationLogic)Activator.CreateInstance(config);
+                instance.Setup();
+            }
             Context.Respond("done, check logs for any errors");
         }
         

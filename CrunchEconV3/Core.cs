@@ -26,6 +26,8 @@ using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRageMath;
 using System.IO.Compression;
+using Sandbox.Definitions;
+using VRage.Game;
 
 namespace CrunchEconV3
 {
@@ -280,7 +282,18 @@ namespace CrunchEconV3
                     Core.Log.Error($"compile error {e}");
                     throw;
                 }
+                foreach (MyDefinitionBase def in MyDefinitionManager.Static.GetAllDefinitions())
+                {
 
+                    if ((def as MyComponentDefinition) != null)
+                    {
+                        (def as MyComponentDefinition).MinimalPricePerUnit = 1;
+                    }
+                    if ((def as MyPhysicalItemDefinition) != null)
+                    {
+                        (def as MyPhysicalItemDefinition).MinimalPricePerUnit = 1;
+                    }
+                }
 
                 StationStorage = new JsonStationStorageHandler(path);
                 PlayerStorage = new JsonPlayerStorageHandler(path);

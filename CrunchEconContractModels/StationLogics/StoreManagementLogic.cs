@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
@@ -11,6 +12,7 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
 using Sandbox.ModAPI.Ingame;
+using VRage;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Definitions;
@@ -24,7 +26,8 @@ namespace CrunchEconContractModels.StationLogics
         {
             StoreItemsHandler.GetByBlockName("INIT THE LIST");
         }
-        public static List<VRage.Game.ModAPI.IMyInventory> ClearInventories(MyCubeGrid grid)
+
+        public static List<VRage.Game.ModAPI.IMyInventory> GetInventories(MyCubeGrid grid)
         {
             List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();
             var gridOwnerFac = FacUtils.GetOwner(grid);
@@ -38,8 +41,18 @@ namespace CrunchEconContractModels.StationLogics
                 for (int i = 0; i < block.InventoryCount; i++)
                 {
                     VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)block).GetInventory(i);
-                    inv.Clear();
+                    inventories.Add(inv);
                 }
+            }
+            return inventories;
+        }
+        public static List<VRage.Game.ModAPI.IMyInventory> ClearInventories(MyCubeGrid grid)
+        {
+            List<VRage.Game.ModAPI.IMyInventory> inventories = GetInventories(grid);
+
+            foreach (var inv in inventories)
+            {
+                inv.Clear();
             }
             return inventories;
         }
@@ -88,35 +101,49 @@ namespace CrunchEconContractModels.StationLogics
                 return Task.FromResult(true);
             }
 
+            if (this.DeleteItemsPeriodically)
+            {
+                if (DateTime.Now >= NextDelete)
+                {
+                    NextDelete = DateTime.Now.AddMinutes(MinutesBetweenDeletes);
+                    ClearInventories(grid);
+                }
+     
+            }
+
             var gridOwnerFac = FacUtils.GetOwner(grid);
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == gridOwnerFac))
             {
-                CrunchEconV3.Core.Log.Info($"before clear");
-                //clear existing stuff in the store block
+        
                 ClearStoreOfPlayersBuyingOffers(store);
                 ClearStoreOfPlayersSellingOrders(store);
-                CrunchEconV3.Core.Log.Info($"before inserts");
                 var items = StoreItemsHandler.GetByBlockName(store.DisplayNameText);
                 foreach (var item in items)
                 {
-                    CrunchEconV3.Core.Log.Info($"before inserts 2");
+                    if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id))
+                    {
+                        CrunchEconV3.Core.Log.Error($"{item.Type} {item.Subtype} not a valid id");
+                        continue;
+                    };
+                    var inventories = GetInventories(grid);
+                    var quantity = CrunchEconV3.Handlers.InventoriesHandler.CountComponents(inventories, id);
                     try
                     {
-                        DoBuy(item, store);
-                        DoSell(item,store);
+                        DoBuy(item, store, quantity, inventories);
+                        DoSell(item,store, quantity, inventories);
                     }
                     catch (Exception e)
                     {
                         CrunchEconV3.Core.Log.Error(e);
                     }
-                    CrunchEconV3.Core.Log.Info($"after inserts");
+
                 }
             }
 
             return Task.FromResult(true);
         }
 
-        public static void DoBuy(StoreEntryModel item, MyStoreBlock store)
+        public static void DoBuy(StoreEntryModel item, MyStoreBlock store, MyFixedPoint quantityInGrid, List<IMyInventory> gridInventories)
         {
             if (!item.BuyFromPlayers) return;
             if (item.BuyFromChanceToAppear < 1)
@@ -128,41 +155,31 @@ namespace CrunchEconContractModels.StationLogics
                 }
             }
 
-            var i = 0;
-            i++;
-            CrunchEconV3.Core.Log.Info($"{i}");
+
             if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id)) return;
-            i++;
-            CrunchEconV3.Core.Log.Info($"{i}");
+    
             SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, item.Subtype);
-            i++;
-            CrunchEconV3.Core.Log.Info($"{i}");
+         
             int price = CrunchEconV3.Core.random.Next((int)item.BuyFromPlayerPriceMin, (int)item.BuyFromPlayerPriceMax);
-            i++;
-            CrunchEconV3.Core.Log.Info($"{i}");
+ 
             int amount = CrunchEconV3.Core.random.Next((int)item.AmountToBuyMin,
                 (int)item.AmountToBuyMax);
-            i++;
-            CrunchEconV3.Core.Log.Info($"{i}");
+  
             MyStoreItemData itemInsert =
                 new MyStoreItemData(itemId, amount, price,
                     null, null);
-            i++;
-            CrunchEconV3.Core.Log.Info($"{i}");
+
             MyStoreInsertResults result =
                 store.InsertOrder(itemInsert,
                     out long notUsingThis);
-            i++;
-            CrunchEconV3.Core.Log.Info($"{i}");
+
             if (result != MyStoreInsertResults.Success)
             {
                 CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} {itemInsert.PricePerUnit} {result.ToString()}");
             }
-            i++;
-            CrunchEconV3.Core.Log.Info($"{i}");
         }
 
-        public static void DoSell(StoreEntryModel item, MyStoreBlock store)
+        public static void DoSell(StoreEntryModel item, MyStoreBlock store, MyFixedPoint quantityInGrid, List<IMyInventory> gridInventories)
         {
             var skip = false;
             if (!item.SellToPlayers) return;
@@ -174,7 +191,41 @@ namespace CrunchEconContractModels.StationLogics
                     return;
                 }
             }
+            if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id)) return;
 
+            SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, item.Subtype);
+
+            int price = CrunchEconV3.Core.random.Next((int)item.SellToPlayerPriceMin, (int)item.SellToPlayerPriceMax);
+
+            int amount = CrunchEconV3.Core.random.Next((int)item.AmountToSellMin,
+                (int)item.AmountToSellMax);
+            if (quantityInGrid < amount)
+            {
+                if (item.SpawnItemsIfMissing && quantityInGrid < item.SpawnIfBelowThisQuantity)
+                {
+                    var amountToSpawn = amount - quantityInGrid;
+                    if (!CrunchEconV3.Handlers.InventoriesHandler.SpawnItems(id, amountToSpawn, gridInventories))
+                    {
+                        CrunchEconV3.Core.Log.Error($"Unable to spawn items for offer in grid {item.Type} {item.Subtype}");
+                    }
+                }
+                else
+                {
+                    amount = quantityInGrid.ToIntSafe();
+                }
+            }
+            MyStoreItemData itemInsert =
+                new MyStoreItemData(itemId, amount, price,
+                    null, null);
+
+            MyStoreInsertResults result =
+                store.InsertOffer(itemInsert,
+                    out long notUsingThis);
+
+            if (result != MyStoreInsertResults.Success)
+            {
+                CrunchEconV3.Core.Log.Error($"Unable to insert this offer into store {item.Type} {item.Subtype} {itemInsert.Amount} {itemInsert.PricePerUnit} {result.ToString()}");
+            }
         }
 
         public int Priority { get; set; }
@@ -213,30 +264,53 @@ namespace CrunchEconContractModels.StationLogics
 
         public static List<StoreEntryModel> GetByBlockName(string blockname)
         {
+            var list = new List<StoreEntryModel>();
+            list.Add(new StoreEntryModel
+            {
+                Type = "MyObjectBuilder_Ore",
+                Subtype = "Iron",
+                BuyFromPlayers = true,
+                BuyFromPlayerPriceMin = 5000,
+                BuyFromPlayerPriceMax = 7500,
+                AmountToBuyMin = 2000,
+                AmountToBuyMax = 5000,
+                BuyFromChanceToAppear = 1,
+                SellToPlayers = false,
+                SellToPlayerPriceMin = 0,
+                SellToPlayerPriceMax = 0,
+                AmountToSellMin = 0,
+                AmountToSellMax = 0,
+                SellToChanceToAppear = 0,
+                SpawnItemsIfMissing = false,
+                SpawnIfBelowThisQuantity = 0
+            });
+            list.Add(new StoreEntryModel
+            {
+                Type = "MyObjectBuilder_Ingot",
+                Subtype = "Iron",
+                BuyFromPlayers = false,
+                BuyFromPlayerPriceMin = 5000,
+                BuyFromPlayerPriceMax = 7500,
+                AmountToBuyMin = 2000,
+                AmountToBuyMax = 5000,
+                BuyFromChanceToAppear = 1,
+                SellToPlayers = true,
+                SellToPlayerPriceMin = 5000,
+                SellToPlayerPriceMax = 7500,
+                AmountToSellMin = 50,
+                AmountToSellMax = 100,
+                SellToChanceToAppear = 1,
+                SpawnItemsIfMissing = true,
+                SpawnIfBelowThisQuantity = 50
+            });
+
+            return list;
+            MappedBlockNames.Add("Test Store", list);
+
+
             if (!MappedBlockNames.Any())
             {
-                var list = new List<StoreEntryModel>();
-                list.Add(new StoreEntryModel
-                {
-                    Type = "MyObjectBuilder_Ore",
-                    Subtype = "Iron",
-                    BuyFromPlayers = true,
-                    BuyFromPlayerPriceMin = 5000,
-                    BuyFromPlayerPriceMax = 7500,
-                    AmountToBuyMin = 2000,
-                    AmountToBuyMax = 5000,
-                    BuyFromChanceToAppear = 1,
-                    SellToPlayers = false,
-                    SellToPlayerPriceMin = 0,
-                    SellToPlayerPriceMax = 0,
-                    AmountToSellMin = 0,
-                    AmountToSellMax = 0,
-                    SellToChanceToAppear = 0,
-                    SpawnItemsIfMissing = false,
-                    SpawnIfBelowThisQuantity = 0
-                });
-
-                MappedBlockNames.Add("Test Store", list);
+         
                 //populate the dictionary
             }
 
