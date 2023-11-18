@@ -29,6 +29,13 @@ namespace CrunchEconV3.Commands
     [Category("crunchecon")]
     public class CategoryCommands : CommandModule
     {
+        [Command("toggle", "toggle paused state")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void toggle()
+        {
+            Core.Paused = !Core.Paused;
+            Context.Respond($"Toggled pause to {Core.Paused}");
+        }
 
         [Command("reload", "example command usage !categorycommands example")]
         [Permission(MyPromoteLevel.Admin)]

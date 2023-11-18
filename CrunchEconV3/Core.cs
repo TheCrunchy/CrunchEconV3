@@ -26,8 +26,10 @@ using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRageMath;
 using System.IO.Compression;
+using CrunchEconV3.APIs;
 using Sandbox.Definitions;
 using VRage.Game;
+using VRage.Game.Components;
 
 namespace CrunchEconV3
 {
@@ -42,7 +44,8 @@ namespace CrunchEconV3
         public static ICrunchStationStorage StationStorage;
         public static string path;
         public static string basePath;
-
+        public static MESApi SpawnerAPI;
+        public static bool Paused { get; set; } = false;
         public const string PluginName = "CrunchEconV3";
         public static Logger Log = LogManager.GetLogger(PluginName);
         public override void Init(ITorchBase torch)
@@ -58,19 +61,25 @@ namespace CrunchEconV3
 
             SetupConfig();
             CreatePath();
-
         }
+
 
         public DateTime NextContractGps = DateTime.Now;
         public DateTime NextKeenMap = DateTime.Now;
         public override async void Update()
         {
+            if (Paused)
+            {
+                return;
+            }
 
             try
             {
                 ticks++;
-
-
+                if (ticks == 1)
+                {
+                //    SpawnerAPI = new MESApi();
+                }
                 if (ticks % 100 == 0 && TorchState == TorchSessionState.Loaded)
                 {
                     try
@@ -238,9 +247,15 @@ namespace CrunchEconV3
         private void SessionChanged(ITorchSession session, TorchSessionState newState)
         {
             TorchState = newState;
+            if (newState is TorchSessionState.Loading)
+            {
+  
+
+            }
+
             if (newState is TorchSessionState.Loaded)
             {
-
+            
                 var patches = session.Managers.GetManager<PatchManager>();
                 try
                 {

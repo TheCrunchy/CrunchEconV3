@@ -18,6 +18,7 @@ using Sandbox.ModAPI;
 using Sandbox.ModAPI.Ingame;
 using VRage;
 using VRage.Game;
+using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.ObjectBuilders;

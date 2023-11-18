@@ -234,6 +234,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="APIs\MESApi.cs" />
     <Compile Include="Commands\CategoryCommands.cs" />
     <Compile Include="Commands\Commands.cs" />
     <Compile Include="Handlers\ContractAcceptor.cs" />
@@ -244,7 +245,7 @@
     <Compile Include="Models\Config\Config.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="Models\KeenNPCEntry.cs" />
-    <Compile Include="Models\NexusAPI.cs" />
+    <Compile Include="APIs\NexusAPI.cs" />
     <Compile Include="Models\PassengerBlock.cs" />
     <Compile Include="Models\TankGroup.cs" />
     <Compile Include="Patches\ContractPatches.cs" />
