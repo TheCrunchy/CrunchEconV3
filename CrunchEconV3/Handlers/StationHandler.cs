@@ -76,7 +76,6 @@ namespace CrunchEconV3.Handlers
 
                         if (grid == null)
                         {
-                            Core.Log.Error($"{station.FileName} grid not found");
                             continue;
                         }
                         
@@ -237,10 +236,11 @@ namespace CrunchEconV3.Handlers
 
                 while (i < contract.AmountOfContractsToGenerate)
                 {
+                    i++;
                     var generated = contract.GenerateFromConfig(location, null, blockId);
                     if (generated == null) continue;
                     NewContracts.Add(generated);
-                    i++;
+            
                 }
             }
             return NewContracts;

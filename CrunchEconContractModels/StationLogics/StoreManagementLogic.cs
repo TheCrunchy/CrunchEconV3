@@ -35,6 +35,7 @@ namespace CrunchEconContractModels.StationLogics
         {
             List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();
             var gridOwnerFac = FacUtils.GetOwner(grid);
+
             foreach (var block in grid.GetFatBlocks().Where(x => x.OwnerId == gridOwnerFac))
             {
                 if (block is MyReactor)
@@ -150,15 +151,10 @@ namespace CrunchEconContractModels.StationLogics
         public static void DoBuy(StoreEntryModel item, MyStoreBlock store, MyFixedPoint quantityInGrid, List<IMyInventory> gridInventories)
         {
             if (!item.BuyFromPlayers) return;
-            if (item.BuyFromChanceToAppear < 1)
+            if (item.BuyFromChanceToAppear < 1 && CrunchEconV3.Core.random.NextDouble() > item.BuyFromChanceToAppear)
             {
-                var chance = CrunchEconV3.Core.random.NextDouble();
-                if (chance > item.BuyFromChanceToAppear)
-                {
-                    return;
-                }
+                return;
             }
-
 
             if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id)) return;
     
@@ -187,14 +183,11 @@ namespace CrunchEconContractModels.StationLogics
         {
             var skip = false;
             if (!item.SellToPlayers) return;
-            if (item.SellToChanceToAppear < 1)
+            if (item.SellToChanceToAppear < 1 && CrunchEconV3.Core.random.NextDouble() > item.SellToChanceToAppear)
             {
-                var chance = CrunchEconV3.Core.random.NextDouble();
-                if (chance > item.SellToChanceToAppear)
-                {
-                    return;
-                }
+                return;
             }
+
             if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id)) return;
 
             SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, item.Subtype);
