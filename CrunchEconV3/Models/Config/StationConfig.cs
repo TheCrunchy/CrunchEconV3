@@ -16,8 +16,6 @@ namespace CrunchEconV3.Models
         public string FactionTag { get; set; } = "SPRT";
         public int SecondsBetweenContractRefresh { get; set; }
         public List<string> ContractFiles { get; set; }
-        public DateTime NextSellRefresh { get; set; } = DateTime.Now;
-        public DateTime NextBuyRefresh { get; set; } = DateTime.Now;
         public string FileName { get; set; }
         public bool UseAsDeliveryLocation { get; set; } = true;
         private List<IContractConfig> configs;
