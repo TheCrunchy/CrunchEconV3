@@ -2,16 +2,19 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
 using CrunchEconV3.Interfaces;
+using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
 using NLog.Fluent;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
+using Sandbox.ModAPI;
 using Sandbox.ModAPI.Ingame;
 using VRage;
 using VRage.Game;
@@ -38,7 +41,7 @@ namespace CrunchEconContractModels.StationLogics
                 {
                     continue;
                 }
-
+                var type = Type.GetType("System.Text.Json.JsonSerializer, System.Text.Json");
                 for (int i = 0; i < block.InventoryCount; i++)
                 {
                     VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)block).GetInventory(i);

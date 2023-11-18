@@ -244,6 +244,7 @@
     <Compile Include="Models\Config\Config.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="Models\KeenNPCEntry.cs" />
+    <Compile Include="Models\NexusAPI.cs" />
     <Compile Include="Models\PassengerBlock.cs" />
     <Compile Include="Models\TankGroup.cs" />
     <Compile Include="Patches\ContractPatches.cs" />

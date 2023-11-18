@@ -30,7 +30,6 @@ namespace CrunchEconV3.Utils
             }
 
             metadataReferenceList.Add(MetadataReference.CreateFromFile(@$"{Core.path}\CrunchEconV3.dll"));
-   
             return metadataReferenceList.ToArray();
         }
         private static bool CompileFromFile(string file)

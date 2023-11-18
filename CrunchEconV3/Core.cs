@@ -209,12 +209,12 @@ namespace CrunchEconV3
 
             }
 
-            foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs")))
-            {
+            //foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs")))
+            //{
 
-                File.Copy(item, $"{path}/Scripts/{Path.GetFileName(item)}", true);
+            //    File.Copy(item, $"{path}/Scripts/{Path.GetFileName(item)}", true);
 
-            }
+            //}
             Directory.Delete(tempfolder, true);
         }
 
@@ -282,19 +282,23 @@ namespace CrunchEconV3
                     Core.Log.Error($"compile error {e}");
                     throw;
                 }
-                foreach (MyDefinitionBase def in MyDefinitionManager.Static.GetAllDefinitions())
-                {
 
-                    if ((def as MyComponentDefinition) != null)
+                if (config.SetMinPricesTo1)
+                {
+                    foreach (MyDefinitionBase def in MyDefinitionManager.Static.GetAllDefinitions())
                     {
-                        (def as MyComponentDefinition).MinimalPricePerUnit = 1;
-                    }
-                    if ((def as MyPhysicalItemDefinition) != null)
-                    {
-                        (def as MyPhysicalItemDefinition).MinimalPricePerUnit = 1;
+
+                        if ((def as MyComponentDefinition) != null)
+                        {
+                            (def as MyComponentDefinition).MinimalPricePerUnit = 1;
+                        }
+                        if ((def as MyPhysicalItemDefinition) != null)
+                        {
+                            (def as MyPhysicalItemDefinition).MinimalPricePerUnit = 1;
+                        }
                     }
                 }
-
+                
                 StationStorage = new JsonStationStorageHandler(path);
                 PlayerStorage = new JsonPlayerStorageHandler(path);
                 session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
