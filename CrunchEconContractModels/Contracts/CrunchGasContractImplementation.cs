@@ -302,6 +302,10 @@ namespace CrunchEconV3.Models.Contracts
             var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
             contract.DeliverLocation = result.Item1;
             contract.DeliveryFactionId = result.Item2;
+            if (contract.DeliverLocation == null || contract.DeliverLocation.Equals(Vector3.Zero))
+            {
+                return null;
+            }
             contract.Description = description.ToString();
             return contract;
         }
