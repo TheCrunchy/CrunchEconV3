@@ -57,7 +57,7 @@ namespace CrunchEconV3.Handlers
                         if (grid == null && station.IsFirstLoad())
                         {
                             station.SetFirstLoad(false);
-                            Core.Log.Info("Grids null, finding it");
+                         
                             var gps = GPSHelper.ScanChat(station.LocationGPS);
                             if (gps == null)
                             {
@@ -85,9 +85,7 @@ namespace CrunchEconV3.Handlers
                         {
                             try
                             {
-                                Core.Log.Error($"RUNNING LOGIC");
                                 var ShouldNextOneRun = await logic.DoLogic((MyCubeGrid)grid);
-                                Core.Log.Error($"LOGIC RAN");
                                 if (!ShouldNextOneRun)
                                 {
                                     break;

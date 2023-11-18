@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -24,7 +25,7 @@ namespace CrunchEconContractModels.StationLogics
     {
         public void Setup()
         {
-            StoreItemsHandler.GetByBlockName("INIT THE LIST");
+            StoreItemsHandler.LoadTheFiles();
         }
 
         public static List<VRage.Game.ModAPI.IMyInventory> GetInventories(MyCubeGrid grid)
@@ -214,6 +215,10 @@ namespace CrunchEconContractModels.StationLogics
                     amount = quantityInGrid.ToIntSafe();
                 }
             }
+            else
+            {
+                amount = quantityInGrid.ToIntSafe();
+            }
             MyStoreItemData itemInsert =
                 new MyStoreItemData(itemId, amount, price,
                     null, null);
@@ -261,59 +266,73 @@ namespace CrunchEconContractModels.StationLogics
     {
         public static Dictionary<string, List<StoreEntryModel>> MappedBlockNames = new Dictionary<string, List<StoreEntryModel>>();
 
+        public static void LoadTheFiles()
+        {
+            MappedBlockNames.Clear();
+            FileUtils utils = new FileUtils();
+            if (!Directory.Exists($"{CrunchEconV3.Core.path}/StoreConfigs/"))
+            {
+                Directory.CreateDirectory($"{CrunchEconV3.Core.path}/StoreConfigs/");
+                var list = new List<StoreEntryModel>();
+                list.Add(new StoreEntryModel
+                {
+                    Type = "MyObjectBuilder_Ore",
+                    Subtype = "Iron",
+                    BuyFromPlayers = true,
+                    BuyFromPlayerPriceMin = 5000,
+                    BuyFromPlayerPriceMax = 7500,
+                    AmountToBuyMin = 2000,
+                    AmountToBuyMax = 5000,
+                    BuyFromChanceToAppear = 1,
+                    SellToPlayers = false,
+                    SellToPlayerPriceMin = 0,
+                    SellToPlayerPriceMax = 0,
+                    AmountToSellMin = 0,
+                    AmountToSellMax = 0,
+                    SellToChanceToAppear = 0,
+                    SpawnItemsIfMissing = false,
+                    SpawnIfBelowThisQuantity = 0
+                });
+                list.Add(new StoreEntryModel
+                {
+                    Type = "MyObjectBuilder_Ingot",
+                    Subtype = "Iron",
+                    BuyFromPlayers = false,
+                    BuyFromPlayerPriceMin = 5000,
+                    BuyFromPlayerPriceMax = 7500,
+                    AmountToBuyMin = 2000,
+                    AmountToBuyMax = 5000,
+                    BuyFromChanceToAppear = 1,
+                    SellToPlayers = true,
+                    SellToPlayerPriceMin = 5000,
+                    SellToPlayerPriceMax = 7500,
+                    AmountToSellMin = 50,
+                    AmountToSellMax = 100,
+                    SellToChanceToAppear = 1,
+                    SpawnItemsIfMissing = true,
+                    SpawnIfBelowThisQuantity = 50
+                });
+
+                utils.WriteToJsonFile($"{CrunchEconV3.Core.path}/StoreConfigs/Example.json", list);
+            }
+     
+            foreach (var file in Directory.GetFiles($"{CrunchEconV3.Core.path}/StoreConfigs/"))
+            {
+                try
+                {
+                    var name = Path.GetFileNameWithoutExtension(file);
+                    MappedBlockNames.Add(name, utils.ReadFromJsonFile<List<StoreEntryModel>>(file));
+                }
+                catch (Exception e)
+                {
+                    CrunchEconV3.Core.Log.Error($"Error reading store entry file {file}");
+                    throw;
+                }
+            }
+        }
 
         public static List<StoreEntryModel> GetByBlockName(string blockname)
         {
-            var list = new List<StoreEntryModel>();
-            list.Add(new StoreEntryModel
-            {
-                Type = "MyObjectBuilder_Ore",
-                Subtype = "Iron",
-                BuyFromPlayers = true,
-                BuyFromPlayerPriceMin = 5000,
-                BuyFromPlayerPriceMax = 7500,
-                AmountToBuyMin = 2000,
-                AmountToBuyMax = 5000,
-                BuyFromChanceToAppear = 1,
-                SellToPlayers = false,
-                SellToPlayerPriceMin = 0,
-                SellToPlayerPriceMax = 0,
-                AmountToSellMin = 0,
-                AmountToSellMax = 0,
-                SellToChanceToAppear = 0,
-                SpawnItemsIfMissing = false,
-                SpawnIfBelowThisQuantity = 0
-            });
-            list.Add(new StoreEntryModel
-            {
-                Type = "MyObjectBuilder_Ingot",
-                Subtype = "Iron",
-                BuyFromPlayers = false,
-                BuyFromPlayerPriceMin = 5000,
-                BuyFromPlayerPriceMax = 7500,
-                AmountToBuyMin = 2000,
-                AmountToBuyMax = 5000,
-                BuyFromChanceToAppear = 1,
-                SellToPlayers = true,
-                SellToPlayerPriceMin = 5000,
-                SellToPlayerPriceMax = 7500,
-                AmountToSellMin = 50,
-                AmountToSellMax = 100,
-                SellToChanceToAppear = 1,
-                SpawnItemsIfMissing = true,
-                SpawnIfBelowThisQuantity = 50
-            });
-
-            return list;
-            MappedBlockNames.Add("Test Store", list);
-
-
-            if (!MappedBlockNames.Any())
-            {
-         
-                //populate the dictionary
-            }
-
             if (MappedBlockNames.TryGetValue(blockname, out var items))
             {
                 return items;
