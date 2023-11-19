@@ -340,7 +340,7 @@ namespace CrunchEconV3.APIs {
 		}
 
 		public void APIListener(object data) {
-
+            Core.Log.Info(" MES API");
 			try {
 
 				var dict = data as Dictionary<string, Delegate>;
@@ -385,7 +385,7 @@ namespace CrunchEconV3.APIs {
 
 			} catch (Exception e) {
 
-				MyLog.Default.WriteLineAndConsole("MES API Failed To Load For Client: " + MyAPIGateway.Utilities.GamePaths.ModScopeName);
+				Core.Log.Error("MES API Failed To Load For Client: " + "CRUNCh");
 
 			}
 

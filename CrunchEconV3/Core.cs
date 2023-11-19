@@ -27,6 +27,7 @@ using Torch.Session;
 using VRageMath;
 using System.IO.Compression;
 using CrunchEconV3.APIs;
+using CrunchEconV3.Patches;
 using Sandbox.Definitions;
 using VRage.Game;
 using VRage.Game.Components;
@@ -61,6 +62,8 @@ namespace CrunchEconV3
 
             SetupConfig();
             CreatePath();
+           
+       
         }
 
 
@@ -78,7 +81,7 @@ namespace CrunchEconV3
                 ticks++;
                 if (ticks == 1)
                 {
-                //    SpawnerAPI = new MESApi();
+                   SpawnerAPI = new MESApi();
                 }
                 if (ticks % 100 == 0 && TorchState == TorchSessionState.Loaded)
                 {
@@ -247,12 +250,6 @@ namespace CrunchEconV3
         private void SessionChanged(ITorchSession session, TorchSessionState newState)
         {
             TorchState = newState;
-            if (newState is TorchSessionState.Loading)
-            {
-  
-
-            }
-
             if (newState is TorchSessionState.Loaded)
             {
             
