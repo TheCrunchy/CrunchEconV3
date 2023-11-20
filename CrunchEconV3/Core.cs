@@ -79,10 +79,6 @@ namespace CrunchEconV3
             try
             {
                 ticks++;
-                if (ticks == 1)
-                {
-                   SpawnerAPI = new MESApi();
-                }
                 if (ticks % 100 == 0 && TorchState == TorchSessionState.Loaded)
                 {
                     try
