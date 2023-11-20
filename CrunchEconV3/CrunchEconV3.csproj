@@ -47,6 +47,13 @@
     <Reference Include="NLog">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\NLog.dll</HintPath>
     </Reference>
+    <Reference Include="ProtoBuf.Net">
+      <HintPath>..\..\..\4 Torch Server\DedicatedServer64\ProtoBuf.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="ProtoBuf.Net.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\4 Torch Server\DedicatedServer64\ProtoBuf.Net.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Sandbox.Common">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\Sandbox.Common.dll</HintPath>
     </Reference>
@@ -235,6 +242,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="APIs\MESApi.cs" />
+    <Compile Include="APIs\RemoteBotAPI.cs" />
     <Compile Include="Commands\CategoryCommands.cs" />
     <Compile Include="Commands\Commands.cs" />
     <Compile Include="Handlers\ContractAcceptor.cs" />
@@ -249,7 +257,7 @@
     <Compile Include="Models\PassengerBlock.cs" />
     <Compile Include="Models\TankGroup.cs" />
     <Compile Include="Patches\ContractPatches.cs" />
-    <Compile Include="Patches\DrillPatch.cs" />
+    <Compile Include="Patches\SessionLoadPatch.cs" />
     <Compile Include="SessionComponent.cs" />
     <Compile Include="Utils\Compiler.cs" />
     <Compile Include="Utils\Econutils.cs" />

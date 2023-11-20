@@ -45,7 +45,8 @@ namespace CrunchEconV3
         public static ICrunchStationStorage StationStorage;
         public static string path;
         public static string basePath;
-        public static MESApi SpawnerAPI;
+        public static MESApi MesAPI;
+        public static RemoteBotAPI AIEnabledAPI;
         public static bool Paused { get; set; } = false;
         public const string PluginName = "CrunchEconV3";
         public static Logger Log = LogManager.GetLogger(PluginName);

@@ -44,7 +44,8 @@ namespace CrunchEconV3.Patches
             if (!Loaded)
             {
                 Core.Log.Info("Registering MES API");
-               Core.SpawnerAPI = new MESApi();
+               Core.MesAPI = new MESApi();
+               Core.AIEnabledAPI = new RemoteBotAPI();
                 Loaded = true;
             }
         }
