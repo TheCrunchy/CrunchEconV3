@@ -292,21 +292,21 @@ namespace CrunchEconV3
                     throw;
                 }
 
-                if (config.SetMinPricesTo1)
-                {
-                    foreach (MyDefinitionBase def in MyDefinitionManager.Static.GetAllDefinitions())
-                    {
+                //if (config.SetMinPricesTo1)
+                //{
+                //    foreach (MyDefinitionBase def in MyDefinitionManager.Static.GetAllDefinitions())
+                //    {
 
-                        if ((def as MyComponentDefinition) != null)
-                        {
-                            (def as MyComponentDefinition).MinimalPricePerUnit = 1;
-                        }
-                        if ((def as MyPhysicalItemDefinition) != null)
-                        {
-                            (def as MyPhysicalItemDefinition).MinimalPricePerUnit = 1;
-                        }
-                    }
-                }
+                //        if ((def as MyComponentDefinition) != null)
+                //        {
+                //            (def as MyComponentDefinition).MinimalPricePerUnit = 1;
+                //        }
+                //        if ((def as MyPhysicalItemDefinition) != null)
+                //        {
+                //            (def as MyPhysicalItemDefinition).MinimalPricePerUnit = 1;
+                //        }
+                //    }
+                //}
                 
                 StationStorage = new JsonStationStorageHandler(path);
                 PlayerStorage = new JsonPlayerStorageHandler(path);

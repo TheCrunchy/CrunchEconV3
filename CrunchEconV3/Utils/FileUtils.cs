@@ -46,6 +46,11 @@ namespace CrunchEconV3.Utils
                     Formatting = Newtonsoft.Json.Formatting.Indented
                 });
             }
+            catch (Exception e)
+            {
+                Core.Log.Error($"Error reading file {filePath} {e}");
+                return new T();
+            }
             finally
             {
                 if (reader != null)

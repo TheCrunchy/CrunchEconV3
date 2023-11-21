@@ -22,6 +22,7 @@ using VRage.Game;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRage.Network;
 using VRage.ObjectBuilder;
+using VRage.ObjectBuilders;
 using VRageMath;
 
 namespace CrunchEconV3.Patches
@@ -37,7 +38,17 @@ namespace CrunchEconV3.Patches
             ctx.GetPattern(ActivateContract).Suffixes.Add(contractResultPatch);
             ctx.GetPattern(abandonContract).Suffixes.Add(abandonContractPatch);
             ctx.GetPattern(getContractsStation).Suffixes.Add(getContractForStationPatch);
+            ctx.GetPattern(minprices).Suffixes.Add(minPricesPatch);
         }
+
+        internal static readonly MethodInfo minprices =
+            typeof(MySessionComponentEconomy).GetMethod("GetMinimumItemPrice",
+                BindingFlags.Instance | BindingFlags.NonPublic )??
+            throw new Exception("Failed to find patch method contract");
+        internal static readonly MethodInfo minPricesPatch =
+            typeof(ContractPatches).GetMethod(nameof(GetMinimumItemPrice), BindingFlags.Static | BindingFlags.Public) ??
+            throw new Exception("Failed to find patch method");
+
 
         internal static readonly MethodInfo contract =
             typeof(MyContractBlock).GetMethod("AcceptContract",
@@ -111,6 +122,13 @@ namespace CrunchEconV3.Patches
                 FailedContractIds.Remove(contractId);
             }
 
+        }
+        public static void GetMinimumItemPrice(SerializableDefinitionId itemDefinitionId, ref int __result)
+        {
+            if (Core.config.SetMinPricesTo1)
+            {
+                __result = 1;
+            }
         }
 
         public static void PatchGetContractForStation(MySessionComponentContractSystem __instance, long stationId,
