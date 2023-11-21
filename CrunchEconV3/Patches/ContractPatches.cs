@@ -40,7 +40,8 @@ namespace CrunchEconV3.Patches
             ctx.GetPattern(getContractsStation).Suffixes.Add(getContractForStationPatch);
             ctx.GetPattern(minprices).Suffixes.Add(minPricesPatch);
         }
-
+   
+        
         internal static readonly MethodInfo minprices =
             typeof(MySessionComponentEconomy).GetMethod("GetMinimumItemPrice",
                 BindingFlags.Instance | BindingFlags.NonPublic )??
@@ -130,6 +131,8 @@ namespace CrunchEconV3.Patches
                 __result = 1;
             }
         }
+
+      
 
         public static void PatchGetContractForStation(MySessionComponentContractSystem __instance, long stationId,
             ref List<MyObjectBuilder_Contract> __result)

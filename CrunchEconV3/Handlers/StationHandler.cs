@@ -29,77 +29,80 @@ namespace CrunchEconV3.Handlers
             RefreshAt.Clear();
         }
 
+        public static DateTime NextSave = DateTime.Now;
         public static async Task DoStationLoop()
         {
             foreach (var station in Core.StationStorage.GetAll())
             {
                 //first find the station ingame
-                var found = true;
-
-                if (found)
+                if (station.Logics != null && station.Logics.Any())
                 {
-                    if (station.Logics != null && station.Logics.Any())
+                    MyCubeGrid grid = station.GetGrid();
+                    //MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    //{
+                    //    Core.Log.Info(station.GridEntityId);
+                    //    MyAPIGateway.Entities.TryGetEntityById(station.GridEntityId, out var thing);
+                    //    grid = (MyCubeGrid)thing;
+                    //});
+
+                    var faction = MySession.Static.Factions.TryGetFactionByTag(station.FactionTag);
+                    if (faction == null)
                     {
-                        MyCubeGrid grid = station.GetGrid();
-                        //MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        //{
-                        //    Core.Log.Info(station.GridEntityId);
-                        //    MyAPIGateway.Entities.TryGetEntityById(station.GridEntityId, out var thing);
-                        //    grid = (MyCubeGrid)thing;
-                        //});
+                        Core.Log.Error($"{station.FileName} faction not found");
+                        continue;
+                    }
+                    if (grid == null && station.IsFirstLoad())
+                    {
+                        station.SetFirstLoad(false);
 
-                        var faction = MySession.Static.Factions.TryGetFactionByTag(station.FactionTag);
-                        if (faction == null)
-                        {
-                            Core.Log.Error($"{station.FileName} faction not found");
-                            continue;
-                        }
-                        if (grid == null && station.IsFirstLoad())
-                        {
-                            station.SetFirstLoad(false);
-                         
-                            var gps = GPSHelper.ScanChat(station.LocationGPS);
-                            if (gps == null)
-                            {
-                                continue;
-                            }
-                            var sphere = new BoundingSphereD(gps.Coords, 2000);
-
-                            var storeGrid = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyCubeGrid>().Where(x => !x.Closed
-                                && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)) != null
-                                && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)).FactionId == faction.FactionId).ToList();
-                            if (storeGrid.Any())
-                            {
-                                grid = storeGrid.FirstOrDefault(x => x.GetFatBlocks().OfType<MyStoreBlock>().Any());
-                            }
-                        }
-
-                        if (grid == null)
+                        var gps = GPSHelper.ScanChat(station.LocationGPS);
+                        if (gps == null)
                         {
                             continue;
                         }
-                        
-                        station.SetGrid(grid);
-                        foreach (var logic in station.Logics.OrderBy(x => x.Priority))
+                        var sphere = new BoundingSphereD(gps.Coords, 2000);
+
+                        var storeGrid = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyCubeGrid>().Where(x => !x.Closed
+                            && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)) != null
+                            && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)).FactionId == faction.FactionId).ToList();
+                        if (storeGrid.Any())
                         {
-                            try
-                            {
-                                var ShouldNextOneRun = await logic.DoLogic((MyCubeGrid)grid);
-                                if (!ShouldNextOneRun)
-                                {
-                                    break;
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Core.Log.Error($"Station logic error {e}");
-                            }
+                            grid = storeGrid.FirstOrDefault(x => x.GetFatBlocks().OfType<MyStoreBlock>().Any());
                         }
                     }
 
-                    Core.StationStorage.Save(station);
+                    if (grid == null)
+                    {
+                        continue;
+                    }
+
+                    station.SetGrid(grid);
+                    foreach (var logic in station.Logics.OrderBy(x => x.Priority))
+                    {
+                        try
+                        {
+                            var ShouldNextOneRun = await logic.DoLogic((MyCubeGrid)grid);
+                            if (!ShouldNextOneRun)
+                            {
+                                break;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Core.Log.Error($"Station logic error {e}");
+                        }
+                    }
                 }
 
+                if (DateTime.Now >= NextSave)
+                {
+                    Core.StationStorage.Save(station);
+                }
+            }
+
+            if (DateTime.Now >= NextSave)
+            {
+                NextSave = DateTime.Now.AddMinutes(5);
             }
         }
 
@@ -240,7 +243,7 @@ namespace CrunchEconV3.Handlers
                     var generated = contract.GenerateFromConfig(location, null, blockId);
                     if (generated == null) continue;
                     NewContracts.Add(generated);
-            
+
                 }
             }
             return NewContracts;

@@ -247,6 +247,14 @@ namespace CrunchEconV3
         private void SessionChanged(ITorchSession session, TorchSessionState newState)
         {
             TorchState = newState;
+            if (newState is TorchSessionState.Unloading)
+            {
+                foreach (var station in StationStorage.GetAll())
+                {
+                    Core.StationStorage.Save(station);
+                }
+            }
+
             if (newState is TorchSessionState.Loaded)
             {
             
