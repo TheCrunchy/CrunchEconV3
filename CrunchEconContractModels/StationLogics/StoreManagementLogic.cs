@@ -20,8 +20,10 @@ using VRage;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
+using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.ObjectBuilders;
+using IMyInventory = VRage.Game.ModAPI.IMyInventory;
 
 namespace CrunchEconContractModels.StationLogics
 {
@@ -174,6 +176,10 @@ namespace CrunchEconContractModels.StationLogics
                 store.InsertOrder(itemInsert,
                     out long notUsingThis);
 
+            
+
+
+          //  station.StoreItems.Add(myStoreItem);
             if (result != MyStoreInsertResults.Success)
             {
                 CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} {itemInsert.PricePerUnit} {result.ToString()}");
@@ -223,6 +229,13 @@ namespace CrunchEconContractModels.StationLogics
             MyStoreInsertResults result =
                 store.InsertOffer(itemInsert,
                     out long notUsingThis);
+
+            //long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+            //MyStoreItem myStoreItem = new MyStoreItem(newid, amount, 50, StoreItemTypes.Offer, ItemTypes.Hydrogen);
+            //MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
+
+            //store.PlayerItems.Add(myStoreItem);
+            //store.PlayerItems.Add(myStoreItem2);
 
             if (result != MyStoreInsertResults.Success)
             {
