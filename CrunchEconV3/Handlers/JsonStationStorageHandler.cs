@@ -54,8 +54,13 @@ namespace CrunchEconV3.Handlers
             {
                 var loaded = FileUtils.ReadFromJsonFile<StationConfig>(item);
                 loaded.FileName = Path.GetFileName(item);
-
-                if (loaded.ContractFiles != null)
+                var gps = GPSHelper.ScanChat(loaded.LocationGPS);
+                if (gps == null)
+                {
+                    Core.Log.Error($"GPS for station {loaded.FileName} is not valid, station not loaded");
+                    continue;
+                }
+                if (loaded.ContractFiles != null || loaded.ContractFiles.Any())
                 {
                     foreach (var file in loaded.ContractFiles)
                     {
@@ -94,7 +99,7 @@ namespace CrunchEconV3.Handlers
                         Configs.Add(loaded);
                     }
                 }
-              
+
             }
 
             foreach (var NPC in Core.config.KeenNPCContracts)
@@ -108,7 +113,7 @@ namespace CrunchEconV3.Handlers
                         {
                             try
                             {
-                                MappedConfigs.Add(con, FileUtils.ReadFromJsonFile<List<IContractConfig>>($"{BasePath.Replace("/Stations","")}/{con}"));
+                                MappedConfigs.Add(con, FileUtils.ReadFromJsonFile<List<IContractConfig>>($"{BasePath.Replace("/Stations", "")}/{con}"));
                             }
                             catch (Exception e)
                             {
@@ -133,10 +138,7 @@ namespace CrunchEconV3.Handlers
 
         public void Save(StationConfig StationData)
         {
-            foreach (var item in Configs)
-            {
-                FileUtils.WriteToJsonFile($"{BasePath}/{item.FileName}", item);
-            }
+            FileUtils.WriteToJsonFile($"{BasePath}/{StationData.FileName}", StationData);
         }
 
         public void GenerateExample()
@@ -153,18 +155,18 @@ namespace CrunchEconV3.Handlers
                 var examples = new List<IContractConfig>();
 
                 var configs = from t in Core.myAssemblies.Select(x => x)
-                        .SelectMany(x => x.GetTypes()) 
-                    where t.IsClass && t.GetInterfaces().Contains(typeof(IContractConfig))
-                    select t;
+                        .SelectMany(x => x.GetTypes())
+                              where t.IsClass && t.GetInterfaces().Contains(typeof(IContractConfig))
+                              select t;
 
                 var configs2 = from t in Core.myAssemblies.Select(x => x)
                         .SelectMany(x => x.GetTypes())
-                    where t.IsClass && t.GetInterfaces().Contains(typeof(IStationLogic))
-                    select t;
+                               where t.IsClass && t.GetInterfaces().Contains(typeof(IStationLogic))
+                               select t;
 
                 foreach (var config in configs)
                 {
-              
+
                     IContractConfig instance = (IContractConfig)Activator.CreateInstance(config);
                     instance.Setup();
                     examples.Add(instance);
@@ -175,7 +177,7 @@ namespace CrunchEconV3.Handlers
                     IStationLogic instance = (IStationLogic)Activator.CreateInstance(config);
                     instance.Setup();
                     example.Logics.Add(instance);
-                    
+
                 }
 
                 example.Logics = example.Logics.OrderBy(x => x.Priority).ToList();

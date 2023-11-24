@@ -59,8 +59,8 @@ namespace CrunchEconV3.Models.Contracts
 
         public MyObjectBuilder_Contract BuildAssignedContract()
         {
-             var contractDescription = $"You must deliver {this.GasAmount:##,###}L {this.GasName} in none stockpile tanks.";
-             return BuildUnassignedContract(contractDescription);
+            var contractDescription = $"You must deliver {this.GasAmount:##,###}L {this.GasName} in none stockpile tanks.";
+            return BuildUnassignedContract(contractDescription);
         }
 
         public Tuple<bool, MyContractResults> TryAcceptContract(CrunchPlayerData playerData, long identityId, MyContractBlock __instance)
@@ -109,7 +109,7 @@ namespace CrunchEconV3.Models.Contracts
             var test = __instance.CubeGrid.GetGridGroup(GridLinkTypeEnum.Physical);
             var grids = new List<IMyCubeGrid>();
             var tanks = new List<IMyGasTank>();
-        
+
 
             test.GetGrids(grids);
             foreach (var gridInGroup in grids)
@@ -122,7 +122,7 @@ namespace CrunchEconV3.Models.Contracts
             {
                 return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_InsufficientSpace);
             }
-     
+
             if (this.CollateralToTake > 0)
             {
                 EconUtils.takeMoney(identityId, this.CollateralToTake);
@@ -313,7 +313,6 @@ namespace CrunchEconV3.Models.Contracts
         public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
             long idUsedForDictionary)
         {
-
             if (keenstation != null)
             {
                 for (int i = 0; i < 10; i++)
@@ -327,27 +326,29 @@ namespace CrunchEconV3.Models.Contracts
                         i++;
                         continue;
                     }
-                    
+
                     return Tuple.Create(found.Position, foundFaction.FactionId);
                 }
             }
 
-            if (this.DeliveryGPSes.Any())
+
+            if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())
             {
-                if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())
+                var random = this.DeliveryGPSes.GetRandomItemFromList();
+                var GPS = GPSHelper.ScanChat(random);
+                if (GPS != null)
                 {
-                    var random = this.DeliveryGPSes.GetRandomItemFromList();
-                    var GPS = GPSHelper.ScanChat(random);
-                    if (GPS != null)
-                    {
-                        return Tuple.Create(GPS.Coords, 0l);
-                    }
+                    return Tuple.Create(GPS.Coords, 0l);
                 }
             }
+
             var thisStation = StationHandler.GetStationNameForBlock(idUsedForDictionary);
+            if (thisStation == null)
+            {
+                return Tuple.Create(Vector3D.Zero, 0l);
+            }
             for (int i = 0; i < 10; i++)
             {
-
                 var station = Core.StationStorage.GetAll().Where(x => x.UseAsDeliveryLocation).ToList().GetRandomItemFromList();
                 if (station.FileName == thisStation)
                 {

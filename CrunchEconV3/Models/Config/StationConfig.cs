@@ -18,7 +18,7 @@ namespace CrunchEconV3.Models
         public List<string> ContractFiles { get; set; }
         public string FileName { get; set; }
         public bool UseAsDeliveryLocation { get; set; } = true;
-        private List<IContractConfig> configs;
+        private List<IContractConfig> configs = new List<IContractConfig>();
 
         public void SetGrid(MyCubeGrid grid)
         {

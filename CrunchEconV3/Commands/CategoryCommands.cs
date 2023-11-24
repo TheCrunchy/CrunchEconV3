@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
+using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -23,6 +24,7 @@ using NLog;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
+using VRageMath;
 
 namespace CrunchEconV3.Commands
 {
@@ -54,6 +56,21 @@ namespace CrunchEconV3.Commands
 
             Context.Respond("Reloaded and cleared existing contracts");
             Context.Respond("If changing scripts, use the compile command to apply changes");
+        }
+        [Command("createstation", "create a station")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void AddStation(string stationName, string factionOwnerTag)
+        {
+            var station = new StationConfig();
+            station.FileName = stationName + ".json";
+            station.LocationGPS = GPSHelper.CreateGps(Context.Player.GetPosition(), Color.Orange, "Station", "").ToString();
+            station.Enabled = true;
+            station.FactionTag = factionOwnerTag;
+            station.Logics = new List<IStationLogic>();
+            station.ContractFiles = new List<string>();
+
+            Core.StationStorage.Save(station);
+            Context.Respond("Station Saved, !crunchecon reload to load it");
         }
 
         [Command("addlogic", "addlogic to a station")]
