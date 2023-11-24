@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.Specialized;
@@ -21,9 +22,12 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CSharp;
 using NLog;
+using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Blocks;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
+using VRage.Groups;
 using VRageMath;
 
 namespace CrunchEconV3.Commands
@@ -211,6 +215,48 @@ namespace CrunchEconV3.Commands
                 instance.Setup();
             }
             Context.Respond("done, check logs for any errors");
+        }
+
+
+
+        [Command("exportgrid", "export a grid to a sellable file")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void ExportGrid()
+        {
+
+            ConcurrentBag<MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group> gridWithSubGrids = GridFinder.FindLookAtGridGroup(Context.Player.Character);
+            List<MyCubeGrid> grids = new List<MyCubeGrid>();
+            foreach (var item in gridWithSubGrids)
+            {
+                foreach (MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Node groupNodes in item.Nodes)
+                {
+                    MyCubeGrid grid = groupNodes.NodeData;
+
+                    foreach (MyProjectorBase proj in grid.GetFatBlocks().OfType<MyProjectorBase>())
+                    {
+                        proj.Clipboard.Clear();
+                    }
+                    grids.Add(grid);
+                    foreach (var block in grid.GetFatBlocks().OfType<MyCockpit>())
+                    {
+                        if (block.Pilot != null)
+                        {
+                            block.RemovePilot();
+                        }
+                    }
+
+                }
+
+            }
+            if (grids.Count == 0)
+            {
+                Context.Respond("Could not find grid.");
+                return;
+            }
+
+            string gridname = grids.First().GetBiggestGridInGroup().DisplayName;
+            GridManager.SaveGridNoDelete($"{Core.path}\\Grids\\{gridname}.sbc", $"{gridname}.sbc", false, false, grids);
+            Context.Respond($"Exported grid: {gridname}");
         }
 
     }

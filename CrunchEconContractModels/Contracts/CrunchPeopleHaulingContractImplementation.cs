@@ -12,6 +12,7 @@ using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using Torch;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
@@ -188,12 +189,30 @@ namespace CrunchEconV3.Models.Contracts
             SendDeliveryGPS();
         }
 
+        private DateTime NextSpawn = DateTime.Now;
         public bool Update100(Vector3 PlayersCurrentPosition)
         {
             if (DateTime.Now > ExpireAt)
             {
                 FailContract();
                 return true;
+            }
+
+
+            if (DateTime.Now >= NextSpawn)
+            {
+                NextSpawn = DateTime.Now.AddSeconds(20);
+                var player = MySession.Static.Players.TryGetPlayerBySteamId(this.AssignedPlayerSteamId);
+                Vector3 Position = player.Character.PositionComp.GetPosition();
+                Random random = new Random();
+                var faction = MySession.Static.Factions.TryGetFactionByTag("SPRT");
+    
+                Position.Add(new Vector3(random.Next(0, 5000), random.Next(0, 5000), random.Next(0, 5000)));
+                if (GridManager.LoadGrid(Core.path + "//Grids//pirate.sbc", Position, false, (ulong)faction.Members.FirstOrDefault().Value.PlayerId, "Spawned grid", false))
+                {
+                    Core.Log.Info("Loaded grid");
+                }
+
             }
 
             return false;
