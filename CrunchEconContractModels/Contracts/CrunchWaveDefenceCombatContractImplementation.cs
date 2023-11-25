@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
@@ -9,13 +10,19 @@ using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
+using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.Entities.Character;
+using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.GameSystems;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
+using Sandbox.Game.Weapons;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using Sandbox.ModAPI.Weapons;
 using Torch;
+using Torch.Managers.PatchManager;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
@@ -131,59 +138,117 @@ namespace CrunchEconContractModels.Contracts
 
         private DateTime NextSpawn = DateTime.Now;
         public int CurrentWave = 0;
+        private bool HasStarted = false;
         public bool Update100(Vector3 PlayersCurrentPosition)
         {
-
-            if (DateTime.Now >= NextSpawn)
+            if (DateTime.Now > ExpireAt)
             {
-                if (Waves.Any(x => x.WaveNumber > CurrentWave))
+                if (UncollectedPay >= this.RewardMoney)
                 {
-                    var spawn = Waves.FirstOrDefault(x => x.WaveNumber == CurrentWave + 1);
-                    CurrentWave = spawn.WaveNumber;
-                    NextSpawn = DateTime.Now.AddSeconds(spawn.SecondsBeforeNextWave);
-                    var player = MySession.Static.Players.TryGetPlayerBySteamId(this.AssignedPlayerSteamId);
-
-                    var spawns = 0;
-                    foreach (var grid in spawn.GridsInWave)
-                    {
-                        if (grid.ChanceToSpawn < 1)
-                        {
-                            var random = CrunchEconV3.Core.random.NextDouble();
-                            if (random > grid.ChanceToSpawn)
-                            {
-                                continue;
-                            }
-                        }
-
-
-                        Vector3 Position = player.Character.PositionComp.GetPosition();
-                        var faction = MySession.Static.Factions.TryGetFactionByTag(grid.FacTagToOwnThisGrid);
-
-                        Position.Add(new Vector3(Core.random.Next(spawn.MinDistance, spawn.MaxDistance), Core.random.Next(spawn.MinDistance, spawn.MaxDistance), Core.random.Next(spawn.MinDistance, spawn.MaxDistance)));
-                        if (File.Exists(grid.GridName))
-                        {
-                            if (!GridManager.LoadGrid($"{Core.path}//Grids//{grid.GridName}", Position, false, (ulong)faction.Members.FirstOrDefault().Value.PlayerId, "Spawned grid", false))
-                            {
-                                Core.Log.Info($"Could not load grid {grid.GridName}");
-                            }
-                            else
-                            {
-                                spawns += 1;
-                            }
-                        }
-                    }
-
-                    if (spawns > 0)
-                    {
-                        //send the message to all players within range 
-                    }
-
+                    EconUtils.addMoney(this.AssignedPlayerIdentityId, this.UncollectedPay + this.RewardMoney);
+                    Core.SendMessage("Contracts", $"{this.Name} completed!, you have been paid.", Color.Green, this.AssignedPlayerSteamId);
+                    return true;
                 }
                 else
                 {
-                    //end the contract if some more time has passed
+                    FailContract();
+                    return true;
+                }
+            }
+            if (!HasStarted)
+            {
+                var distance = Vector3.Distance(PlayersCurrentPosition, DeliverLocation);
+                if (distance < 15000)
+                {
+                    HasStarted = true;
+                    NextSpawn = DateTime.Now;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                var distance = Vector3.Distance(PlayersCurrentPosition, DeliverLocation);
+                if (distance > 50000)
+                {
+                    return false;
+                }
+            }
+
+            if (DateTime.Now < NextSpawn) return false;
+
+            if (!Waves.Any(x => x.WaveNumber > CurrentWave))
+            {
+                if (UncollectedPay >= this.RewardMoney)
+                {
+                    EconUtils.addMoney(this.AssignedPlayerIdentityId, this.UncollectedPay + this.RewardMoney);
+                    Core.SendMessage("Contracts", $"{this.Name} completed!, you have been paid.", Color.Green, this.AssignedPlayerSteamId);
+                    return true;
+                }
+                else
+                {
+                    FailContract();
+                    return true;
+                }
+            }
+
+            var spawn = Waves.FirstOrDefault(x => x.WaveNumber == CurrentWave + 1);
+            if (!spawn.Repeat)
+            {
+                CurrentWave = spawn.WaveNumber;
+            }
+
+            NextSpawn = DateTime.Now.AddSeconds(spawn.SecondsBeforeNextWave);
+            var player = MySession.Static.Players.TryGetPlayerBySteamId(this.AssignedPlayerSteamId);
+            if (!spawn.SpawnGrids)
+            {
+                return false;
+            }
+            var spawns = 0;
+            foreach (var grid in spawn.GridsInWave)
+            {
+                if (grid.ChanceToSpawn < 1)
+                {
+                    var random = CrunchEconV3.Core.random.NextDouble();
+                    if (random > grid.ChanceToSpawn)
+                    {
+                        continue;
+                    }
                 }
 
+                Vector3 Position = new Vector3D(this.DeliverLocation);
+                var faction = MySession.Static.Factions.TryGetFactionByTag(grid.FacTagToOwnThisGrid);
+
+                Position.Add(new Vector3(Core.random.Next(spawn.MinDistance, spawn.MaxDistance),
+                    Core.random.Next(spawn.MinDistance, spawn.MaxDistance),
+                    Core.random.Next(spawn.MinDistance, spawn.MaxDistance)));
+                if (!File.Exists($"{Core.path}//Grids//{grid.GridName}")) continue;
+                if (!GridManager.LoadGrid($"{Core.path}//Grids//{grid.GridName}", Position, false,
+                        (ulong)faction.Members.FirstOrDefault().Value.PlayerId, "Spawned grid", false))
+                {
+                    Core.Log.Info($"Could not load grid {grid.GridName}");
+                }
+                else
+                {
+                    spawns += 1;
+                }
+            }
+
+            if (spawns <= 0) return false;
+            foreach (var onlinePlayer in MySession.Static.Players.GetOnlinePlayers())
+            {
+                Vector3D playerPosition = onlinePlayer.Character?.PositionComp.GetPosition() ?? Vector3D.Zero;
+
+                if (playerPosition == Vector3D.Zero) continue;
+                double distance = Vector3D.Distance(PlayersCurrentPosition, playerPosition);
+
+                if (distance <= 10000)
+                {
+                    Core.SendMessage(spawn.WaveMessageSender, spawn.WaveMessage, Color.Red,
+                        onlinePlayer.Id.SteamId);
+                }
             }
 
             return false;
@@ -191,7 +256,7 @@ namespace CrunchEconContractModels.Contracts
 
         public bool TryCompleteContract(ulong steamId, Vector3D? currentPosition)
         {
-            throw new NotImplementedException();
+            return false;
         }
 
         public void FailContract()
@@ -297,7 +362,8 @@ namespace CrunchEconContractModels.Contracts
             }
             var contract = new CrunchWaveDefenceCombatContractImplementation();
             var description = new StringBuilder();
-            contract.ContractType = "CrunchWaveDefence";
+            var contractContractType = "CrunchWaveDefence";
+            contract.ContractType = contractContractType;
             contract.BlockId = idUsedForDictionary;
             contract.RewardMoney = MinimumPay;
             contract.ReputationGainOnComplete = Core.random.Next(this.ReputationGainOnCompleteMin, this.ReputationGainOnCompleteMax);
@@ -409,6 +475,8 @@ namespace CrunchEconContractModels.Contracts
         public int SecondsBeforeNextWave = 60;
         public int MinDistance = 1000;
         public int MaxDistance = 5000;
+        public bool SpawnGrids = true;
+        public bool Repeat = false;
     }
 
     public class GridSpawnModel
@@ -423,5 +491,173 @@ namespace CrunchEconContractModels.Contracts
         public string BlockPairName = "LargeReactor";
         public long Payment = 50000;
     }
+
+    [PatchShim]
+    public static class SlimBlockPatch
+    {
+        internal static readonly MethodInfo DamageRequest =
+            typeof(MySlimBlock).GetMethod("DoDamage", BindingFlags.Instance | BindingFlags.Public, null,
+                new Type[]
+                {
+                    typeof(float), typeof(MyStringHash), typeof(bool), typeof(MyHitInfo?), typeof(long), typeof(long),
+                    typeof(bool)
+                }, null) ??
+            throw new Exception("Failed to find patch method");
+
+        internal static readonly MethodInfo patchSlimDamage =
+            typeof(SlimBlockPatch).GetMethod(nameof(OnDamageRequest), BindingFlags.Static | BindingFlags.Public) ??
+            throw new Exception("Failed to find patch method");
+
+        internal static readonly MethodInfo destroyRequest =
+            typeof(MyCubeBlock).GetMethod("OnDestroy", BindingFlags.Instance | BindingFlags.Public) ??
+            throw new Exception("Failed to find patch method");
+
+        internal static readonly MethodInfo patchDestroy =
+            typeof(SlimBlockPatch).GetMethod(nameof(OnDestroy), BindingFlags.Static | BindingFlags.Public) ??
+            throw new Exception("Failed to find patch method");
+
+        public static void Patch(PatchContext ctx)
+        {
+
+            ctx.GetPattern(DamageRequest).Suffixes.Add(patchSlimDamage);
+            ctx.GetPattern(destroyRequest).Suffixes.Add(patchDestroy);
+            Core.Log.Info("Patching slim block");
+        }
+
+        public static Dictionary<long, long> LastAttacker = new Dictionary<long, long>();
+        public static void OnDestroy(MyCubeBlock __instance)
+        {
+            if (!LastAttacker.TryGetValue(__instance.EntityId, out var attacker)) return;
+            if (!MySession.Static.Players.TryGetPlayerBySteamId((ulong)attacker, out var player)) return;
+            var playerData = Core.PlayerStorage.GetData((ulong)attacker, false);
+            var forCombat = playerData.GetContractsForType("CrunchWaveDefence");
+            foreach (var contract in from contract in forCombat let location = contract.DeliverLocation let distance = Vector3.Distance(location, __instance.CubeGrid.PositionComp.GetPosition()) where !(distance > 50000) select contract)
+            {
+                //     Core.Log.Info("block death");
+                if (contract is not CrunchWaveDefenceCombatContractImplementation combat || !combat.BlocksToDestroy.Any(
+                        x => x.BlockPairName == __instance.BlockDefinition?.BlockPairName)) continue;
+
+                if (!combat.Waves.Any(x =>
+                        x.GridsInWave.Any(z => z.FacTagToOwnThisGrid == __instance.GetOwnerFactionTag()))) continue;
+
+                var pay = combat.BlocksToDestroy.FirstOrDefault(x => x.BlockPairName == __instance.BlockDefinition?.BlockPairName)?.Payment ?? 0;
+                combat.UncollectedPay += pay;
+                playerData.PlayersContracts[contract.ContractId] = combat;
+                Task.Run(async () =>
+                {
+                    CrunchEconV3.Core.PlayerStorage.Save(playerData);
+                });
+                return;
+
+
+            }
+        }
+
+        public static void OnDamageRequest(MySlimBlock __instance, float damage,
+        MyStringHash damageType,
+        bool sync,
+        MyHitInfo? hitInfo,
+        long attackerId, long realHitEntityId = 0, bool shouldDetonateAmmo = true)
+        {
+            if (__instance.FatBlock != null)
+            {
+                var attacker = GetAttacker(attackerId);
+
+                var steam = MySession.Static.Players.TryGetSteamId(attacker);
+                //    Core.Log.Info("Adding attacker");
+                if (steam != 0l)
+                {
+                    //      Core.Log.Info("steam id attacker");
+                    if (LastAttacker.ContainsKey(__instance.FatBlock.EntityId))
+                    {
+                        LastAttacker[__instance.FatBlock.EntityId] = (long)steam;
+                    }
+                    else
+                    {
+                        LastAttacker.Add(__instance.FatBlock.EntityId, (long)steam);
+                    }
+                }
+            }
+            return;
+        }
+
+
+
+
+
+        public static long GetAttacker(long attackerId)
+        {
+
+            var entity = MyAPIGateway.Entities.GetEntityById(attackerId);
+
+            if (entity == null)
+                return 0L;
+
+            if (entity is MyPlanet)
+            {
+
+                return 0L;
+            }
+
+            if (entity is MyCharacter character)
+            {
+
+                return character.GetPlayerIdentityId();
+            }
+
+            if (entity is IMyEngineerToolBase toolbase)
+            {
+
+                return toolbase.OwnerIdentityId;
+
+            }
+
+            if (entity is MyLargeTurretBase turret)
+            {
+
+                return turret.OwnerId;
+
+            }
+
+            if (entity is MyShipToolBase shipTool)
+            {
+
+                return shipTool.OwnerId;
+            }
+
+
+            if (entity is IMyGunBaseUser gunUser)
+            {
+
+                return gunUser.OwnerId;
+
+            }
+
+            if (entity is MyFunctionalBlock block)
+            {
+
+                return block.OwnerId;
+            }
+
+            if (entity is MyCubeGrid grid)
+            {
+
+                var gridOwnerList = grid.BigOwners;
+                var ownerCnt = gridOwnerList.Count;
+                var gridOwner = 0L;
+
+                if (ownerCnt > 0 && gridOwnerList[0] != 0)
+                    gridOwner = gridOwnerList[0];
+                else if (ownerCnt > 1)
+                    gridOwner = gridOwnerList[1];
+
+                return gridOwner;
+
+            }
+
+            return 0L;
+        }
+    }
+
 
 }

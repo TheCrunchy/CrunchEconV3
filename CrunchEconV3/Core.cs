@@ -255,6 +255,12 @@ namespace CrunchEconV3
                 {
                     Core.StationStorage.Save(station);
                 }
+
+                foreach (var player in MySession.Static.Players.GetOnlinePlayers())
+                {
+                    var data = Core.PlayerStorage.GetData(player.Id.SteamId);
+                    Core.PlayerStorage.Save(data);
+                }
             }
 
             if (newState is TorchSessionState.Loaded)
