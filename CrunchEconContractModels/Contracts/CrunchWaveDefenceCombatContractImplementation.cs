@@ -179,8 +179,9 @@ namespace CrunchEconContractModels.Contracts
 
             if (DateTime.Now < NextSpawn) return false;
 
-            if (!Waves.Any(x => x.WaveNumber > CurrentWave))
+            if (!Waves.Any(x => x.WaveNumber > CurrentWave) && DateTime.Now > NextSpawn || Waves.Any(x => x.WaveNumber == CurrentWave && x.Repeat))
             {
+       
                 if (UncollectedPay >= this.RewardMoney)
                 {
                     EconUtils.addMoney(this.AssignedPlayerIdentityId, this.UncollectedPay + this.RewardMoney);
@@ -202,10 +203,12 @@ namespace CrunchEconContractModels.Contracts
 
             NextSpawn = DateTime.Now.AddSeconds(spawn.SecondsBeforeNextWave);
             var player = MySession.Static.Players.TryGetPlayerBySteamId(this.AssignedPlayerSteamId);
+
             if (!spawn.SpawnGrids)
             {
                 return false;
             }
+
             var spawns = 0;
             foreach (var grid in spawn.GridsInWave)
             {
@@ -218,15 +221,19 @@ namespace CrunchEconContractModels.Contracts
                     }
                 }
 
-                Vector3 Position = new Vector3D(this.DeliverLocation);
+                Vector3 Position = new Vector3D(PlayersCurrentPosition);
                 var faction = MySession.Static.Factions.TryGetFactionByTag(grid.FacTagToOwnThisGrid);
-
+                if (faction == null)
+                {
+                    Core.Log.Info($"{grid.FacTagToOwnThisGrid} faction not found");
+                    continue;
+                }
                 Position.Add(new Vector3(Core.random.Next(spawn.MinDistance, spawn.MaxDistance),
                     Core.random.Next(spawn.MinDistance, spawn.MaxDistance),
                     Core.random.Next(spawn.MinDistance, spawn.MaxDistance)));
                 if (!File.Exists($"{Core.path}//Grids//{grid.GridName}")) continue;
                 if (!GridManager.LoadGrid($"{Core.path}//Grids//{grid.GridName}", Position, false,
-                        (ulong)faction.Members.FirstOrDefault().Value.PlayerId, "Spawned grid", false))
+                        (ulong)faction.Members.FirstOrDefault().Key, "Spawned grid", false))
                 {
                     Core.Log.Info($"Could not load grid {grid.GridName}");
                 }
@@ -319,8 +326,6 @@ namespace CrunchEconContractModels.Contracts
         public long UncollectedPay = 0;
 
         public List<SpawnWave> Waves = new List<SpawnWave>();
-
-        public List<string> HostileFactionTags = new List<string>();
     }
 
     public class WaveDefenceConfig : IContractConfig
@@ -398,6 +403,31 @@ namespace CrunchEconContractModels.Contracts
         {
             var min = 100;
             var max = 300;
+            if (this.DeliveryGPSes.Any())
+            {
+                if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())
+                {
+                    var random = this.DeliveryGPSes.GetRandomItemFromList();
+                    var GPS = GPSHelper.ScanChat(random);
+                    if (GPS != null)
+                    {
+                        if (__instance != null)
+                        {
+                            var faction = MySession.Static.Factions.TryGetFactionByTag(__instance.GetOwnerFactionTag());
+                            if (faction != null)
+                            {
+                                return Tuple.Create(GPS.Coords, faction.FactionId);
+                            }
+
+                        }
+                        if (keenstation != null)
+                        {
+                            return Tuple.Create(GPS.Coords, keenstation.FactionId);
+                        }
+                        return Tuple.Create(GPS.Coords, 0l);
+                    }
+                }
+            }
             if (keenstation != null)
             {
                 for (int i = 0; i < 10; i++)
@@ -415,18 +445,7 @@ namespace CrunchEconContractModels.Contracts
                 }
             }
 
-            if (this.DeliveryGPSes.Any())
-            {
-                if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())
-                {
-                    var random = this.DeliveryGPSes.GetRandomItemFromList();
-                    var GPS = GPSHelper.ScanChat(random);
-                    if (GPS != null)
-                    {
-                        return Tuple.Create(GPS.Coords, 0l);
-                    }
-                }
-            }
+
             if (__instance != null)
             {
                 for (int i = 0; i < 10; i++)

@@ -315,7 +315,7 @@ namespace CrunchEconV3.Utils
 
                     return false;
                 }
-                Sandbox.Game.Entities.Character.MyCharacter player = MySession.Static.Players.GetPlayerByName(IdentityHelper.GetIdentityByNameOrId(steamID.ToString()).DisplayName)?.Character;
+                var player = MySession.Static.Players.GetPlayerByName(IdentityHelper.GetIdentityByNameOrId(steamID.ToString()).DisplayName);
                 if (player != null)
                 {
                     MyGps gps = CreateGps(pos.Value, Color.LightGreen, 60, Name);
@@ -323,7 +323,7 @@ namespace CrunchEconV3.Utils
                     MyGps gpsRef = gps;
                     long entityId = 0L;
                     entityId = gps.EntityId;
-                    gpsCollection.SendAddGpsRequest(player.GetPlayerIdentityId(), ref gpsRef, entityId, true);
+                    gpsCollection.SendAddGpsRequest(player.Identity.IdentityId, ref gpsRef, entityId, true);
                 }
             }
             else if (!force)
