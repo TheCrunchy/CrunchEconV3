@@ -242,7 +242,7 @@ namespace CrunchEconContractModels.Contracts
                     spawns += 1;
                 }
             }
-
+            5
             if (spawns <= 0) return false;
             foreach (var onlinePlayer in MySession.Static.Players.GetOnlinePlayers())
             {
