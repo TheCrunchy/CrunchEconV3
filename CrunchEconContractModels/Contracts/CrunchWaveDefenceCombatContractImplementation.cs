@@ -534,11 +534,10 @@ namespace CrunchEconContractModels.Contracts
             foreach (var contract in from contract in forCombat let location = contract.DeliverLocation let distance = Vector3.Distance(location, __instance.CubeGrid.PositionComp.GetPosition()) where !(distance > 50000) select contract)
             {
                 //     Core.Log.Info("block death");
-                if (contract is not CrunchWaveDefenceCombatContractImplementation combat || !combat.BlocksToDestroy.Any(
-                        x => x.BlockPairName == __instance.BlockDefinition?.BlockPairName)) continue;
+                var combat = contract as CrunchWaveDefenceCombatContractImplementation;
+                if (combat == null || !combat.BlocksToDestroy.Any(x => x.BlockPairName == __instance.BlockDefinition?.BlockPairName)) continue;
 
-                if (!combat.Waves.Any(x =>
-                        x.GridsInWave.Any(z => z.FacTagToOwnThisGrid == __instance.GetOwnerFactionTag()))) continue;
+                if (!combat.Waves.Any(x => x.GridsInWave.Any(z => z.FacTagToOwnThisGrid == __instance.GetOwnerFactionTag()))) continue;
 
                 var pay = combat.BlocksToDestroy.FirstOrDefault(x => x.BlockPairName == __instance.BlockDefinition?.BlockPairName)?.Payment ?? 0;
                 combat.UncollectedPay += pay;
