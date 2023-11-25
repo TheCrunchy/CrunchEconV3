@@ -242,12 +242,12 @@ namespace CrunchEconContractModels.Contracts
                     spawns += 1;
                 }
             }
-            5
+            
             if (spawns <= 0) return false;
             foreach (var onlinePlayer in MySession.Static.Players.GetOnlinePlayers())
             {
                 Vector3D playerPosition = onlinePlayer.Character?.PositionComp.GetPosition() ?? Vector3D.Zero;
-
+                
                 if (playerPosition == Vector3D.Zero) continue;
                 double distance = Vector3D.Distance(PlayersCurrentPosition, playerPosition);
 
