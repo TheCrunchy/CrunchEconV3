@@ -70,6 +70,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Contracts\CrunchWaveDefenceCombatContractImplementation.cs" />
     <Compile Include="Contracts\CrunchGasContractImplementation.cs" />
     <Compile Include="Contracts\CrunchMiningLuckPermsContractImplementation.cs" />
     <Compile Include="Contracts\CrunchMiningContractImplementation.cs" />

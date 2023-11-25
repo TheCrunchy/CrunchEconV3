@@ -24,8 +24,10 @@ using Microsoft.CSharp;
 using NLog;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
+using Torch.API.Managers;
 using Torch.Commands;
 using Torch.Commands.Permissions;
+using Torch.Managers.PatchManager;
 using VRage.Game.ModAPI;
 using VRage.Groups;
 using VRageMath;
@@ -199,10 +201,6 @@ namespace CrunchEconV3.Commands
             {
                 Compiler.Compile(item);
             }
-            var configs = from t in Core.myAssemblies.Select(x => x)
-                    .SelectMany(x => x.GetTypes())
-                          where t.IsClass && t.GetInterfaces().Contains(typeof(IContractConfig))
-                          select t;
 
             var configs2 = from t in Core.myAssemblies.Select(x => x)
                     .SelectMany(x => x.GetTypes())
@@ -213,6 +211,44 @@ namespace CrunchEconV3.Commands
             {
                 IStationLogic instance = (IStationLogic)Activator.CreateInstance(config);
                 instance.Setup();
+            }
+
+            var patches = Core.Session.Managers.GetManager<PatchManager>();
+            try
+            {
+                var typesWithPatchShimAttribute = Core.myAssemblies.Select(x => x)
+                    .SelectMany(x => x.GetTypes())
+                    .Where(type => type.IsClass && type.GetCustomAttributes(typeof(PatchShimAttribute), true).Length > 0);
+
+                patches.AcquireContext();
+
+                foreach (var type in typesWithPatchShimAttribute)
+                {
+                    MethodInfo method = type.GetMethod("Patch", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
+                    if (method == null)
+                    {
+                        Core.Log.Error($"Patch shim type {type.FullName} doesn't have a static Patch method.");
+                        return;
+                    }
+                    ParameterInfo[] ps = method.GetParameters();
+                    if (ps.Length != 1 || ps[0].IsOut || ps[0].IsOptional || ps[0].ParameterType.IsByRef ||
+                        ps[0].ParameterType != typeof(PatchContext) || method.ReturnType != typeof(void))
+                    {
+                        Core.Log.Error($"Patch shim type {type.FullName} doesn't have a method with signature `void Patch(PatchContext)`");
+                        return;
+                    }
+
+                    var context = patches.AcquireContext();
+                    method.Invoke(null, new object[] { context });
+                }
+                patches.Commit();
+                Context.Respond("PATCH DONE, restart server if old patch still works");
+            }
+
+            catch (Exception e)
+            {
+                Core.Log.Error($"patch compile error {e}");
+                throw;
             }
             Context.Respond("done, check logs for any errors");
         }

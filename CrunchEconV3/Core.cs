@@ -67,6 +67,7 @@ namespace CrunchEconV3
        
         }
 
+        public static ITorchSession Session;
 
         public DateTime NextContractGps = DateTime.Now;
         public DateTime NextKeenMap = DateTime.Now;
@@ -246,6 +247,7 @@ namespace CrunchEconV3
         }
         private void SessionChanged(ITorchSession session, TorchSessionState newState)
         {
+            Session = session;
             TorchState = newState;
             if (newState is TorchSessionState.Unloading)
             {

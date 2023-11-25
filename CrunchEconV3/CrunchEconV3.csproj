@@ -258,7 +258,6 @@
     <Compile Include="Models\TankGroup.cs" />
     <Compile Include="Patches\ContractPatches.cs" />
     <Compile Include="Patches\SessionLoadPatch.cs" />
-    <Compile Include="SessionComponent.cs" />
     <Compile Include="Utils\Compiler.cs" />
     <Compile Include="Utils\Econutils.cs" />
     <Compile Include="Utils\FacUtils.cs" />
