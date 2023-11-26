@@ -41,7 +41,7 @@ namespace CrunchEconV3.Patches
             {
                 var sale = JsonConvert.DeserializeObject<GridSale>(customData);
                 var path = $"{Core.path}//Grids//{sale.PrefabName}";
-                if (Core.StationStorage.GetAll().Any(x => x.GetGrid().EntityId == __instance.CubeGrid.EntityId && __instance.GetOwnerFactionTag().Equals(x.FactionTag)))
+                if (Core.StationStorage.GetAll().Any(x => x.GetGrid() != null && x.GetGrid().EntityId == __instance.CubeGrid.EntityId && __instance.GetOwnerFactionTag().Equals(x.FactionTag)))
                 {
                     if (File.Exists(path))
                     {
