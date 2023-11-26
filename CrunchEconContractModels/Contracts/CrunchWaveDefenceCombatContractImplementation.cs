@@ -133,6 +133,7 @@ namespace CrunchEconContractModels.Contracts
         {
             ExpireAt = DateTime.Now.AddSeconds(SecondsToComplete);
             SendDeliveryGPS();
+            this.ReadyToDeliver = true;
         }
 
 
@@ -171,7 +172,7 @@ namespace CrunchEconContractModels.Contracts
             else
             {
                 var distance = Vector3.Distance(PlayersCurrentPosition, DeliverLocation);
-                if (distance > 50000)
+                if (distance > MaximumDistanceFromLocationToCountDamage)
                 {
                     return false;
                 }
@@ -181,18 +182,16 @@ namespace CrunchEconContractModels.Contracts
 
             if (!Waves.Any(x => x.WaveNumber > CurrentWave) && DateTime.Now > NextSpawn || Waves.Any(x => x.WaveNumber == CurrentWave && x.Repeat))
             {
-       
+
                 if (UncollectedPay >= this.RewardMoney)
                 {
                     EconUtils.addMoney(this.AssignedPlayerIdentityId, this.UncollectedPay + this.RewardMoney);
                     Core.SendMessage("Contracts", $"{this.Name} completed!, you have been paid.", Color.Green, this.AssignedPlayerSteamId);
                     return true;
                 }
-                else
-                {
-                    FailContract();
-                    return true;
-                }
+
+                FailContract();
+                return true;
             }
 
             var spawn = Waves.FirstOrDefault(x => x.WaveNumber == CurrentWave + 1);
@@ -242,12 +241,12 @@ namespace CrunchEconContractModels.Contracts
                     spawns += 1;
                 }
             }
-            
+
             if (spawns <= 0) return false;
             foreach (var onlinePlayer in MySession.Static.Players.GetOnlinePlayers())
             {
                 Vector3D playerPosition = onlinePlayer.Character?.PositionComp.GetPosition() ?? Vector3D.Zero;
-                
+
                 if (playerPosition == Vector3D.Zero) continue;
                 double distance = Vector3D.Distance(PlayersCurrentPosition, playerPosition);
 
@@ -287,8 +286,9 @@ namespace CrunchEconContractModels.Contracts
             gpsRef.GPSColor = Color.Red;
             gpsRef.ShowOnHud = true;
             gpsRef.AlwaysVisible = true;
-            gpsRef.DiscardAt = TimeSpan.FromSeconds(6000);
+            gpsRef.DiscardAt = new TimeSpan?();
             gpsRef.Description = sb.ToString();
+            gpsRef.UpdateHash();
             gpscol.SendAddGpsRequest(AssignedPlayerIdentityId, ref gpsRef);
 
             GpsId = gpsRef.Hash;
@@ -300,7 +300,7 @@ namespace CrunchEconContractModels.Contracts
             gpscol.SendDeleteGpsRequest(this.AssignedPlayerIdentityId, GpsId);
         }
 
-
+        public long MaximumDistanceFromLocationToCountDamage { get; set; }
         public int ReputationRequired { get; set; }
         public long BlockId { get; set; }
         public long AssignedPlayerIdentityId { get; set; }
@@ -379,6 +379,7 @@ namespace CrunchEconContractModels.Contracts
             contract.ReputationRequired = this.ReputationRequired;
             contract.CollateralToTake = (Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));
             var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
+            contract.MaximumDistanceFromLocationToCountDamage = this.MaximumDistanceFromLocationToCountDamageInMetres;
             contract.DeliverLocation = result.Item1;
             contract.DeliveryFactionId = result.Item2;
             if (contract.DeliverLocation == null || contract.DeliverLocation.Equals(Vector3.Zero))
@@ -468,6 +469,7 @@ namespace CrunchEconContractModels.Contracts
             return Tuple.Create(Vector3D.Zero, 0l);
         }
 
+        public long MaximumDistanceFromLocationToCountDamageInMetres { get; set; } = 50000;
         public int AmountOfContractsToGenerate { get; set; } = 3;
         public float ChanceToAppear { get; set; } = 0.5f;
         public long CollateralMin { get; set; } = 1;
@@ -550,24 +552,38 @@ namespace CrunchEconContractModels.Contracts
             if (!MySession.Static.Players.TryGetPlayerBySteamId((ulong)attacker, out var player)) return;
             var playerData = Core.PlayerStorage.GetData((ulong)attacker, false);
             var forCombat = playerData.GetContractsForType("CrunchWaveDefence");
-            foreach (var contract in from contract in forCombat let location = contract.DeliverLocation let distance = Vector3.Distance(location, __instance.CubeGrid.PositionComp.GetPosition()) where !(distance > 50000) select contract)
+            foreach (var contract in forCombat)
             {
-                //     Core.Log.Info("block death");
+                Vector3 location = contract.DeliverLocation;
+                var distance = Vector3.Distance(location, __instance.CubeGrid.PositionComp.GetPosition());
+
                 var combat = contract as CrunchWaveDefenceCombatContractImplementation;
-                if (combat == null || !combat.BlocksToDestroy.Any(x => x.BlockPairName == __instance.BlockDefinition?.BlockPairName)) continue;
-
-                if (!combat.Waves.Any(x => x.GridsInWave.Any(z => z.FacTagToOwnThisGrid == __instance.GetOwnerFactionTag()))) continue;
-
-                var pay = combat.BlocksToDestroy.FirstOrDefault(x => x.BlockPairName == __instance.BlockDefinition?.BlockPairName)?.Payment ?? 0;
-                combat.UncollectedPay += pay;
-                playerData.PlayersContracts[contract.ContractId] = combat;
-                Task.Run(async () =>
+                if (distance > combat.MaximumDistanceFromLocationToCountDamage)
                 {
-                    CrunchEconV3.Core.PlayerStorage.Save(playerData);
-                });
-                return;
-
-
+                    continue;
+                }
+                var owner = FacUtils.GetOwner(__instance.CubeGrid);
+                var faction = MySession.Static.Factions.GetPlayerFaction(owner);
+                if (faction == null)
+                {
+                    continue;
+                }
+                if (combat.Waves.Any(x => x.GridsInWave.Any(z => z.FacTagToOwnThisGrid.Equals(faction.Tag))))
+                {
+                    var pay = combat.BlocksToDestroy.FirstOrDefault(x => x.BlockPairName.Equals(__instance.BlockDefinition?.BlockPairName))?.Payment ?? 0;
+                    if (pay > 0)
+                    {
+                        combat.UncollectedPay += pay;
+                        playerData.PlayersContracts[contract.ContractId] = combat;
+                        Core.SendMessage("Contracts", $"{__instance.BlockDefinition?.BlockPairName} destroyed for {pay:##,###}", Color.Green, playerData.PlayerSteamId);
+                        Task.Run(async () => { CrunchEconV3.Core.PlayerStorage.Save(playerData); });
+                        return;
+                    }
+                }
+                else
+                {
+                    Core.Log.Info("no waves");
+                }
             }
         }
 
@@ -585,7 +601,7 @@ namespace CrunchEconContractModels.Contracts
                 //    Core.Log.Info("Adding attacker");
                 if (steam != 0l)
                 {
-                    //      Core.Log.Info("steam id attacker");
+                 //        Core.Log.Info("steam id attacker");
                     if (LastAttacker.ContainsKey(__instance.FatBlock.EntityId))
                     {
                         LastAttacker[__instance.FatBlock.EntityId] = (long)steam;

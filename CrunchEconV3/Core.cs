@@ -115,6 +115,7 @@ namespace CrunchEconV3
                         }
                         foreach (var contract in deleteThese)
                         {
+                            contract.DeleteDeliveryGPS();
                             data.RemoveContract(contract);
                         }
 
