@@ -41,15 +41,41 @@ namespace CrunchEconV3.Patches
             {
                 var sale = JsonConvert.DeserializeObject<GridSale>(customData);
                 var path = $"{Core.path}//Grids//{sale.PrefabName}";
-                if (Core.StationStorage.GetAll().Any(x => x.GetGrid().EntityId == __instance.CubeGrid.EntityId))
+                if (Core.StationStorage.GetAll().Any(x => x.GetGrid().EntityId == __instance.CubeGrid.EntityId && __instance.GetOwnerFactionTag().Equals(x.FactionTag)))
                 {
                     if (File.Exists(path))
                     {
-
                         ulong steamId = MyEventContext.Current.Sender.Value;
 
                         if (MySession.Static.Players.TryGetPlayerBySteamId(steamId, out var player))
                         {
+                            if (sale.ReputationRequired)
+                            {
+                                var fac = MySession.Static.Factions.TryGetFactionByTag(sale.FacTagForReputation);
+                                if (fac == null)
+                                {
+                                    return false;
+                                }
+
+                                var rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(
+                                    player.Identity.IdentityId, fac.FactionId);
+
+                                if (sale.Reputation > 0)
+                                {
+                                    if (rep.Item2 <= sale.Reputation)
+                                    {
+                                        return false;
+                                    }
+                                }
+                                else
+                                {
+                                    if (rep.Item2 >= sale.Reputation)
+                                    {
+                                        return false;
+                                    }
+                                }
+                           
+                            }
                             if (EconUtils.getBalance(player.Identity.IdentityId) >= sale.Price)
                             {
                                 if (GridManager.LoadGrid(path, player.GetPosition(), false, player.Id.SteamId,
@@ -75,11 +101,25 @@ namespace CrunchEconV3.Patches
         {
             public string PrefabName { get; set; }
             public long Price { get; set; }
+            public bool ReputationRequired { get; set; }
+            public string FacTagForReputation { get; set; }
+            public int Reputation { get; set; }
         }
 
         //{
         //    "prefabName": null,
         //    "price": 0
         //}
+        /*
+         {
+             {
+      "PrefabName": "pirate.sbc",
+      "Price": 50000,
+      "ReputationRequired": false,
+      "FacTagForReputation": "DAVE",
+      "Reputation": 1500
+    }
+          }
+        */
     }
 }
