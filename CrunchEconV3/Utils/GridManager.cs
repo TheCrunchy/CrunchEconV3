@@ -5,10 +5,13 @@ using NLog;
 using Sandbox;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
+using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using Sandbox.ModAPI.Contracts;
 using Torch.Commands;
 using VRage;
 using VRage.Game;
@@ -28,6 +31,10 @@ namespace CrunchEconV3.Utils
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
         public static string newGridName;
+
+        static GridManager()
+        {
+        }
 
         public static bool SaveGridNoDelete(string path, string filename, bool keepOriginalOwner, bool keepProjection, List<MyCubeGrid> grids)
         {
@@ -366,17 +373,16 @@ namespace CrunchEconV3.Utils
 
             bool hasMultipleGrids = objectBuilderList.Count > 1;
 
-            if (!hasMultipleGrids)
-            {
+            //if (!hasMultipleGrids)
+            //{
 
                 foreach (var ob in objectBuilderList)
                     MyEntities.CreateFromObjectBuilderParallel(ob, true);
-            }
-            else
-            {
-                MyEntities.Load(objectBuilderList, out _);
-            }
-
+            //}
+            //else
+            //{
+            //    MyEntities.Load(objectBuilderList, out _);
+            //}
             return true;
         }
 
