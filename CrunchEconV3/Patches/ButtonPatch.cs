@@ -34,6 +34,7 @@ namespace CrunchEconV3.Patches
 
         public static bool Activate(MyButtonPanel __instance, int index)
         {
+            Core.Log.Info(index);
             if (string.IsNullOrEmpty(__instance.CustomData))
                 return true;
             string customData = __instance.CustomData;
