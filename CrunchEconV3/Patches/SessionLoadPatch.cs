@@ -8,6 +8,7 @@ using CrunchEconV3.APIs;
 using NLog;
 using Sandbox.Definitions;
 using Sandbox.Game.Screens.Helpers;
+using Sandbox.Game.SessionComponents;
 using Sandbox.Game.Weapons;
 using Sandbox.Game.World;
 using Torch.Managers.PatchManager;
@@ -27,6 +28,7 @@ namespace CrunchEconV3.Patches
         public static void Patch(PatchContext ctx)
         {
             ctx.GetPattern(contract).Prefixes.Add(contractPatch);
+            ctx.GetPattern(limitUpdate).Suffixes.Add(limitUpdateM);
         }
         internal static readonly MethodInfo contract =
             typeof(MySessionComponentBase).GetMethod("LoadData",
@@ -35,6 +37,14 @@ namespace CrunchEconV3.Patches
 
         internal static readonly MethodInfo contractPatch =
             typeof(Testpatch).GetMethod(nameof(LoadData), BindingFlags.Static | BindingFlags.Public) ??
+            throw new Exception("Failed to find patch method");
+
+        internal static readonly MethodInfo limitUpdate =
+            typeof(MySessionComponentEconomy).GetMethod("GetStoreCreationLimitPerPlayer", BindingFlags.Instance | BindingFlags.Public) ??
+            throw new Exception("Failed to find patch method");
+
+        internal static readonly MethodInfo limitUpdateM =
+            typeof(Testpatch).GetMethod(nameof(YeetKeenLimit), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
         public static bool Loaded = false;
@@ -48,6 +58,12 @@ namespace CrunchEconV3.Patches
                Core.AIEnabledAPI = new RemoteBotAPI();
                 Loaded = true;
             }
+        }
+
+        public static void YeetKeenLimit(ref int __result)
+        {
+            __result = 5000000;
+            return;
         }
     }
 }
