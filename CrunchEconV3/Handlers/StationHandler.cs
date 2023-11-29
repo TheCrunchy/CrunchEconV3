@@ -167,6 +167,14 @@ namespace CrunchEconV3.Handlers
                     MappedContractBlocks.Add(blockId, station.FileName);
                     return station.FileName;
                 }
+
+                var test = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyContractBlock>()
+                    .Where(x => !x.Closed).FirstOrDefault(block => block.EntityId == blockId);
+                if (test != null)
+                {
+                    Core.Log.Error($"{test.GetOwnerFactionTag()} is not the expected tag of {station.FactionTag}");
+                }
+                
             }
             return null;
         }

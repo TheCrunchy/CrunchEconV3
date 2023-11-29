@@ -43,14 +43,8 @@ namespace CrunchEconContractModels.StationLogics
             List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();
             var gridOwnerFac = FacUtils.GetOwner(grid);
       
-            foreach (var block in grid.GetFatBlocks().Where(x => x.OwnerId == gridOwnerFac))
+            foreach (var block in grid.GetFatBlocks().OfType<MyCargoContainer>().Where(x => x.OwnerId == gridOwnerFac))
             {
-                if (block is MyReactor)
-                {
-                    continue;
-                }
-
-
                 for (int i = 0; i < block.InventoryCount; i++)
                 {
                     VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)block).GetInventory(i);
