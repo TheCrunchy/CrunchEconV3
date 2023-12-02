@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
@@ -50,6 +51,7 @@ namespace CrunchEconV3.Handlers
             Configs.Clear();
             MappedConfigs.Clear();
             MappedKeenConfigs.Clear();
+         //   Thread.Sleep(Core.random.next);
             foreach (var item in Directory.GetFiles(BasePath))
             {
                 var loaded = FileUtils.ReadFromJsonFile<StationConfig>(item);

@@ -92,11 +92,11 @@ namespace CrunchEconV3.Handlers
                             Core.Log.Error($"Station logic error {e}");
                         }
                     }
-                }
 
-                if (DateTime.Now >= NextSave)
-                {
-                    Core.StationStorage.Save(station);
+                    if (DateTime.Now >= NextSave)
+                    {
+                        Core.StationStorage.Save(station);
+                    }
                 }
             }
 
