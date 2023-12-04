@@ -152,7 +152,7 @@ namespace CrunchEconContractModels.Contracts
             gpsRef.GPSColor = Color.Orange;
             gpsRef.ShowOnHud = true;
             gpsRef.AlwaysVisible = true;
-            gpsRef.DiscardAt = TimeSpan.FromSeconds(6000);
+            gpsRef.DiscardAt = new TimeSpan?();
             gpsRef.Description = sb.ToString();
             gpscol.SendAddGpsRequest(AssignedPlayerIdentityId, ref gpsRef);
 
@@ -302,8 +302,19 @@ namespace CrunchEconContractModels.Contracts
             {
                 return;
             }
+
+            if (materials == null)
+            {
+                Core.Log.Info("Materials are null");
+                return;
+            }
             if (__instance.OutputInventory != null && __instance.OutputInventory.Owner != null)
             {
+                if (__instance.OutputInventory.Owner.GetBaseEntity() == null)
+                {
+                    Core.Log.Info("Drill base entity is null");
+                    return;
+                }
                 if (__instance.OutputInventory.Owner.GetBaseEntity() is MyShipDrill shipDrill)
                 {
                     if (drill == null)
@@ -311,8 +322,19 @@ namespace CrunchEconContractModels.Contracts
                         drill = __instance.GetType();
                     }
 
+                    if (drill == null)
+                    {
+                        Core.Log.Info("Drill reflection still null");
+                        return;
+                    }
+
                     var owner = shipDrill.OwnerId;
                     var data = Core.PlayerStorage.GetData(MySession.Static.Players.TryGetSteamId(owner));
+                    if (data == null)
+                    {
+                        Core.Log.Info("player data null");
+                        return;
+                    }
                     if (data != null && data.PlayersContracts.All(x => !x.Value.ContractType.Equals("CrunchMining")))
                     {
                         return;
@@ -321,6 +343,11 @@ namespace CrunchEconContractModels.Contracts
                     Dictionary<string, int> MinedAmount = new Dictionary<string, int>();
                     foreach (var material in materials)
                     {
+                        if (material.Key == null)
+                        {
+                            Core.Log.Info("material key null");
+                            return;
+                        }
                         if (string.IsNullOrEmpty(material.Key.MinedOre))
                             return;
 
@@ -328,43 +355,60 @@ namespace CrunchEconContractModels.Contracts
                         {
                             continue;
                         }
+                     //   Core.Log.Info("1");
                         MyObjectBuilder_Ore newObject = MyObjectBuilderSerializerKeen.CreateNewObject<MyObjectBuilder_Ore>(material.Key.MinedOre);
+                      //  Core.Log.Info("2");
                         newObject.MaterialTypeName = new MyStringHash?(material.Key.Id.SubtypeId);
+                      //  Core.Log.Info("3");
                         float num = (float)(material.Value / (double)byte.MaxValue * 1.0) * __instance.VoxelHarvestRatio * material.Key.MinedOreRatio;
+                      //  Core.Log.Info("4");
                         if (!MySession.Static.AmountMined.ContainsKey(material.Key.MinedOre))
                             MySession.Static.AmountMined[material.Key.MinedOre] = (MyFixedPoint)0;
+                      //  Core.Log.Info("5");
                         MySession.Static.AmountMined[material.Key.MinedOre] += (MyFixedPoint)num;
+                      //  Core.Log.Info("6");
                         MyPhysicalItemDefinition physicalItemDefinition = MyDefinitionManager.Static.GetPhysicalItemDefinition((MyObjectBuilder_Base)newObject);
+                       // Core.Log.Info("7");
                         MyFixedPoint amountItems1 = (MyFixedPoint)(num / physicalItemDefinition.Volume);
+                      //  Core.Log.Info("8");
                         MyFixedPoint maxAmountPerDrop = (MyFixedPoint)(float)(0.150000005960464 / (double)physicalItemDefinition.Volume);
-
+                      //  Core.Log.Info("9");
 
 
                         MyFixedPoint collectionRatio = (MyFixedPoint)drill.GetField("m_inventoryCollectionRatio", BindingFlags.NonPublic | BindingFlags.Instance).GetValue((object)__instance);
-
+                       // Core.Log.Info("10");
                         MyFixedPoint b = amountItems1 * ((MyFixedPoint)1 - collectionRatio);
+                      //  Core.Log.Info("11");
                         MyFixedPoint amountItems2 = MyFixedPoint.Min(maxAmountPerDrop * 10 - (MyFixedPoint)0.001, b);
+                      //  Core.Log.Info("12");
                         MyFixedPoint totalAmount = amountItems1 * collectionRatio - amountItems2;
-
+                   //     Core.Log.Info("13");
                         if (totalAmount > 0)
                         {
                             if (MinedAmount.ContainsKey(material.Key.MinedOre))
                             {
+                               // Core.Log.Info("14");
                                 MinedAmount[material.Key.MinedOre] += totalAmount.ToIntSafe();
                             }
                             else
                             {
+                             //   Core.Log.Info("15");
                                 MinedAmount.Add(material.Key.MinedOre, totalAmount.ToIntSafe());
                             }
                         }
                     }
-
+                   // Core.Log.Info("16");
                     foreach (var mined in MinedAmount)
                     {
-                        var contracts = data.PlayersContracts.Where(x => x.Value.ContractType is "CrunchMining");
+                        var contracts = data.PlayersContracts.Where(x => x.Value != null && x.Value.ContractType == "CrunchMining");
                         foreach (var contract in contracts)
                         {
                             var mining = contract.Value as CrunchMiningContractImplementation;
+                            if (mining == null)
+                            {
+                                Core.Log.Info("Mining contract was null? the fuck");
+                                return;
+                            }
                             if (mining.OreSubTypeName != mined.Key) continue;
                             if (mining.MinedOreAmount >= mining.AmountToMine) continue;
                             mining.MinedOreAmount += mined.Value;
@@ -379,12 +423,12 @@ namespace CrunchEconContractModels.Contracts
                                     MySession.Static.Players.TryGetSteamId(owner));
                                 messageCooldown.Remove(MySession.Static.Players.TryGetSteamId(owner));
                                 messageCooldown.Add(MySession.Static.Players.TryGetSteamId(owner),
-                                    DateTime.Now.AddSeconds(0.5));
+                                   
+                                DateTime.Now.AddSeconds(0.5));
                                 Task.Run(async () =>
                                 {
                                     CrunchEconV3.Core.PlayerStorage.Save(data);
                                 });
-
                                 return;
                             }
                             if (messageCooldown.TryGetValue(MySession.Static.Players.TryGetSteamId(owner),
@@ -480,7 +524,12 @@ namespace CrunchEconContractModels.Contracts
                 return Tuple.Create(keenstation.Position, keenstation.FactionId);
             }
 
-            var faction = MySession.Static.Factions.TryGetFactionByTag(__instance.GetOwnerFactionTag());
+            var faction = FacUtils.GetPlayersFaction(__instance.OwnerId);
+            if (faction == null)
+            {
+                Core.Log.Info("Faction was null");
+                return Tuple.Create(__instance.PositionComp.GetPosition(), 0l);
+            }
             return Tuple.Create(__instance.PositionComp.GetPosition(), faction.FactionId);
         }
 

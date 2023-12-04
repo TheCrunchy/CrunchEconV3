@@ -84,6 +84,7 @@
     <Compile Include="StationLogics\CargoShipLogic.cs" />
     <Compile Include="StationLogics\FactionBalanceLogic.cs" />
     <Compile Include="StationLogics\StoreManagementLogic.cs" />
+    <Compile Include="StationLogics\DisableAIBlockFlee.cs" />
     <Compile Include="StationLogics\ThrusterStuff.cs" />
   </ItemGroup>
   <ItemGroup>

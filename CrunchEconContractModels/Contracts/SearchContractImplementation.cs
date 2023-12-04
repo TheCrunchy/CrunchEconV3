@@ -6,9 +6,11 @@ using System.Text;
 using CrunchEconContractModels.Contracts;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Utils;
+using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.GameSystems;
 using Sandbox.Game.World;
+using SpaceEngineers.Game.Entities.Blocks;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRage.Utils;
 using VRageMath;
@@ -186,6 +188,7 @@ namespace CrunchEconV3.Models
                     }
                 }
             }
+
             if (keenstation != null)
             {
                 for (int i = 0; i < 10; i++)

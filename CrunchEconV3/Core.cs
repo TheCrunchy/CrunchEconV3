@@ -252,15 +252,21 @@ namespace CrunchEconV3
             TorchState = newState;
             if (newState is TorchSessionState.Unloading)
             {
-                foreach (var station in StationStorage.GetAll())
+                if (StationStorage != null)
                 {
-                    Core.StationStorage.Save(station);
+                    foreach (var station in StationStorage.GetAll())
+                    {
+                        Core.StationStorage.Save(station);
+                    }
                 }
 
-                foreach (var player in MySession.Static.Players.GetOnlinePlayers())
+                if (PlayerStorage != null)
                 {
-                    var data = Core.PlayerStorage.GetData(player.Id.SteamId);
-                    Core.PlayerStorage.Save(data);
+                    foreach (var player in MySession.Static.Players.GetOnlinePlayers())
+                    {
+                        var data = Core.PlayerStorage.GetData(player.Id.SteamId);
+                        Core.PlayerStorage.Save(data);
+                    }
                 }
             }
 
