@@ -63,8 +63,8 @@ namespace CrunchEconV3
 
             SetupConfig();
             CreatePath();
-           
-       
+
+
         }
 
         public static ITorchSession Session;
@@ -256,7 +256,14 @@ namespace CrunchEconV3
                 {
                     foreach (var station in StationStorage.GetAll())
                     {
-                        Core.StationStorage.Save(station);
+                        try
+                        {
+                            Core.StationStorage.Save(station);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error(e);
+                        }
                     }
                 }
 
@@ -264,15 +271,22 @@ namespace CrunchEconV3
                 {
                     foreach (var player in MySession.Static.Players.GetOnlinePlayers())
                     {
-                        var data = Core.PlayerStorage.GetData(player.Id.SteamId);
-                        Core.PlayerStorage.Save(data);
+                        try
+                        {
+                            var data = Core.PlayerStorage.GetData(player.Id.SteamId);
+                            Core.PlayerStorage.Save(data);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error(e);
+                        }
                     }
                 }
             }
 
             if (newState is TorchSessionState.Loaded)
             {
-            
+
                 var patches = session.Managers.GetManager<PatchManager>();
                 try
                 {
@@ -315,22 +329,6 @@ namespace CrunchEconV3
                     throw;
                 }
 
-                //if (config.SetMinPricesTo1)
-                //{
-                //    foreach (MyDefinitionBase def in MyDefinitionManager.Static.GetAllDefinitions())
-                //    {
-
-                //        if ((def as MyComponentDefinition) != null)
-                //        {
-                //            (def as MyComponentDefinition).MinimalPricePerUnit = 1;
-                //        }
-                //        if ((def as MyPhysicalItemDefinition) != null)
-                //        {
-                //            (def as MyPhysicalItemDefinition).MinimalPricePerUnit = 1;
-                //        }
-                //    }
-                //}
-                
                 StationStorage = new JsonStationStorageHandler(path);
                 PlayerStorage = new JsonPlayerStorageHandler(path);
                 session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
