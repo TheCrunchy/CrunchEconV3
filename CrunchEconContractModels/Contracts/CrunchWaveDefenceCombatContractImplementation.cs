@@ -152,6 +152,11 @@ namespace CrunchEconContractModels.Contracts
 
                     EconUtils.addMoney(this.AssignedPlayerIdentityId, pay);
                     Core.SendMessage("Contracts", $"{this.Name} completed!, you have been paid.", Color.Green, this.AssignedPlayerSteamId);
+                    if (this.ReputationGainOnComplete != 0)
+                    {
+                        MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
+                            this.FactionId, this.ReputationGainOnComplete, true);
+                    }
                     return true;
                 }
                 else
@@ -189,8 +194,17 @@ namespace CrunchEconContractModels.Contracts
 
                 if (UncollectedPay >= this.RewardMoney)
                 {
-                    EconUtils.addMoney(this.AssignedPlayerIdentityId, this.UncollectedPay + this.RewardMoney);
+                    var pay = 0l;
+                    var temp = this.UncollectedPay + this.RewardMoney;
+                    pay = temp > this.MaximumReward ? this.MaximumReward : temp;
+
+                    EconUtils.addMoney(this.AssignedPlayerIdentityId, pay);
                     Core.SendMessage("Contracts", $"{this.Name} completed!, you have been paid.", Color.Green, this.AssignedPlayerSteamId);
+                    if (this.ReputationGainOnComplete != 0)
+                    {
+                        MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
+                            this.FactionId, this.ReputationGainOnComplete, true);
+                    }
                     return true;
                 }
 
@@ -211,6 +225,8 @@ namespace CrunchEconContractModels.Contracts
             {
                 return false;
             }
+
+
 
             var spawns = 0;
             foreach (var grid in spawn.GridsInWave)
