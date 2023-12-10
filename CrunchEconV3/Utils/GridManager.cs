@@ -12,6 +12,8 @@ using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Contracts;
+using Sandbox.ModAPI.Ingame;
+using SpaceEngineers.Game.Entities.Blocks;
 using Torch.Commands;
 using VRage;
 using VRage.Game;
@@ -376,8 +378,19 @@ namespace CrunchEconV3.Utils
             //if (!hasMultipleGrids)
             //{
 
-                foreach (var ob in objectBuilderList)
-                    MyEntities.CreateFromObjectBuilderParallel(ob, true);
+            foreach (var ob in objectBuilderList)
+            {
+               var ent = MyEntities.CreateFromObjectBuilderParallel(ob, true);
+               //if (ent is MyCubeGrid grid)
+               //{
+               //    grid.GridSystems.AiBlockSystem.SetMovementFlightMode(FlightMode.Circle);
+               //    var wayPoint = new MyAutopilotWaypoint(playerPosition, "Home");
+
+               //    grid.GridSystems.AiBlockSystem.SetMovementWaypoint(wayPoint);
+               //    Core.Log.Info("ai");
+               // }
+            }
+            
             //}
             //else
             //{
