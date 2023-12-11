@@ -172,6 +172,7 @@ namespace CrunchEconV3.Models.Contracts
             gpsRef.ShowOnHud = true;
             gpsRef.AlwaysVisible = true;
             gpsRef.DiscardAt = new TimeSpan?();
+            gpsRef.UpdateHash();
             gpsRef.Description = sb.ToString();
             gpscol.SendAddGpsRequest(AssignedPlayerIdentityId, ref gpsRef);
 
