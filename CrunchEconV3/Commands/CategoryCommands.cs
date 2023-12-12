@@ -196,6 +196,42 @@ namespace CrunchEconV3.Commands
         [Permission(MyPromoteLevel.Admin)]
         public void Compile()
         {
+            var patches = Core.Session.Managers.GetManager<PatchManager>();
+            try
+            {
+                var typesWithPatchShimAttribute = Core.myAssemblies.Select(x => x)
+                    .SelectMany(x => x.GetTypes())
+                    .Where(type => type.IsClass && type.GetCustomAttributes(typeof(PatchShimAttribute), true).Length > 0);
+
+                patches.AcquireContext();
+
+                foreach (var type in typesWithPatchShimAttribute)
+                {
+                    MethodInfo method = type.GetMethod("UnPatch", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
+                    if (method == null)
+                    {
+                        Core.Log.Error($"Patch shim type {type.FullName} doesn't have a static Patch method.");
+                        continue;
+                    }
+                    ParameterInfo[] ps = method.GetParameters();
+                    if (ps.Length != 1 || ps[0].IsOut || ps[0].IsOptional || ps[0].ParameterType.IsByRef ||
+                        ps[0].ParameterType != typeof(PatchContext) || method.ReturnType != typeof(void))
+                    {
+                        Core.Log.Error($"Patch shim type {type.FullName} doesn't have a method with signature `void UnPatch(PatchContext)`");
+                        continue;
+                    }
+
+                    var context = patches.AcquireContext();
+                    method.Invoke(null, new object[] { context });
+                }
+                patches.Commit();
+                Context.Respond("PATCH DONE, restart server if old patch still works");
+            }
+            catch (Exception e)
+            {
+                Core.Log.Error($"patch compile error {e}");
+                throw;
+            }
             Core.myAssemblies.Clear();
             foreach (var item in Directory.GetFiles($"{Core.path}/Scripts/").Where(x => x.EndsWith(".cs")))
             {
@@ -213,7 +249,6 @@ namespace CrunchEconV3.Commands
                 instance.Setup();
             }
 
-            var patches = Core.Session.Managers.GetManager<PatchManager>();
             try
             {
                 var typesWithPatchShimAttribute = Core.myAssemblies.Select(x => x)
@@ -228,14 +263,14 @@ namespace CrunchEconV3.Commands
                     if (method == null)
                     {
                         Core.Log.Error($"Patch shim type {type.FullName} doesn't have a static Patch method.");
-                        return;
+                        continue;
                     }
                     ParameterInfo[] ps = method.GetParameters();
                     if (ps.Length != 1 || ps[0].IsOut || ps[0].IsOptional || ps[0].ParameterType.IsByRef ||
                         ps[0].ParameterType != typeof(PatchContext) || method.ReturnType != typeof(void))
                     {
                         Core.Log.Error($"Patch shim type {type.FullName} doesn't have a method with signature `void Patch(PatchContext)`");
-                        return;
+                        continue;
                     }
 
                     var context = patches.AcquireContext();
@@ -248,8 +283,9 @@ namespace CrunchEconV3.Commands
             catch (Exception e)
             {
                 Core.Log.Error($"patch compile error {e}");
-                throw;
             }
+
+            this.Example();
             Context.Respond("done, check logs for any errors");
         }
 

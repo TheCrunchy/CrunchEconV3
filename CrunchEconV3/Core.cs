@@ -307,14 +307,14 @@ namespace CrunchEconV3
                         if (method == null)
                         {
                             Core.Log.Error($"Patch shim type {type.FullName} doesn't have a static Patch method.");
-                            return;
+                            continue;
                         }
                         ParameterInfo[] ps = method.GetParameters();
                         if (ps.Length != 1 || ps[0].IsOut || ps[0].IsOptional || ps[0].ParameterType.IsByRef ||
                             ps[0].ParameterType != typeof(PatchContext) || method.ReturnType != typeof(void))
                         {
                             Core.Log.Error($"Patch shim type {type.FullName} doesn't have a method with signature `void Patch(PatchContext)`");
-                            return;
+                            continue;
                         }
 
                         var context = patches.AcquireContext();
@@ -326,7 +326,6 @@ namespace CrunchEconV3
                 catch (Exception e)
                 {
                     Core.Log.Error($"compile error {e}");
-                    throw;
                 }
 
                 StationStorage = new JsonStationStorageHandler(path);

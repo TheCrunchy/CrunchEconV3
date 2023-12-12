@@ -15,6 +15,7 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Entities.Character;
 using Sandbox.Game.Entities.Cube;
+using Sandbox.Game.EntityComponents;
 using Sandbox.Game.GameSystems;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
@@ -31,10 +32,31 @@ using VRage.ObjectBuilder;
 using VRage.Utils;
 using VRageMath;
 
-namespace CrunchEconContractModels.Contracts.WaveDefence
+namespace CrunchEconContractModels.Contracts
 {
-    public class CrunchWaveDefenceCombatContractImplementation : ICrunchContract
+    public class CrunchGridDeathCombatContractImplementation : ICrunchContract
     {
+        private bool HasPower(VRage.Game.ModAPI.IMyCubeGrid grid)
+        {
+            var blocks = new List<IMySlimBlock>();
+            grid.GetBlocks(blocks);
+
+            foreach (var block in blocks)
+            {
+                var terminalBlock = block.FatBlock as IMyTerminalBlock;
+                if (terminalBlock != null)
+                {
+                    MyResourceSourceComponent powerProducer;
+                    if (terminalBlock.Components.TryGet(out powerProducer) && powerProducer.CurrentOutput > 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         public long ContractId { get; set; }
         public string ContractType { get; set; }
         public MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
@@ -142,6 +164,8 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
         public int CurrentWave = 0;
         private bool HasStarted = false;
 
+        public Dictionary<long, long> GridIdsToPay = new Dictionary<long, long>();
+        private Dictionary<long, MyCubeGrid> MappedGrids = new Dictionary<long, MyCubeGrid>();
         public bool Update100(Vector3 PlayersCurrentPosition)
         {
             if (ReadyToDeliver)
@@ -178,6 +202,44 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
                     return false;
                 }
             }
+
+            var temp = new List<long>();
+            foreach (var item in GridIdsToPay)
+            {
+                if (MappedGrids.TryGetValue(item.Key, out var grid))
+                {
+                    if (!HasPower(grid))
+                    {
+                        UncollectedPay += item.Value;
+                        temp.Add(item.Key);
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        if (MyAPIGateway.Entities.TryGetEntityById(item.Key, out var foundGrid))
+                        {
+                            MappedGrids.Add(item.Key, foundGrid as MyCubeGrid);
+                        }
+                        //MyAPIGateway.Entities.GetEntities(null, (entity) =>
+                        //         {
+                        //             if (entity.EntityId == item.Key)
+                        //             {
+                        //                 MappedGrids.Add(item.Key, entity as MyCubeGrid);
+                        //             }
+                        //             return false;
+                        //         });
+                    }
+                    catch (Exception e)
+                    {
+                    }
+                    //find the grid
+                }
+            }
+            //dead grids should no longer be tracked
+            GridIdsToPay = GridIdsToPay.Where(x => temp.All(z => z != x.Key)).ToDictionary(x => x.Key, x => x.Value);
+            MappedGrids = MappedGrids.Where(x => temp.All(z => z != x.Key)).ToDictionary(x => x.Key, x => x.Value);
 
             if (DateTime.Now < NextSpawn) return false;
 
@@ -233,13 +295,18 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
                     Core.random.Next(spawn.MinDistance, spawn.MaxDistance),
                     Core.random.Next(spawn.MinDistance, spawn.MaxDistance)));
                 if (!File.Exists($"{Core.path}//Grids//{grid.GridName}")) continue;
-                if (!GridManager.LoadGrid($"{Core.path}//Grids//{grid.GridName}", Position, false,
-                        (ulong)faction.Members.FirstOrDefault().Key, "Spawned grid", false))
+                var Ids = GridManagerUpdated.LoadGrid($"{Core.path}//Grids//{grid.GridName}", Position, false,
+                    (ulong)faction.Members.FirstOrDefault().Key, "Spawned grid", false);
+
+                if (!Ids.Any())
                 {
                     Core.Log.Info($"Could not load grid {grid.GridName}");
                 }
                 else
                 {
+                    var main = Ids.First().GetBiggestGridInGroup();
+                    var isPay = GridsToDestroy.FirstOrDefault(x => x.GridToDestroy == grid.GridName)?.Payment ?? 0;
+                    GridIdsToPay.Add(main.EntityId, isPay);
                     spawns += 1;
                 }
             }
@@ -340,15 +407,16 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
         public long CollateralToTake { get; set; }
         public long DeliveryFactionId { get; set; }
 
-        public List<BlockDestruction> BlocksToDestroy = new List<BlockDestruction>();
+        public List<GridDestruction> GridsToDestroy = new List<GridDestruction>();
 
         public double PayPerDamage { get; set; }
         public long UncollectedPay = 0;
 
         public List<SpawnWave> Waves = new List<SpawnWave>();
+        public List<long> DestroyedIds = new List<long>();
     }
 
-    public class WaveDefenceConfig : IContractConfig
+    public class CrunchGridDeathCombatConfig : IContractConfig
     {
         public void Setup()
         {
@@ -372,7 +440,7 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
                     new GridSpawnModel()
                 }
             });
-            BlocksToDestroy = new List<BlockDestruction>() { new BlockDestruction() };
+            GridsToDestroy = new List<GridDestruction>() { new GridDestruction() };
         }
 
         public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
@@ -385,9 +453,9 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
                     return null;
                 }
             }
-            var contract = new CrunchWaveDefenceCombatContractImplementation();
+            var contract = new CrunchGridDeathCombatContractImplementation();
             var description = new StringBuilder();
-            var contractContractType = "CrunchWaveDefence";
+            var contractContractType = "CrunchGridDeath";
             contract.ContractType = contractContractType;
             contract.BlockId = idUsedForDictionary;
             contract.RewardMoney = MinimumPay;
@@ -410,7 +478,7 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
             }
 
             contract.Waves = this.Waves;
-            contract.BlocksToDestroy = this.BlocksToDestroy;
+            contract.GridsToDestroy = this.GridsToDestroy;
             description.AppendLine($"Reward is calculated from blocks destroyed. Minimum payout of {MinimumPay:##,###}");
             description.AppendLine($" ||| Maximum payout of {MaximumPay:##,###}");
 
@@ -509,9 +577,8 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
 
         public string ContractName { get; set; } = "Anti Piracy Operations";
 
-        public List<BlockDestruction> BlocksToDestroy = new List<BlockDestruction>();
-
         public List<SpawnWave> Waves = new List<SpawnWave>();
+        public List<GridDestruction> GridsToDestroy = new List<GridDestruction>();
 
     }
     public class SpawnWave
@@ -535,229 +602,9 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
         public string FacTagToOwnThisGrid = "SPRT";
     }
 
-    public class BlockDestruction
+    public class GridDestruction
     {
-        public string BlockPairName = "LargeReactor";
+        public string GridToDestroy = "LargeReactor";
         public long Payment = 50000;
     }
-
-    [PatchShim]
-    public static class SlimBlockPatch
-    {
-        internal static readonly MethodInfo DamageRequest =
-            typeof(MySlimBlock).GetMethod("DoDamage", BindingFlags.Instance | BindingFlags.Public, null,
-                new Type[]
-                {
-                    typeof(float), typeof(MyStringHash), typeof(bool), typeof(MyHitInfo?), typeof(long), typeof(long),
-                    typeof(bool)
-                }, null) ??
-            throw new Exception("Failed to find patch method");
-
-        internal static readonly MethodInfo patchSlimDamage =
-            typeof(SlimBlockPatch).GetMethod(nameof(OnDamageRequest), BindingFlags.Static | BindingFlags.Public) ??
-            throw new Exception("Failed to find patch method");
-
-        internal static readonly MethodInfo destroyRequest =
-            typeof(MyCubeBlock).GetMethod("OnDestroy", BindingFlags.Instance | BindingFlags.Public) ??
-            throw new Exception("Failed to find patch method");
-
-        internal static readonly MethodInfo patchDestroy =
-            typeof(SlimBlockPatch).GetMethod(nameof(OnDestroy), BindingFlags.Static | BindingFlags.Public) ??
-            throw new Exception("Failed to find patch method");
-
-        public static void Patch(PatchContext ctx)
-        {
-
-            ctx.GetPattern(DamageRequest).Suffixes.Add(patchSlimDamage);
-            ctx.GetPattern(destroyRequest).Suffixes.Add(patchDestroy);
-        
-            Core.Log.Info("Patching combat");
-        }
-
-        public static void UnPatch(PatchContext ctx)
-        {
-
-            ctx.GetPattern(DamageRequest).Suffixes.Remove(patchSlimDamage);
-            ctx.GetPattern(destroyRequest).Suffixes.Remove(patchDestroy);
-
-            Core.Log.Info("Remove Patching combat");
-        }
-
-        public static Dictionary<long, long> LastAttacker = new Dictionary<long, long>();
-        public static void OnDestroy(MyCubeBlock __instance)
-        {
-            if (!LastAttacker.TryGetValue(__instance.EntityId, out var attacker)) return;
-            if (!MySession.Static.Players.TryGetPlayerBySteamId((ulong)attacker, out var player)) return;
-            var playerData = Core.PlayerStorage.GetData((ulong)attacker, false);
-            var forCombat = playerData.GetContractsForType("CrunchWaveDefence");
-            foreach (var contract in forCombat)
-            {
-                Vector3 location = contract.DeliverLocation;
-                var distance = Vector3.Distance(location, __instance.CubeGrid.PositionComp.GetPosition());
-
-                var combat = (CrunchWaveDefenceCombatContractImplementation)contract;
-                if (distance > combat.MaximumDistanceFromLocationToCountDamage)
-                {
-                    continue;
-                }
-                var owner = FacUtils.GetOwner(__instance.CubeGrid);
-                var faction = MySession.Static.Factions.GetPlayerFaction(owner);
-                if (faction == null)
-                {
-                    continue;
-                }
-                if (combat.Waves.Any(x => x.GridsInWave.Any(z => z.FacTagToOwnThisGrid.Equals(faction.Tag))))
-                {
-                    var pay = combat.BlocksToDestroy.FirstOrDefault(x => x.BlockPairName.Equals(__instance.BlockDefinition?.BlockPairName))?.Payment ?? 0;
-                    if (pay > 0)
-                    {
-                        combat.UncollectedPay += pay;
-                        playerData.PlayersContracts[contract.ContractId] = combat;
-                        Core.SendMessage("Contracts", $"{__instance.BlockDefinition?.BlockPairName} destroyed for {pay:##,###}", Color.Green, playerData.PlayerSteamId);
-                        Task.Run(async () => { CrunchEconV3.Core.PlayerStorage.Save(playerData); });
-                        return;
-                    }
-                }
-            }
-        }
-
-        public static void OnDamageRequest(MySlimBlock __instance, float damage,
-        MyStringHash damageType,
-        bool sync,
-        MyHitInfo? hitInfo,
-        long attackerId, long realHitEntityId = 0, bool shouldDetonateAmmo = true)
-        {
-            if (__instance.FatBlock != null)
-            {
-                var attacker = GetAttacker(attackerId);
-
-                var steam = MySession.Static.Players.TryGetSteamId(attacker);
-                //    Core.Log.Info("Adding attacker");
-                if (steam != 0l)
-                {
-                    //        Core.Log.Info("steam id attacker");
-                    if (LastAttacker.ContainsKey(__instance.FatBlock.EntityId))
-                    {
-                        LastAttacker[__instance.FatBlock.EntityId] = (long)steam;
-                    }
-                    else
-                    {
-                        LastAttacker.Add(__instance.FatBlock.EntityId, (long)steam);
-                    }
-
-                    var playerData = Core.PlayerStorage.GetData((ulong)steam, false);
-                    var forCombat = playerData.GetContractsForType("CrunchWaveDefence");
-                  //  Core.Log.Info(JsonConvert.SerializeObject(forCombat));
-                    foreach (var contract in forCombat)
-                    {
-                      //  Core.Log.Info("1");
-                        Vector3 location = contract.DeliverLocation;
-                        var distance = Vector3.Distance(location, __instance.CubeGrid.PositionComp.GetPosition());
-                     //  Core.Log.Info("2");
-                        var combat = (CrunchWaveDefenceCombatContractImplementation)contract;
-            
-                        if (distance > combat.MaximumDistanceFromLocationToCountDamage)
-                        {
-                            continue;
-                        }
-                     //   Core.Log.Info("3");
-                        var owner = FacUtils.GetOwner(__instance.CubeGrid);
-                        var faction = MySession.Static.Factions.GetPlayerFaction(owner);
-                        if (faction == null)
-                        {
-                            continue;
-                        }
-                     //   Core.Log.Info("4");
-                        if (!combat.Waves.Any(x => x.GridsInWave.Any(z => z.FacTagToOwnThisGrid.Equals(faction.Tag))))
-                            continue;
-                        var pay = (long)(combat.PayPerDamage * damage);
-                        combat.UncollectedPay += pay;
-                        playerData.PlayersContracts[contract.ContractId] = combat;
-                   ///     Core.Log.Info("5");
-                     //   Core.SendMessage("Contracts", $"Damaged for {pay:##,###}", Color.Green, playerData.PlayerSteamId);
-                    }
-                }
-            }
-            return;
-        }
-
-
-
-
-
-        public static long GetAttacker(long attackerId)
-        {
-
-            var entity = MyAPIGateway.Entities.GetEntityById(attackerId);
-
-            if (entity == null)
-                return 0L;
-
-            if (entity is MyPlanet)
-            {
-
-                return 0L;
-            }
-
-            if (entity is MyCharacter character)
-            {
-
-                return character.GetPlayerIdentityId();
-            }
-
-            if (entity is IMyEngineerToolBase toolbase)
-            {
-
-                return toolbase.OwnerIdentityId;
-
-            }
-
-            if (entity is MyLargeTurretBase turret)
-            {
-
-                return turret.OwnerId;
-
-            }
-
-            if (entity is MyShipToolBase shipTool)
-            {
-
-                return shipTool.OwnerId;
-            }
-
-
-            if (entity is IMyGunBaseUser gunUser)
-            {
-
-                return gunUser.OwnerId;
-
-            }
-
-            if (entity is MyFunctionalBlock block)
-            {
-
-                return block.OwnerId;
-            }
-
-            if (entity is MyCubeGrid grid)
-            {
-
-                var gridOwnerList = grid.BigOwners;
-                var ownerCnt = gridOwnerList.Count;
-                var gridOwner = 0L;
-
-                if (ownerCnt > 0 && gridOwnerList[0] != 0)
-                    gridOwner = gridOwnerList[0];
-                else if (ownerCnt > 1)
-                    gridOwner = gridOwnerList[1];
-
-                return gridOwner;
-
-            }
-
-            return 0L;
-        }
-    }
-
-
 }

@@ -33,6 +33,10 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\4 Torch Server\DedicatedServer64\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="NLog">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\NLog.dll</HintPath>
     </Reference>
@@ -74,6 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Contracts\CrunchGridDeathCombatContractImplementation.cs" />
     <Compile Include="Contracts\CrunchWaveDefenceCombatContractImplementation.cs" />
     <Compile Include="Contracts\CrunchGasContractImplementation.cs" />
     <Compile Include="Contracts\CrunchMiningLuckPermsContractImplementation.cs" />

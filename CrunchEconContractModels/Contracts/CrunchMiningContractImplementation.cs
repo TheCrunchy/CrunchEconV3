@@ -281,6 +281,12 @@ namespace CrunchEconContractModels.Contracts
             ctx.GetPattern(update).Suffixes.Add(updatePatch);
         }
 
+        public static void UnPatch(PatchContext ctx)
+        {
+            CrunchEconV3.Core.Log.Error("UNPATCHING DRILL");
+            ctx.GetPattern(update).Suffixes.Remove(updatePatch);
+        }
+
         public static Dictionary<ulong, DateTime> messageCooldown = new Dictionary<ulong, DateTime>();
 
         internal static readonly MethodInfo update =
