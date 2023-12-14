@@ -46,6 +46,7 @@ namespace CrunchEconV3
         public static string path;
         public static string basePath;
         public static MESApi MesAPI;
+        public static WaterModAPI WaterAPI;
         public static RemoteBotAPI AIEnabledAPI;
         public static bool Paused { get; set; } = false;
         public const string PluginName = "CrunchEconV3";

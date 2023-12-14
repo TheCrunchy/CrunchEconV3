@@ -56,6 +56,7 @@ namespace CrunchEconV3.Patches
                 Core.Log.Info("Registering MES API");
                Core.MesAPI = new MESApi();
                Core.AIEnabledAPI = new RemoteBotAPI();
+               Core.WaterAPI = new WaterModAPI();
                 Loaded = true;
             }
         }
