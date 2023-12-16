@@ -89,6 +89,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StationLogics\CargoShipLogic.cs" />
     <Compile Include="StationLogics\FactionBalanceLogic.cs" />
+    <Compile Include="StationLogics\StationCraftingLogic.cs" />
     <Compile Include="StationLogics\StoreManagementLogic.cs" />
     <Compile Include="StationLogics\SpawnPatch.cs" />
     <Compile Include="StationLogics\ThrusterStuff.cs" />
