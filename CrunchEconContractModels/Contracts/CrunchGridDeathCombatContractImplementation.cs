@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
+using CrunchEconV3.APIs;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
@@ -156,7 +157,7 @@ namespace CrunchEconContractModels.Contracts
         {
             ExpireAt = DateTime.Now.AddSeconds(SecondsToComplete);
             SendDeliveryGPS();
-            this.ReadyToDeliver = true;
+            this.ReadyToDeliver = false;
         }
 
 
@@ -170,6 +171,7 @@ namespace CrunchEconContractModels.Contracts
         {
             if (ReadyToDeliver)
             {
+               Core.Log.Info("try complete 1");
                 var result = TryCompleteContract(this.AssignedPlayerSteamId, null);
                 if (result)
                 {
@@ -208,10 +210,21 @@ namespace CrunchEconContractModels.Contracts
             {
                 if (MappedGrids.TryGetValue(item.Key, out var grid))
                 {
+                    if (grid.Closed || grid.MarkedForClose)
+                    {
+                        temp.Add(item.Key);
+                        continue;
+                    }
                     if (!HasPower(grid))
                     {
                         UncollectedPay += item.Value;
                         temp.Add(item.Key);
+                        Core.SendMessage($"{this.Name}",$"{grid.DisplayName} destroyed.", Color.LightGreen, this.AssignedPlayerSteamId);
+                        //      Core.Log.Info("grid has no power");
+                    }
+                    else
+                    {
+                 //       Core.Log.Info("grid has power");
                     }
                 }
                 else
@@ -222,19 +235,11 @@ namespace CrunchEconContractModels.Contracts
                         {
                             MappedGrids.Add(item.Key, foundGrid as MyCubeGrid);
                         }
-                        //MyAPIGateway.Entities.GetEntities(null, (entity) =>
-                        //         {
-                        //             if (entity.EntityId == item.Key)
-                        //             {
-                        //                 MappedGrids.Add(item.Key, entity as MyCubeGrid);
-                        //             }
-                        //             return false;
-                        //         });
+
                     }
                     catch (Exception e)
                     {
                     }
-                    //find the grid
                 }
             }
             //dead grids should no longer be tracked
@@ -245,6 +250,7 @@ namespace CrunchEconContractModels.Contracts
 
             if (!Waves.Any(x => x.WaveNumber > CurrentWave) && DateTime.Now > NextSpawn || Waves.Any(x => x.WaveNumber == CurrentWave && x.Repeat))
             {
+                Core.Log.Info("No more waves");
                 var result2 = TryCompleteContract(this.AssignedPlayerSteamId, null);
                 if (result2)
                 {
@@ -285,6 +291,12 @@ namespace CrunchEconContractModels.Contracts
                 }
 
                 Vector3 Position = new Vector3D(PlayersCurrentPosition);
+                if (this.SpawnAroundGps)
+                {
+                    Position = this.DeliverLocation;
+
+                }
+                
                 var faction = MySession.Static.Factions.TryGetFactionByTag(grid.FacTagToOwnThisGrid);
                 if (faction == null)
                 {
@@ -294,9 +306,22 @@ namespace CrunchEconContractModels.Contracts
                 Position.Add(new Vector3(Core.random.Next(spawn.MinDistance, spawn.MaxDistance),
                     Core.random.Next(spawn.MinDistance, spawn.MaxDistance),
                     Core.random.Next(spawn.MinDistance, spawn.MaxDistance)));
+
+                if (this.WaterModSpawn)
+                {
+                    if (WaterModAPI.Registered)
+                    {
+                        var pos = WaterModAPI.GetClosestSurfacePoint(Position, null);
+                        if (pos != null && !pos.Equals(Vector3D.Zero))
+                        {
+                            Position = pos;
+                        }
+                    }
+                }
+
                 if (!File.Exists($"{Core.path}//Grids//{grid.GridName}")) continue;
                 var Ids = GridManagerUpdated.LoadGrid($"{Core.path}//Grids//{grid.GridName}", Position, false,
-                    (ulong)faction.Members.FirstOrDefault().Key, "Spawned grid", false);
+                    (ulong)faction.Members.FirstOrDefault().Key, grid.GridName.Replace(".sbc", ""), false);
 
                 if (!Ids.Any())
                 {
@@ -304,14 +329,27 @@ namespace CrunchEconContractModels.Contracts
                 }
                 else
                 {
-                    var main = Ids.First().GetBiggestGridInGroup();
-                    var isPay = GridsToDestroy.FirstOrDefault(x => x.GridToDestroy == grid.GridName)?.Payment ?? 0;
+                    var main = Ids.OrderByDescending(x => x.BlocksCount).FirstOrDefault();
+                    if (main == null)
+                    {
+                        continue;
+                    }
+                    var isPay = GridsToDestroy.FirstOrDefault(x => x.GridToDestroy.Replace(".sbc", "") == grid.GridName.Replace(".sbc", ""))?.Payment ?? 0;
+                    if (GridIdsToPay.ContainsKey(main.EntityId))
+                    {
+                        Core.Log.Info("How the fuck did this happen");
+                    }
                     GridIdsToPay.Add(main.EntityId, isPay);
                     spawns += 1;
                 }
             }
 
             if (spawns <= 0) return false;
+
+            var playerData = Core.PlayerStorage.GetData(this.AssignedPlayerSteamId);
+         //   playerData.PlayersContracts[this.ContractId] = this;
+            Task.Run(async () => { CrunchEconV3.Core.PlayerStorage.Save(playerData); });
+
             foreach (var onlinePlayer in MySession.Static.Players.GetOnlinePlayers())
             {
                 Vector3D playerPosition = onlinePlayer.Character?.PositionComp.GetPosition() ?? Vector3D.Zero;
@@ -325,7 +363,6 @@ namespace CrunchEconContractModels.Contracts
                         onlinePlayer.Id.SteamId);
                 }
             }
-
             return false;
         }
 
@@ -356,7 +393,7 @@ namespace CrunchEconContractModels.Contracts
             {
                 MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1);
             }
-
+            this.DeleteDeliveryGPS();
             CrunchEconV3.Core.SendMessage("Contracts", DateTime.Now > ExpireAt ? $"{this.Name} failed, time expired." : $"{this.Name} failed.", Color.Red, this.AssignedPlayerSteamId);
         }
 
@@ -364,10 +401,10 @@ namespace CrunchEconContractModels.Contracts
         {
             MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"Anti Piracy Operations Location");
+            sb.AppendLine($"{this.Name} Location");
             MyGps gpsRef = new MyGps();
             gpsRef.Coords = DeliverLocation;
-            gpsRef.Name = $"Anti Piracy Operations Location";
+            gpsRef.Name = $"{this.Name} Location";
             gpsRef.GPSColor = Color.Red;
             gpsRef.ShowOnHud = true;
             gpsRef.AlwaysVisible = true;
@@ -406,6 +443,8 @@ namespace CrunchEconContractModels.Contracts
         public bool ReadyToDeliver { get; set; }
         public long CollateralToTake { get; set; }
         public long DeliveryFactionId { get; set; }
+        public bool SpawnAroundGps { get; set; }
+        public bool WaterModSpawn { get; set; }
 
         public List<GridDestruction> GridsToDestroy = new List<GridDestruction>();
 
@@ -472,16 +511,19 @@ namespace CrunchEconContractModels.Contracts
             contract.DeliveryFactionId = result.Item2;
             contract.PayPerDamage = this.PayPerDamage;
             contract.MaximumReward = this.MaximumPay;
+            
             if (contract.DeliverLocation == null || contract.DeliverLocation.Equals(Vector3.Zero))
             {
                 return null;
             }
 
+            contract.WaterModSpawn = this.WaterModSpawn;
+            contract.SpawnAroundGps = this.SpawnAroundGps;
             contract.Waves = this.Waves;
             contract.GridsToDestroy = this.GridsToDestroy;
             description.AppendLine($"Reward is calculated from blocks destroyed. Minimum payout of {MinimumPay:##,###}");
             description.AppendLine($" ||| Maximum payout of {MaximumPay:##,###}");
-
+            contract.ReadyToDeliver = false;
             if (this.ReputationRequired != 0)
             {
                 description.AppendLine($" ||| Reputation with owner required: {this.ReputationRequired}");
@@ -574,8 +616,10 @@ namespace CrunchEconContractModels.Contracts
         public int ReputationLossOnAbandon { get; set; } = 5;
         public long MinimumPay { get; set; }
         public long MaximumPay { get; set; }
+        public bool SpawnAroundGps { get; set; }
+        public bool WaterModSpawn { get; set; }
 
-        public string ContractName { get; set; } = "Anti Piracy Operations";
+        public string ContractName { get; set; } = "Anti Piracy Operations Grid Death";
 
         public List<SpawnWave> Waves = new List<SpawnWave>();
         public List<GridDestruction> GridsToDestroy = new List<GridDestruction>();
@@ -604,7 +648,7 @@ namespace CrunchEconContractModels.Contracts
 
     public class GridDestruction
     {
-        public string GridToDestroy = "LargeReactor";
+        public string GridToDestroy = "pirate.sbc";
         public long Payment = 50000;
     }
 }

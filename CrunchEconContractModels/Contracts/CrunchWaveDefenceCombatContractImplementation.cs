@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
+using CrunchEconV3.APIs;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
@@ -134,7 +135,7 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
         {
             ExpireAt = DateTime.Now.AddSeconds(SecondsToComplete);
             SendDeliveryGPS();
-            this.ReadyToDeliver = true;
+            this.ReadyToDeliver = false;
         }
 
 
@@ -154,6 +155,11 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
             }
             if (DateTime.Now > ExpireAt)
             {
+                var result = TryCompleteContract(this.AssignedPlayerSteamId, null);
+                if (result)
+                {
+                    return true;
+                }
                 FailContract();
                 return true;
             }
@@ -223,6 +229,12 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
                 }
 
                 Vector3 Position = new Vector3D(PlayersCurrentPosition);
+                if (this.SpawnAroundGps)
+                {
+                    Position = this.DeliverLocation;
+
+                }
+
                 var faction = MySession.Static.Factions.TryGetFactionByTag(grid.FacTagToOwnThisGrid);
                 if (faction == null)
                 {
@@ -232,6 +244,18 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
                 Position.Add(new Vector3(Core.random.Next(spawn.MinDistance, spawn.MaxDistance),
                     Core.random.Next(spawn.MinDistance, spawn.MaxDistance),
                     Core.random.Next(spawn.MinDistance, spawn.MaxDistance)));
+
+                if (this.WaterModSpawn)
+                {
+                    if (WaterModAPI.Registered)
+                    {
+                        var pos = WaterModAPI.GetClosestSurfacePoint(Position, null);
+                        if (pos != null && !pos.Equals(Vector3D.Zero))
+                        {
+                            Position = pos;
+                        }
+                    }
+                }
                 if (!File.Exists($"{Core.path}//Grids//{grid.GridName}")) continue;
                 if (!GridManager.LoadGrid($"{Core.path}//Grids//{grid.GridName}", Position, false,
                         (ulong)faction.Members.FirstOrDefault().Key, "Spawned grid", false))
@@ -289,7 +313,7 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
             {
                 MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1);
             }
-
+            this.DeleteDeliveryGPS();
             CrunchEconV3.Core.SendMessage("Contracts", DateTime.Now > ExpireAt ? $"{this.Name} failed, time expired." : $"{this.Name} failed.", Color.Red, this.AssignedPlayerSteamId);
         }
 
@@ -297,10 +321,10 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
         {
             MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"Anti Piracy Operations Location");
+            sb.AppendLine($"{this.Name} Location");
             MyGps gpsRef = new MyGps();
             gpsRef.Coords = DeliverLocation;
-            gpsRef.Name = $"Anti Piracy Operations Location";
+            gpsRef.Name = $"{this.Name} Location";
             gpsRef.GPSColor = Color.Red;
             gpsRef.ShowOnHud = true;
             gpsRef.AlwaysVisible = true;
@@ -339,7 +363,8 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
         public bool ReadyToDeliver { get; set; }
         public long CollateralToTake { get; set; }
         public long DeliveryFactionId { get; set; }
-
+        public bool SpawnAroundGps { get; set; }
+        public bool WaterModSpawn { get; set; }
         public List<BlockDestruction> BlocksToDestroy = new List<BlockDestruction>();
 
         public double PayPerDamage { get; set; }
@@ -408,6 +433,9 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
             {
                 return null;
             }
+
+            contract.WaterModSpawn = this.WaterModSpawn;
+            contract.SpawnAroundGps = this.SpawnAroundGps;
 
             contract.Waves = this.Waves;
             contract.BlocksToDestroy = this.BlocksToDestroy;
@@ -506,7 +534,8 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
         public int ReputationLossOnAbandon { get; set; } = 5;
         public long MinimumPay { get; set; }
         public long MaximumPay { get; set; }
-
+        public bool SpawnAroundGps { get; set; }
+        public bool WaterModSpawn { get; set; }
         public string ContractName { get; set; } = "Anti Piracy Operations";
 
         public List<BlockDestruction> BlocksToDestroy = new List<BlockDestruction>();
@@ -570,7 +599,7 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
 
             ctx.GetPattern(DamageRequest).Suffixes.Add(patchSlimDamage);
             ctx.GetPattern(destroyRequest).Suffixes.Add(patchDestroy);
-        
+
             Core.Log.Info("Patching combat");
         }
 
@@ -647,34 +676,34 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
 
                     var playerData = Core.PlayerStorage.GetData((ulong)steam, false);
                     var forCombat = playerData.GetContractsForType("CrunchWaveDefence");
-                  //  Core.Log.Info(JsonConvert.SerializeObject(forCombat));
+                    //  Core.Log.Info(JsonConvert.SerializeObject(forCombat));
                     foreach (var contract in forCombat)
                     {
-                      //  Core.Log.Info("1");
+                        //  Core.Log.Info("1");
                         Vector3 location = contract.DeliverLocation;
                         var distance = Vector3.Distance(location, __instance.CubeGrid.PositionComp.GetPosition());
-                     //  Core.Log.Info("2");
+                        //  Core.Log.Info("2");
                         var combat = (CrunchWaveDefenceCombatContractImplementation)contract;
-            
+
                         if (distance > combat.MaximumDistanceFromLocationToCountDamage)
                         {
                             continue;
                         }
-                     //   Core.Log.Info("3");
+                        //   Core.Log.Info("3");
                         var owner = FacUtils.GetOwner(__instance.CubeGrid);
                         var faction = MySession.Static.Factions.GetPlayerFaction(owner);
                         if (faction == null)
                         {
                             continue;
                         }
-                     //   Core.Log.Info("4");
+                        //   Core.Log.Info("4");
                         if (!combat.Waves.Any(x => x.GridsInWave.Any(z => z.FacTagToOwnThisGrid.Equals(faction.Tag))))
                             continue;
                         var pay = (long)(combat.PayPerDamage * damage);
                         combat.UncollectedPay += pay;
                         playerData.PlayersContracts[contract.ContractId] = combat;
-                   ///     Core.Log.Info("5");
-                     //   Core.SendMessage("Contracts", $"Damaged for {pay:##,###}", Color.Green, playerData.PlayerSteamId);
+                        ///     Core.Log.Info("5");
+                        //   Core.SendMessage("Contracts", $"Damaged for {pay:##,###}", Color.Green, playerData.PlayerSteamId);
                     }
                 }
             }

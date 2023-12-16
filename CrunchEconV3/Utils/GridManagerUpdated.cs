@@ -287,12 +287,14 @@ namespace CrunchEconV3.Utils
                 {
                     try
                     {
+                        grid.DisplayName = Name;
                         long ownerID = IdentityHelper.GetIdentityByNameOrId(steamID.ToString()).IdentityId;
                         block.Owner = ownerID;
                         block.BuiltBy = ownerID;
                     }
                     catch (Exception)
                     {
+                        grid.DisplayName = Name;
                         block.Owner = steamID;
                         block.BuiltBy = steamID;
                     }
