@@ -79,9 +79,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Contracts\CrunchGridDeathCombatContractImplementation.cs" />
+    <Compile Include="Contracts\CrunchItemHaulingContractImplementation.cs" />
     <Compile Include="Contracts\CrunchWaveDefenceCombatContractImplementation.cs" />
     <Compile Include="Contracts\CrunchGasContractImplementation.cs" />
-    <Compile Include="Contracts\CrunchMiningLuckPermsContractImplementation.cs" />
     <Compile Include="Contracts\CrunchMiningContractImplementation.cs" />
     <Compile Include="Contracts\CrunchPeopleHaulingContractImplementation.cs" />
     <Compile Include="Contracts\SearchContractImplementation.cs" />
@@ -92,6 +92,7 @@
     <Compile Include="StationLogics\StationCraftingLogic.cs" />
     <Compile Include="StationLogics\StoreManagementLogic.cs" />
     <Compile Include="StationLogics\SpawnPatch.cs" />
+    <Compile Include="StationLogics\GridTracking.cs" />
     <Compile Include="StationLogics\ThrusterStuff.cs" />
   </ItemGroup>
   <ItemGroup>

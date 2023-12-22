@@ -171,7 +171,7 @@ namespace CrunchEconContractModels.Contracts
         {
             if (ReadyToDeliver)
             {
-               Core.Log.Info("try complete 1");
+          //     Core.Log.Info("try complete 1");
                 var result = TryCompleteContract(this.AssignedPlayerSteamId, null);
                 if (result)
                 {
@@ -219,6 +219,7 @@ namespace CrunchEconContractModels.Contracts
                     {
                         UncollectedPay += item.Value;
                         temp.Add(item.Key);
+       
                         Core.SendMessage($"{this.Name}",$"{grid.DisplayName} destroyed.", Color.LightGreen, this.AssignedPlayerSteamId);
                         //      Core.Log.Info("grid has no power");
                     }

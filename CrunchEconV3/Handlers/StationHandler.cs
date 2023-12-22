@@ -73,6 +73,7 @@ namespace CrunchEconV3.Handlers
 
                     if (grid == null)
                     {
+                        Core.Log.Error($"{station.FileName} grid not found");
                         continue;
                     }
 

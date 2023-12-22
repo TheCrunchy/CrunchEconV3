@@ -6,73 +6,80 @@ using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
 using Sandbox.Common.ObjectBuilders;
+using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
 using VRage.Game;
+using VRage.Game.Components;
+using VRage.Game.Definitions;
 using VRage.Game.ModAPI;
+using VRage.Game.ObjectBuilders.ComponentSystem;
 using VRage.ModAPI;
 using VRageMath;
 
 namespace CrunchEconContractModels.StationLogics
 {
     [PatchShim]
-    public static class FunctionalBlockPatch
+    public static class GridTracking
     {
+        private static Guid parsedId = Guid.Parse("464edcf2-15d6-4ccc-96a3-e74fcf0ddcfc");
 
         public static void Patch(PatchContext ctx)
         {
-            MyAPIGateway.Entities.OnEntityAdd += OnEntityAdd;
-
+            MyAPIGateway.Entities.OnEntityAdd += OnEntityAdd2;
             // Iterate through all existing grids when the mod initializes
             var grids = new List<IMyEntity>();
             MyAPIGateway.Entities.GetEntities(null, (entity) =>
             {
                 if (entity is IMyCubeGrid grid)
                 {
-                    OnEntityAdd(grid);
+                    OnEntityAdd2(grid);
                 }
                 return false;
             });
         }
         public static void UnPatch(PatchContext ctx)
         {
-            MyAPIGateway.Entities.OnEntityAdd -= OnEntityAdd;
+            MyAPIGateway.Entities.OnEntityAdd -= OnEntityAdd2;
 
-            // Iterate through all existing grids when the mod initializes
-
+            var grids = new List<IMyEntity>();
             MyAPIGateway.Entities.GetEntities(null, (entity) =>
             {
                 if (entity is IMyCubeGrid grid)
                 {
-                    grid.OnBlockAdded -= OnBlockAdded;
+                    grid.OnBlockAdded -= OnBlockAdded2;
                 }
                 return false;
             });
         }
-        private static void OnEntityAdd(IMyEntity entity)
+        private static void OnEntityAdd2(IMyEntity entity)
         {
             if (entity is IMyCubeGrid grid)
             {
-                grid.OnBlockAdded += OnBlockAdded;
+                grid.OnBlockAdded += OnBlockAdded2;
+                MyModStorageComponentBase storage = grid.Storage;
+                if (storage == null)
+                {
+                    return;
+                }
+
+
+                if (storage.TryGetValue(parsedId, out string idToParse))
+                {
+                    Core.Log.Info($"Existing ID {idToParse}");
+                }
             }
         }
 
-        private static void OnBlockAdded(IMySlimBlock block)
+        private static void OnBlockAdded2(IMySlimBlock block)
         {
-            if (block.BlockDefinition != null && block.BlockDefinition.Id.SubtypeName.Contains("Epstein"))
+            Core.Log.Info($"block added");
+            MyModStorageComponentBase storage = block.CubeGrid.Storage;
+            if (storage.TryGetValue(parsedId, out string idToParse))
             {
-                IMyCubeGrid cubeGrid = block.CubeGrid;
-                var epsteinThrusters = new List<IMySlimBlock>();
-                cubeGrid.GetBlocks(epsteinThrusters, b => b.FatBlock is IMyThrust && b.BlockDefinition.Id.SubtypeName.Contains("Epstein"));
-                foreach (var thruster in epsteinThrusters)
-                {
-                    if (!thruster.FatBlock.WorldMatrix.Forward.Equals(block.FatBlock.WorldMatrix.Forward))
-                    {
-                        block.CubeGrid.RemoveBlock(block);
-                    }
-                }
+                Core.Log.Info($"Parsed ID {idToParse}");
             }
         }
     }

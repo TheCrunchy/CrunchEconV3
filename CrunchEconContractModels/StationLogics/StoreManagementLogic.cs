@@ -13,6 +13,7 @@ using CrunchEconV3.Utils;
 using NLog.Fluent;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.EntityComponents;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Ingame;
@@ -23,6 +24,7 @@ using VRage.Game.ModAPI;
 using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.ObjectBuilders;
+using IMyCubeBlock = VRage.Game.ModAPI.IMyCubeBlock;
 using IMyInventory = VRage.Game.ModAPI.IMyInventory;
 
 namespace CrunchEconContractModels.StationLogics
@@ -181,7 +183,7 @@ namespace CrunchEconContractModels.StationLogics
           //  station.StoreItems.Add(myStoreItem);
             if (result != MyStoreInsertResults.Success)
             {
-                CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} {itemInsert.PricePerUnit} {result.ToString()}");
+                CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} Amount:{itemInsert.Amount} Price:{itemInsert.PricePerUnit} {result.ToString()}");
             }
         }
 
@@ -221,6 +223,12 @@ namespace CrunchEconContractModels.StationLogics
             {
                 amount = quantityInGrid.ToIntSafe();
             }
+
+            if (amount <= 0)
+            {
+                return;
+            }
+
             MyStoreItemData itemInsert =
                 new MyStoreItemData(itemId, amount, price,
                     null, null);
@@ -238,7 +246,7 @@ namespace CrunchEconContractModels.StationLogics
 
             if (result != MyStoreInsertResults.Success)
             {
-                CrunchEconV3.Core.Log.Error($"Unable to insert this offer into store {item.Type} {item.Subtype} {itemInsert.Amount} {itemInsert.PricePerUnit} {result.ToString()}");
+                CrunchEconV3.Core.Log.Error($"Unable to insert this offer into store {item.Type} {item.Subtype} Amount:{itemInsert.Amount} Price:{itemInsert.PricePerUnit} {result.ToString()}");
             }
         }
 
