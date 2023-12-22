@@ -8,16 +8,18 @@ using System.Threading.Tasks;
 using CrunchEconV3.APIs;
 using CrunchEconV3.Utils;
 using Newtonsoft.Json;
+using Sandbox.Game.GUI;
 using Sandbox.Game.World;
 using SpaceEngineers.Game.Entities.Blocks;
 using Torch.Managers.PatchManager;
 using VRage.Game.Components;
 using VRage.Network;
+using VRageMath;
 
 namespace CrunchEconV3.Patches
 {
     [PatchShim]
-    public static class ButtonPatch
+    public static class GridSales
     {
         public static void Patch(PatchContext ctx)
         {
@@ -29,12 +31,11 @@ namespace CrunchEconV3.Patches
             throw new Exception("Failed to find patch method contract");
 
         internal static readonly MethodInfo buttonPatch =
-            typeof(ButtonPatch).GetMethod(nameof(Activate), BindingFlags.Static | BindingFlags.Public) ??
+            typeof(GridSales).GetMethod(nameof(Activate), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
         public static bool Activate(MyButtonPanel __instance, int index)
         {
-            Core.Log.Info(index);
             if (string.IsNullOrEmpty(__instance.CustomData))
                 return true;
             string customData = __instance.CustomData;
@@ -75,11 +76,16 @@ namespace CrunchEconV3.Patches
                                         return false;
                                     }
                                 }
-                           
+
                             }
                             if (EconUtils.getBalance(player.Identity.IdentityId) >= sale.Price)
                             {
-                                if (GridManager.LoadGrid(path, player.GetPosition(), false, player.Id.SteamId,
+                                var pos = player.GetPosition();
+                                Vector3 Position = new Vector3((float)pos.X, (float)pos.Y, (float)pos.Z);
+
+                                Position.Add(new Vector3(Core.random.Next(sale.SpawnDistanceMin, sale.SpawnDistanceMax), Core.random.Next(sale.SpawnDistanceMin, sale.SpawnDistanceMax), Core.random.Next(sale.SpawnDistanceMin, sale.SpawnDistanceMax)));
+
+                                if (GridManager.LoadGrid(path, Position, false, player.Id.SteamId,
                                         sale.PrefabName.Replace(".sbc", ""), false))
                                 {
                                     EconUtils.takeMoney(player.Identity.IdentityId, sale.Price);
@@ -105,6 +111,8 @@ namespace CrunchEconV3.Patches
             public bool ReputationRequired { get; set; }
             public string FacTagForReputation { get; set; }
             public int Reputation { get; set; }
+            public int SpawnDistanceMin { get; set; } = 1000;
+            public int SpawnDistanceMax { get; set; } = 2000;
         }
 
         //{
@@ -118,7 +126,9 @@ namespace CrunchEconV3.Patches
       "Price": 50000,
       "ReputationRequired": false,
       "FacTagForReputation": "DAVE",
-      "Reputation": 1500
+      "Reputation": 1500,
+        "SpawnDistanceMin": 1000,
+        "SpawnDistanceMax": 2000,
     }
           }
         */
