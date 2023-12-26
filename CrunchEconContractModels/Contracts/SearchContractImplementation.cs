@@ -162,71 +162,60 @@ namespace CrunchEconV3.Models
 
         public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {
-            var min = 100;
-            var max = 300;
-            if (this.DeliveryGPSes.Any())
-            {
-                if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())
-                {
-                    var random = this.DeliveryGPSes.GetRandomItemFromList();
-                    var GPS = GPSHelper.ScanChat(random);
-                    if (GPS != null)
-                    {
-                        if (__instance != null)
-                        {
-                            var faction = MySession.Static.Factions.TryGetFactionByTag(__instance.GetOwnerFactionTag());
-                            if (faction != null)
-                            {
-                                return Tuple.Create(GPS.Coords, faction.FactionId);
-                            }
-                        }
-                        if (keenstation != null)
-                        {
-                            return Tuple.Create(GPS.Coords, keenstation.FactionId);
-                        }
-                        return Tuple.Create(GPS.Coords, 0l);
-                    }
-                }
-            }
+            var points = GenerateExplorePoints(1, 5, this.PointsToUse, Vector3D.Zero, -100000, 100000);
 
-            if (keenstation != null)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    Vector3 Position = keenstation.Position;
-                    Position.Add(new Vector3(Core.random.Next(min * 1000, max * 1000), Core.random.Next(min * 1000, max * 1000), Core.random.Next(min * 1000, max * 1000)));
+            var completion = points.GetRandomItemFromList().PointTriggersCompletion = true;
 
-                    if (MyGravityProviderSystem.IsPositionInNaturalGravity(Position))
-                    {
-                        min += 100;
-                        max += 100;
-                        continue;
-                    }
-                    return Tuple.Create(new Vector3D(Position), keenstation.FactionId);
-                }
-            }
-
-
-            if (__instance != null)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    Vector3 Position = __instance.PositionComp.GetPosition();
-                    Position.Add(new Vector3(Core.random.Next(min * 1000, max * 1000), Core.random.Next(min * 1000, max * 1000), Core.random.Next(min * 1000, max * 1000)));
-                    if (MyGravityProviderSystem.IsPositionInNaturalGravity(Position))
-                    {
-                        min += 100;
-                        max += 100;
-                        continue;
-                    }
-                    var faction = MySession.Static.Factions.TryGetFactionByTag(__instance.GetOwnerFactionTag());
-                    if (faction != null)
-                    {
-                        return Tuple.Create(new Vector3D(Position), faction.FactionId);
-                    }
-                }
-            }
             return Tuple.Create(Vector3D.Zero, 0l);
+        }
+
+
+        public ExplorePoint GenerateRandomExplorePoint(ExplorePointConfig configuration, Vector3 baseLocation, int minDistance, int maxDistance)
+        {
+            var random = new Random();
+            ExplorePoint point = new ExplorePoint
+            {
+                GridsToSpawn = configuration.GridsToSpawn,
+                MessageToPlayer = configuration.MessageToPlayer,
+                MessageAuthor = configuration.MessageAuthor,
+                ChanceToTrigger = configuration.ChanceToTrigger,
+                PointTriggersCompletion = false
+            };
+
+            double distance = random.Next(minDistance, maxDistance);
+            double angle = random.NextDouble() * Math.PI * 2;
+
+            double x = baseLocation.X + distance * Math.Cos(angle);
+            double y = baseLocation.Y + distance * Math.Sin(angle);
+            double z = baseLocation.Z; // Modify this if exploring in 3D space
+
+            point.Location = new Vector3((float)x, (float)y, (float)z);
+
+            return point;
+        }
+
+        public List<ExplorePoint> GenerateExplorePoints(int minAmount, int maxAmount, List<ExplorePointConfig> configurations,
+            Vector3 baseLocation, int minDistance, int maxDistance)
+        {
+            var explorePoints = new List<ExplorePoint>();
+            var random = new Random();
+
+            int amountToGenerate = random.Next(minAmount, maxAmount + 1);
+
+            for (int i = 0; i < amountToGenerate; i++)
+            {
+                ExplorePointConfig randomConfig = configurations[random.Next(configurations.Count)];
+                ExplorePoint newPoint = GenerateRandomExplorePoint(randomConfig, baseLocation, minDistance, maxDistance);
+
+                if (i == amountToGenerate - 1)
+                {
+                    newPoint.PointTriggersCompletion = true;
+                }
+
+                explorePoints.Add(newPoint);
+            }
+
+            return explorePoints;
         }
 
         public int MinDistance { get; set; } = 15000;
@@ -245,15 +234,26 @@ namespace CrunchEconV3.Models
         public int ReputationLossOnAbandon { get; set; } = 5;
         public long MinimumPay { get; set; }
 
+        public List<ExplorePointConfig> PointsToUse { get; set; }
+
     }
+    public class ExplorePointConfig
+    {
+        public List<SpawnModel> GridsToSpawn = new List<SpawnModel>();
+        public string MessageToPlayer { get; set; } = "Example message";
+        public string MessageAuthor { get; set; } = "Example Author";
+        public double ChanceToTrigger { get; set; } = 0.5;
+    }
+
     public class ExplorePoint
     {
         public Vector3 Location { get; set; }
         public List<SpawnModel> GridsToSpawn = new List<SpawnModel>();
         public string MessageToPlayer { get; set; } = "Example message";
         public string MessageAuthor { get; set; } = "Example Author";
+        public double ChanceToTrigger { get; set; } = 0.5;
+        public bool PointTriggersCompletion { get; set; } = false;
     }
-
     public class SpawnModel
     {
         public string ExportedGridName { get; set; }

@@ -25,6 +25,27 @@ namespace CrunchEconV3.Models.Contracts
 {
     public class CrunchItemHaulingContractImplementation : ICrunchContract
     {
+        public List<VRage.Game.ModAPI.IMyInventory> GetStationInventories(MyCubeGrid grid)
+        {
+            List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();
+            var gridOwnerFac = FacUtils.GetOwner(grid);
+
+            foreach (var block in grid.GetFatBlocks().Where(x => x.OwnerId == gridOwnerFac))
+            {
+                if (block.DisplayNameText != null && !this.CargoNames.Contains(block.DisplayNameText))
+                {
+                    continue;
+                }
+
+                for (int i = 0; i < block.InventoryCount; i++)
+                {
+                    VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)block).GetInventory(i);
+                    inventories.Add(inv);
+                }
+            }
+            return inventories;
+        }
+
         public string ContractType { get; set; }
         public MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
         {
@@ -200,11 +221,36 @@ namespace CrunchEconV3.Models.Contracts
                     this.FactionId, this.ReputationGainOnComplete, true);
             }
 
+            inventories.Clear();
+
+            if (this.PlaceItemsInTargetStation)
+            {
+                var foundCargo = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyCubeGrid>()
+                    .Where(x => x.BlocksCount > 0).ToList();
+                if (foundCargo.Any())
+                {
+                    foreach (var cargo in foundCargo)
+                    {
+
+                        var owner = FacUtils.GetOwner(cargo);
+                        var fac = MySession.Static.Factions.TryGetPlayerFaction(owner);
+
+                        if (fac != null && fac.FactionId == this.DeliveryFactionId)
+                        {
+                            inventories.AddRange(GetStationInventories(cargo));
+                        }
+                    }
+
+                    InventoriesHandler.SpawnItems(id, this.ItemToDeliver.AmountToDeliver, inventories);
+                }
+            }
+
             return true;
         }
 
         public void FailContract()
         {
+            DeleteDeliveryGPS();
             if (this.ReputationLossOnAbandon != 0)
             {
                 MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1);
@@ -237,6 +283,8 @@ namespace CrunchEconV3.Models.Contracts
         public bool ReadyToDeliver { get; set; }
         public long CollateralToTake { get; set; }
         public ItemToDeliver ItemToDeliver { get; set; }
+        public bool PlaceItemsInTargetStation { get; set; }
+        public List<string> CargoNames = new List<string>();
     }
 
 
@@ -266,6 +314,7 @@ namespace CrunchEconV3.Models.Contracts
                 {
                     return null;
                 }
+                this.CargoNames = new List<string>() { "Cargo1", "Cargo2" };
             }
             var contract = new CrunchItemHaulingContractImplementation();
 
@@ -285,6 +334,8 @@ namespace CrunchEconV3.Models.Contracts
             var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
             contract.DeliverLocation = result.Item1;
             contract.DeliveryFactionId = result.Item2;
+            contract.CargoNames = this.CargoNames;
+            contract.PlaceItemsInTargetStation = this.PlaceItemsInTargetStation;
             if (contract.DeliverLocation == null || contract.DeliverLocation.Equals(Vector3.Zero))
             {
                 return null;
@@ -376,6 +427,8 @@ namespace CrunchEconV3.Models.Contracts
         public int ReputationGainOnCompleteMax { get; set; } = 3;
         public int ReputationLossOnAbandon { get; set; } = 5;
         public List<ItemHaul> ItemsAvailable { get; set; }
+        public bool PlaceItemsInTargetStation { get; set; }
+        public List<string> CargoNames = new List<string>();
     }
 
     public class ItemHaul

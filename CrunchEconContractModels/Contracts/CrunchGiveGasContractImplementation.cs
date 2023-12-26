@@ -281,7 +281,7 @@ namespace CrunchEconV3.Models.Contracts
                 }
             }
             var description = new StringBuilder();
-            var contract = new CrunchGasContractImplementation();
+            var contract = new CrunchGiveGasContractImplementation();
             contract.GasAmount = CrunchEconV3.Core.random.Next((int)this.AmountInLitresMin, (int)this.AmountInLitresMax);
             contract.RewardMoney = contract.GasAmount * (CrunchEconV3.Core.random.Next((int)this.PricePerLitreMin, (int)this.PricePerLitreMax));
             contract.ContractType = "CrunchGiveGasHauling";

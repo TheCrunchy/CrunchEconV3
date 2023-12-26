@@ -61,7 +61,7 @@ namespace CrunchEconV3.Patches
                 if (actualSale == null)
                 {
                     Core.Log.Info($"No button sale found for index {index}");
-                    return false;
+                    return false; 
                 }
 
                 var path = $"{Core.path}//Grids//{actualSale.PrefabName}";
