@@ -88,14 +88,15 @@
     <Compile Include="Contracts\SearchContractImplementation.cs" />
     <Compile Include="Contracts\testing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StationLogics\GridSales.cs" />
+    <Compile Include="Random Stuff\ExampleCommand.cs" />
+    <Compile Include="Random Stuff\GridSales.cs" />
     <Compile Include="StationLogics\CargoShipLogic.cs" />
     <Compile Include="StationLogics\FactionBalanceLogic.cs" />
     <Compile Include="StationLogics\StationCraftingLogic.cs" />
     <Compile Include="StationLogics\StoreManagementLogic.cs" />
-    <Compile Include="StationLogics\SpawnPatch.cs" />
-    <Compile Include="StationLogics\GridTracking.cs" />
-    <Compile Include="StationLogics\ThrusterStuff.cs" />
+    <Compile Include="Random Stuff\SpawnPatch.cs" />
+    <Compile Include="Random Stuff\GridTracking.cs" />
+    <Compile Include="Random Stuff\ThrusterStuff.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CrunchEconV3\CrunchEconV3.csproj">
@@ -106,5 +107,6 @@
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

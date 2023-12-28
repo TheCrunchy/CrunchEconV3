@@ -47,7 +47,7 @@ namespace CrunchEconV3.Commands
 
         [Command("reload", "example command usage !categorycommands example")]
         [Permission(MyPromoteLevel.Admin)]
-        public void Example()
+        public void Reload()
         {
             StationHandler.BlocksContracts.Clear();
             StationHandler.ReadyForRefresh();
@@ -63,6 +63,7 @@ namespace CrunchEconV3.Commands
             Context.Respond("Reloaded and cleared existing contracts");
             Context.Respond("If changing scripts, use the compile command to apply changes");
         }
+
         [Command("createstation", "create a station")]
         [Permission(MyPromoteLevel.Admin)]
         public void AddStation(string stationName, string factionOwnerTag)
@@ -203,8 +204,6 @@ namespace CrunchEconV3.Commands
                     .SelectMany(x => x.GetTypes())
                     .Where(type => type.IsClass && type.GetCustomAttributes(typeof(PatchShimAttribute), true).Length > 0);
 
-                patches.AcquireContext();
-
                 foreach (var type in typesWithPatchShimAttribute)
                 {
                     MethodInfo method = type.GetMethod("UnPatch", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
@@ -223,8 +222,9 @@ namespace CrunchEconV3.Commands
 
                     var context = patches.AcquireContext();
                     method.Invoke(null, new object[] { context });
+                    patches.Commit();
                 }
-                patches.Commit();
+ 
                 Context.Respond("PATCH DONE, restart server if old patch still works");
             }
             catch (Exception e)
@@ -232,8 +232,9 @@ namespace CrunchEconV3.Commands
                 Core.Log.Error($"patch compile error {e}");
                 throw;
             }
+
             Core.myAssemblies.Clear();
-            foreach (var item in Directory.GetFiles($"{Core.path}/Scripts/").Where(x => x.EndsWith(".cs")))
+            foreach (var item in Directory.GetFiles($"{Core.path}/Scripts/", "*", SearchOption.AllDirectories).Where(x => x.EndsWith(".cs")))
             {
                 Compiler.Compile(item);
             }
@@ -276,6 +277,7 @@ namespace CrunchEconV3.Commands
                     var context = patches.AcquireContext();
                     method.Invoke(null, new object[] { context });
                 }
+
                 patches.Commit();
                 Context.Respond("PATCH DONE, restart server if old patch still works");
             }
@@ -284,8 +286,16 @@ namespace CrunchEconV3.Commands
             {
                 Core.Log.Error($"patch compile error {e}");
             }
+            var commands = Core.Session.Managers.GetManager<CommandManager>();
+            foreach (var item in Core.myAssemblies)
+            {
+                foreach (var obj in item.GetTypes())
+                {
+                    commands.RegisterCommandModule(obj);
+                }
 
-            this.Example();
+            }
+            this.Reload();
             Context.Respond("done, check logs for any errors");
         }
 

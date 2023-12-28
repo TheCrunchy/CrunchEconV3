@@ -29,7 +29,11 @@ namespace CrunchEconV3.Utils
                     metadataReferenceList.Add((MetadataReference)MetadataReference.CreateFromFile(assembly.Location));
             }
 
-            metadataReferenceList.Add(MetadataReference.CreateFromFile(@$"{Core.path}\CrunchEconV3.dll"));
+            foreach (var item in Directory.GetFiles(Core.path).Where(x => x.Contains(".dll")))
+            {
+                metadataReferenceList.Add(MetadataReference.CreateFromFile(item));
+            }
+
             return metadataReferenceList.ToArray();
         }
         private static bool CompileFromFile(string file)

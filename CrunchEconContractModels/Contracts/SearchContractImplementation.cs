@@ -402,7 +402,7 @@ namespace CrunchEconV3.Models
 
             for (int i = 0; i < amountToGenerate; i++)
             {
-                ExplorePointConfig randomConfig = configurations[random.Next(configurations.Count)];
+                ExplorePointConfig randomConfig = configurations.GetRandomItemFromList();
                 ExplorePoint newPoint = ConvertFromConfig(randomConfig, baseLocation, minDistance, maxDistance);
 
                 explorePoints.Add(newPoint);

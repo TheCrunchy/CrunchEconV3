@@ -29,6 +29,7 @@ using System.IO.Compression;
 using CrunchEconV3.APIs;
 using CrunchEconV3.Patches;
 using Sandbox.Definitions;
+using Torch.Commands;
 using VRage.Game;
 using VRage.Game.Components;
 
@@ -51,6 +52,7 @@ namespace CrunchEconV3
         public static bool Paused { get; set; } = false;
         public const string PluginName = "CrunchEconV3";
         public static Logger Log = LogManager.GetLogger(PluginName);
+        public static ITorchPlugin PluginInstance;
         public override void Init(ITorchBase torch)
         {
             base.Init(torch);
@@ -64,7 +66,7 @@ namespace CrunchEconV3
 
             SetupConfig();
             CreatePath();
-
+            PluginInstance = this;
 
         }
 
@@ -291,7 +293,7 @@ namespace CrunchEconV3
                 var patches = session.Managers.GetManager<PatchManager>();
                 try
                 {
-                    foreach (var item in Directory.GetFiles($"{path}/Scripts/").Where(x => x.EndsWith(".cs")))
+                    foreach (var item in Directory.GetFiles($"{Core.path}/Scripts/", "*", SearchOption.AllDirectories).Where(x => x.EndsWith(".cs")))
                     {
                         Compiler.Compile(item);
                     }
@@ -327,6 +329,15 @@ namespace CrunchEconV3
                 catch (Exception e)
                 {
                     Core.Log.Error($"compile error {e}");
+                }
+                var commands = Core.Session.Managers.GetManager<CommandManager>();
+                foreach (var item in Core.myAssemblies)
+                {
+                    foreach (var obj in item.GetTypes())
+                    {
+                        commands.RegisterCommandModule(obj);
+                    }
+           
                 }
 
                 StationStorage = new JsonStationStorageHandler(path);
