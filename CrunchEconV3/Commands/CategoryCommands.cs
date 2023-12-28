@@ -127,8 +127,8 @@ namespace CrunchEconV3.Commands
                     }
                     var configs2 = from t in Core.myAssemblies.Select(x => x)
                             .SelectMany(x => x.GetTypes())
-                        where t.IsClass && t.GetInterfaces().Contains(typeof(IContractConfig))
-                        select t;
+                                   where t.IsClass && t.GetInterfaces().Contains(typeof(IContractConfig))
+                                   select t;
                     var utils = new FileUtils();
                     var contracts =
                         utils.ReadFromJsonFile<List<IContractConfig>>(actualFile);
@@ -148,7 +148,7 @@ namespace CrunchEconV3.Commands
                         Context.Respond("Contract type not found, see all available logics with !crunchecon list");
                     }
                 }
- 
+
             }
 
             Context.Respond("Contract file not found");
@@ -197,42 +197,6 @@ namespace CrunchEconV3.Commands
         [Permission(MyPromoteLevel.Admin)]
         public void Compile()
         {
-            var patches = Core.Session.Managers.GetManager<PatchManager>();
-            try
-            {
-                var typesWithPatchShimAttribute = Core.myAssemblies.Select(x => x)
-                    .SelectMany(x => x.GetTypes())
-                    .Where(type => type.IsClass && type.GetCustomAttributes(typeof(PatchShimAttribute), true).Length > 0);
-
-                foreach (var type in typesWithPatchShimAttribute)
-                {
-                    MethodInfo method = type.GetMethod("UnPatch", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-                    if (method == null)
-                    {
-                        Core.Log.Error($"Patch shim type {type.FullName} doesn't have a static Patch method.");
-                        continue;
-                    }
-                    ParameterInfo[] ps = method.GetParameters();
-                    if (ps.Length != 1 || ps[0].IsOut || ps[0].IsOptional || ps[0].ParameterType.IsByRef ||
-                        ps[0].ParameterType != typeof(PatchContext) || method.ReturnType != typeof(void))
-                    {
-                        Core.Log.Error($"Patch shim type {type.FullName} doesn't have a method with signature `void UnPatch(PatchContext)`");
-                        continue;
-                    }
-
-                    var context = patches.AcquireContext();
-                    method.Invoke(null, new object[] { context });
-                    patches.Commit();
-                }
- 
-                Context.Respond("PATCH DONE, restart server if old patch still works");
-            }
-            catch (Exception e)
-            {
-                Core.Log.Error($"patch compile error {e}");
-                throw;
-            }
-
             Core.myAssemblies.Clear();
             foreach (var item in Directory.GetFiles($"{Core.path}/Scripts/", "*", SearchOption.AllDirectories).Where(x => x.EndsWith(".cs")))
             {
@@ -250,51 +214,6 @@ namespace CrunchEconV3.Commands
                 instance.Setup();
             }
 
-            try
-            {
-                var typesWithPatchShimAttribute = Core.myAssemblies.Select(x => x)
-                    .SelectMany(x => x.GetTypes())
-                    .Where(type => type.IsClass && type.GetCustomAttributes(typeof(PatchShimAttribute), true).Length > 0);
-
-                patches.AcquireContext();
-
-                foreach (var type in typesWithPatchShimAttribute)
-                {
-                    MethodInfo method = type.GetMethod("Patch", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-                    if (method == null)
-                    {
-                        Core.Log.Error($"Patch shim type {type.FullName} doesn't have a static Patch method.");
-                        continue;
-                    }
-                    ParameterInfo[] ps = method.GetParameters();
-                    if (ps.Length != 1 || ps[0].IsOut || ps[0].IsOptional || ps[0].ParameterType.IsByRef ||
-                        ps[0].ParameterType != typeof(PatchContext) || method.ReturnType != typeof(void))
-                    {
-                        Core.Log.Error($"Patch shim type {type.FullName} doesn't have a method with signature `void Patch(PatchContext)`");
-                        continue;
-                    }
-
-                    var context = patches.AcquireContext();
-                    method.Invoke(null, new object[] { context });
-                }
-
-                patches.Commit();
-                Context.Respond("PATCH DONE, restart server if old patch still works");
-            }
-
-            catch (Exception e)
-            {
-                Core.Log.Error($"patch compile error {e}");
-            }
-            var commands = Core.Session.Managers.GetManager<CommandManager>();
-            foreach (var item in Core.myAssemblies)
-            {
-                foreach (var obj in item.GetTypes())
-                {
-                    commands.RegisterCommandModule(obj);
-                }
-
-            }
             this.Reload();
             Context.Respond("done, check logs for any errors");
         }

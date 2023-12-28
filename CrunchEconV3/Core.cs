@@ -297,48 +297,13 @@ namespace CrunchEconV3
                     {
                         Compiler.Compile(item);
                     }
-
-                    var typesWithPatchShimAttribute = Core.myAssemblies.Select(x => x)
-                        .SelectMany(x => x.GetTypes())
-                        .Where(type => type.IsClass && type.GetCustomAttributes(typeof(PatchShimAttribute), true).Length > 0);
-
-                    patches.AcquireContext();
-
-                    foreach (var type in typesWithPatchShimAttribute)
-                    {
-                        MethodInfo method = type.GetMethod("Patch", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-                        if (method == null)
-                        {
-                            Core.Log.Error($"Patch shim type {type.FullName} doesn't have a static Patch method.");
-                            continue;
-                        }
-                        ParameterInfo[] ps = method.GetParameters();
-                        if (ps.Length != 1 || ps[0].IsOut || ps[0].IsOptional || ps[0].ParameterType.IsByRef ||
-                            ps[0].ParameterType != typeof(PatchContext) || method.ReturnType != typeof(void))
-                        {
-                            Core.Log.Error($"Patch shim type {type.FullName} doesn't have a method with signature `void Patch(PatchContext)`");
-                            continue;
-                        }
-
-                        var context = patches.AcquireContext();
-                        method.Invoke(null, new object[] { context });
-                    }
-                    patches.Commit();
                 }
 
                 catch (Exception e)
                 {
                     Core.Log.Error($"compile error {e}");
                 }
-                var commands = Core.Session.Managers.GetManager<CommandManager>();
-                foreach (var item in Core.myAssemblies)
-                {
-                    foreach (var obj in item.GetTypes())
-                    {
-                        commands.RegisterCommandModule(obj);
-                    }
-           
-                }
+                
 
                 StationStorage = new JsonStationStorageHandler(path);
                 PlayerStorage = new JsonPlayerStorageHandler(path);

@@ -8,6 +8,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Torch.API.Managers;
+using Torch.Commands;
+using Torch.Managers.PatchManager;
 
 namespace CrunchEconV3.Utils
 {
@@ -38,6 +41,8 @@ namespace CrunchEconV3.Utils
         }
         private static bool CompileFromFile(string file)
         {
+            var patches = Core.Session.Managers.GetManager<PatchManager>();
+            var commands = Core.Session.Managers.GetManager<CommandManager>();
             var text = File.ReadAllText(file);
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(text);
 
@@ -55,7 +60,36 @@ namespace CrunchEconV3.Utils
                     Assembly assembly = Assembly.Load(memoryStream.ToArray());
                     Core.Log.Error("Compilation successful!");
                     Core.myAssemblies.Add(assembly);
-                    // Use the compiled assembly as needed
+
+                    try
+                    {
+                        foreach (var type in assembly.GetTypes())
+                        {
+                            MethodInfo method = type.GetMethod("Patch", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
+                            if (method == null)
+                            {
+                                continue;
+                            }
+                            ParameterInfo[] ps = method.GetParameters();
+                            if (ps.Length != 1 || ps[0].IsOut || ps[0].IsOptional || ps[0].ParameterType.IsByRef ||
+                                ps[0].ParameterType != typeof(PatchContext) || method.ReturnType != typeof(void))
+                            {
+                                continue;
+                            }
+                            var context = patches.AcquireContext();
+                            method.Invoke(null, new object[] { context });
+                        }
+                        patches.Commit();
+                        foreach (var obj in assembly.GetTypes())
+                        {
+                            commands.RegisterCommandModule(obj);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Core.Log.Error($"{e}");
+                        throw;
+                    }
                 }
                 else
                 {
