@@ -36,21 +36,6 @@ namespace CrunchEconContractModels.StationLogics
                 return false;
             });
         }
-        public static void UnPatch(PatchContext ctx)
-        {
-            MyAPIGateway.Entities.OnEntityAdd -= OnEntityAdd;
-
-            // Iterate through all existing grids when the mod initializes
-
-            MyAPIGateway.Entities.GetEntities(null, (entity) =>
-            {
-                if (entity is IMyCubeGrid grid)
-                {
-                    grid.OnBlockAdded -= OnBlockAdded;
-                }
-                return false;
-            });
-        }
         private static void OnEntityAdd(IMyEntity entity)
         {
             if (entity is IMyCubeGrid grid)

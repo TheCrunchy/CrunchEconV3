@@ -198,10 +198,7 @@ namespace CrunchEconV3.Commands
         public void Compile()
         {
             Core.myAssemblies.Clear();
-            foreach (var item in Directory.GetFiles($"{Core.path}/Scripts/", "*", SearchOption.AllDirectories).Where(x => x.EndsWith(".cs")))
-            {
-                Compiler.Compile(item);
-            }
+            Compiler.Compile($"{Core.path}/Scripts/");
 
             var configs2 = from t in Core.myAssemblies.Select(x => x)
                     .SelectMany(x => x.GetTypes())

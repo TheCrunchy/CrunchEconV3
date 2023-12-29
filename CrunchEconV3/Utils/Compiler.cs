@@ -16,9 +16,9 @@ namespace CrunchEconV3.Utils
 {
     public static class Compiler
     {
-        public static bool Compile(string file)
+        public static bool Compile(string folder)
         {
-            bool success = CompileFromFile(file);
+            bool success = CompileFromFile(folder);
 
             return success;
         }
@@ -39,17 +39,26 @@ namespace CrunchEconV3.Utils
 
             return metadataReferenceList.ToArray();
         }
-        private static bool CompileFromFile(string file)
+        private static bool CompileFromFile(string folder)
         {
             var patches = Core.Session.Managers.GetManager<PatchManager>();
             var commands = Core.Session.Managers.GetManager<CommandManager>();
-            var text = File.ReadAllText(file);
-            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(text);
+            List<SyntaxTree> trees = new List<SyntaxTree>();
+
+
+            foreach (var item in Directory.GetFiles(folder, "*", SearchOption.AllDirectories).Where(x => x.EndsWith(".cs")))
+            {
+                var text = File.ReadAllText(item);
+                SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(text);
+                trees.Add(syntaxTree);
+
+            }
+
 
             var compilation = CSharpCompilation.Create("MyAssembly")
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddReferences(GetRequiredRefernces()) // Add necessary references
-                .AddSyntaxTrees(syntaxTree);
+                .AddSyntaxTrees(trees);
 
             using (MemoryStream memoryStream = new MemoryStream())
             {
@@ -93,7 +102,6 @@ namespace CrunchEconV3.Utils
                 }
                 else
                 {
-                    Core.Log.Error(file);
                     Console.WriteLine("Compilation failed:");
                     foreach (var diagnostic in result.Diagnostics)
                     {

@@ -249,6 +249,7 @@ namespace CrunchEconV3
 
             return folder;
         }
+
         private void SessionChanged(ITorchSession session, TorchSessionState newState)
         {
             Session = session;
@@ -289,21 +290,16 @@ namespace CrunchEconV3
 
             if (newState is TorchSessionState.Loaded)
             {
-
-                var patches = session.Managers.GetManager<PatchManager>();
                 try
                 {
-                    foreach (var item in Directory.GetFiles($"{Core.path}/Scripts/", "*", SearchOption.AllDirectories).Where(x => x.EndsWith(".cs")))
-                    {
-                        Compiler.Compile(item);
-                    }
+                    Compiler.Compile($"{Core.path}/Scripts/");
                 }
 
                 catch (Exception e)
                 {
                     Core.Log.Error($"compile error {e}");
                 }
-                
+
 
                 StationStorage = new JsonStationStorageHandler(path);
                 PlayerStorage = new JsonPlayerStorageHandler(path);
