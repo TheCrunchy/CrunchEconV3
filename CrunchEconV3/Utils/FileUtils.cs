@@ -54,7 +54,7 @@ namespace CrunchEconV3.Utils
                 Core.Log.Error($"Error reading file {filePath} {e}");
 
                 Directory.CreateDirectory($"{Core.path}/ErroredFileBackups/");
-                File.Move(filePath, $"{Core.path}/ErroredFileBackups/{Path.GetFileNameWithoutExtension(filePath)}-{DateTime.Today:hh-mm-ss-dd-MM-yyyy}.json");
+                File.Move(filePath, $"{Core.path}/ErroredFileBackups/{Path.GetFileNameWithoutExtension(filePath)}-{DateTime.Now:HH-mm-ss-dd-MM-yyyy}.json");
 
                 return new T();
             }

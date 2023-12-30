@@ -314,6 +314,8 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
                 MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1);
             }
             this.DeleteDeliveryGPS();
+
+
             CrunchEconV3.Core.SendMessage("Contracts", DateTime.Now > ExpireAt ? $"{this.Name} failed, time expired." : $"{this.Name} failed.", Color.Red, this.AssignedPlayerSteamId);
         }
 

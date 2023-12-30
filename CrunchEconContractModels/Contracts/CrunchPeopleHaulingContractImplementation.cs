@@ -123,7 +123,7 @@ namespace CrunchEconV3.Models.Contracts
                 var owner = FacUtils.IsOwnerOrFactionOwned(gridInGroup as MyCubeGrid, identityId, true);
                 if (owner)
                 {
-                    capacity += TransportUtils.GetPassengerCount(gridInGroup as MyCubeGrid, this);
+                    capacity += PassengerTransportUtils.GetPassengerCount(gridInGroup as MyCubeGrid, this);
                 }
             }
 
@@ -220,7 +220,7 @@ namespace CrunchEconV3.Models.Contracts
 
             foreach (var grid in playersGrids)
             {
-                passengerCount += TransportUtils.GetPassengerCount(grid, this);
+                passengerCount += PassengerTransportUtils.GetPassengerCount(grid, this);
             }
             if (passengerCount < this.PassengerCount)
             {
@@ -275,7 +275,7 @@ namespace CrunchEconV3.Models.Contracts
         public bool ReadyToDeliver { get; set; }
         public long CollateralToTake { get; set; }
     }
-    public static class TransportUtils
+    public static class PassengerTransportUtils
     {
         public static int GetPassengerCount(MyCubeGrid grid, CrunchPeopleHaulingContractImplementation ContractImplementation)
         {
