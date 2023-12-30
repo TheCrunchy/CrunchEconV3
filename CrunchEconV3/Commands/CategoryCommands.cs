@@ -49,6 +49,11 @@ namespace CrunchEconV3.Commands
         [Permission(MyPromoteLevel.Admin)]
         public void Reload()
         {
+            if (Core.CompileFailed)
+            {
+                Context.Respond("Compile failed, files not reloaded.");
+                return;
+            }
             StationHandler.BlocksContracts.Clear();
             StationHandler.ReadyForRefresh();
             StationHandler.MappedStations.Clear();

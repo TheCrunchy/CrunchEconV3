@@ -97,18 +97,21 @@ namespace CrunchEconV3.Utils
                     catch (Exception e)
                     {
                         Core.Log.Error($"{e}");
-                        throw;
                     }
                 }
                 else
                 {
                     Console.WriteLine("Compilation failed:");
+                    Core.CompileFailed = true;
                     foreach (var diagnostic in result.Diagnostics)
                     {
                         Core.Log.Error(diagnostic);
                     }
+
+                    return true;
                 }
             }
+            Core.CompileFailed = false;
             return true;
         }
     }

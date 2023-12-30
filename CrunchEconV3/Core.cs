@@ -53,6 +53,9 @@ namespace CrunchEconV3
         public const string PluginName = "CrunchEconV3";
         public static Logger Log = LogManager.GetLogger(PluginName);
         public static ITorchPlugin PluginInstance;
+
+        public static bool CompileFailed = false;
+
         public override void Init(ITorchBase torch)
         {
             base.Init(torch);
@@ -86,6 +89,11 @@ namespace CrunchEconV3
                 ticks++;
                 if (ticks % 100 == 0 && TorchState == TorchSessionState.Loaded)
                 {
+                    if (CompileFailed)
+                    {
+                        Core.Log.Error("Compile failed, read the compile errors and fix them.");
+                        return;
+                    }
                     try
                     {
                         Task.Run(async () =>
@@ -300,10 +308,17 @@ namespace CrunchEconV3
                     Core.Log.Error($"compile error {e}");
                 }
 
-
-                StationStorage = new JsonStationStorageHandler(path);
-                PlayerStorage = new JsonPlayerStorageHandler(path);
-                session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
+                if (!CompileFailed)
+                {
+                    StationStorage = new JsonStationStorageHandler(path);
+                    PlayerStorage = new JsonPlayerStorageHandler(path);
+                    session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
+                }
+                else
+                {
+                    Core.Log.Error("Compile failed, station and player data not loaded");
+                }
+          
             }
         }
     }

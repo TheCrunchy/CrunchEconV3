@@ -36,7 +36,14 @@ namespace CrunchEconV3.Models
         }
         public void SetConfigs(List<IContractConfig> Configs)
         {
-            configs = Configs;
+            if (configs == null)
+            {
+                configs = Configs;
+            }
+            else
+            {
+                configs.AddRange(Configs);
+            }
         }
 
         public List<IStationLogic> Logics;

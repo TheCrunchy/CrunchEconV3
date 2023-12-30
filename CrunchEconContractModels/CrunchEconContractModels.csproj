@@ -64,6 +64,10 @@
     <Reference Include="Torch">
       <HintPath>..\..\..\4 Torch Server\Torch.dll</HintPath>
     </Reference>
+    <Reference Include="Torch.API, Version=1.3.1.273, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\4 Torch Server\Torch.API.dll</HintPath>
+    </Reference>
     <Reference Include="VRage">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\VRage.dll</HintPath>
     </Reference>
