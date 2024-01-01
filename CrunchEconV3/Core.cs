@@ -208,26 +208,34 @@ namespace CrunchEconV3
                 utils.WriteToXmlFile<Config>(path, config, false);
 
             }
-
-            var folder = StoragePath.Replace(@"\Instance", "");
-            var tempfolder = StoragePath + "/CRUNCHECONTEMP/";
-
-            CreatePath();
-            if (Directory.Exists(tempfolder))
+            try
             {
+
+                var folder = StoragePath.Replace(@"\Instance", "");
+                var tempfolder = StoragePath + "/CRUNCHECONTEMP/";
+
+                CreatePath();
+                if (Directory.Exists(tempfolder))
+                {
+                    Directory.Delete(tempfolder, true);
+                }
+                Directory.CreateDirectory(tempfolder);
+
+                var plugins = $"{folder}/plugins/CrunchEconV3.zip";
+
+                ZipFile.ExtractToDirectory(plugins, tempfolder);
+                Directory.CreateDirectory($"{path}/Scripts/");
+
+                foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".dll")))
+                {
+
+                    File.Copy(item, $"{basePath}/{PluginName}/{Path.GetFileName(item)}", true);
+
+                }
                 Directory.Delete(tempfolder, true);
             }
-            Directory.CreateDirectory(tempfolder);
-
-            var plugins = $"{folder}/plugins/CrunchEconV3.zip";
-
-            ZipFile.ExtractToDirectory(plugins, tempfolder);
-            Directory.CreateDirectory($"{path}/Scripts/");
-
-            foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".dll")))
+            catch (Exception e)
             {
-
-                File.Copy(item, $"{path}/{Path.GetFileName(item)}", true);
 
             }
 
@@ -237,7 +245,7 @@ namespace CrunchEconV3
             //    File.Copy(item, $"{path}/Scripts/{Path.GetFileName(item)}", true);
 
             //}
-            Directory.Delete(tempfolder, true);
+
         }
 
 
