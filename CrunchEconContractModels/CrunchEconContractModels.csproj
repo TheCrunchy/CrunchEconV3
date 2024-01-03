@@ -95,6 +95,7 @@
     <Compile Include="Random Stuff\ExampleCommand.cs" />
     <Compile Include="Random Stuff\GridSales.cs" />
     <Compile Include="Random Stuff\GridSalesTwo.cs" />
+    <Compile Include="Random Stuff\NexusHelper.cs" />
     <Compile Include="StationLogics\CargoShipLogic.cs" />
     <Compile Include="StationLogics\FactionBalanceLogic.cs" />
     <Compile Include="StationLogics\StationCraftingLogic.cs" />
