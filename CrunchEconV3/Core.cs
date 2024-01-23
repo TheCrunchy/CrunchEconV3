@@ -26,6 +26,7 @@ using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRageMath;
 using System.IO.Compression;
+using CoreSystems.Api;
 using CrunchEconV3.APIs;
 using CrunchEconV3.Patches;
 using Sandbox.Definitions;
@@ -49,6 +50,8 @@ namespace CrunchEconV3
         public static MESApi MesAPI;
         public static WaterModAPI WaterAPI;
         public static RemoteBotAPI AIEnabledAPI;
+        public static WcApi WeaponcoreAPI;
+        public static WcApi.DamageHandlerHelper DamageHandlerWeaponCore;
         public static bool Paused { get; set; } = false;
         public const string PluginName = "CrunchEconV3";
         public static Logger Log = LogManager.GetLogger(PluginName);
@@ -84,6 +87,11 @@ namespace CrunchEconV3
                 return;
             }
 
+            if (ticks == 1)
+            {
+                Core.DamageHandlerWeaponCore = new WcApi.DamageHandlerHelper(Core.WeaponcoreAPI);
+                Core.DamageHandlerWeaponCore.RegisterForDamage(3245, WcApi.DamageHandlerHelper.EventType.SystemWideDamageEvents);
+            }
             try
             {
                 ticks++;

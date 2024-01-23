@@ -24,12 +24,20 @@ using Microsoft.CSharp;
 using NLog;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.SessionComponents;
+using Sandbox.Game.World;
+using Sandbox.ModAPI;
 using Torch.API.Managers;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using Torch.Managers.PatchManager;
+using Torch.Utils;
+using VRage;
+using VRage.Game;
 using VRage.Game.ModAPI;
+using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Groups;
+using VRage.ObjectBuilders;
 using VRageMath;
 
 namespace CrunchEconV3.Commands
@@ -262,5 +270,42 @@ namespace CrunchEconV3.Commands
             Context.Respond($"Exported grid: {gridname}");
         }
 
+
+
+        [Command("teststore", "test adding items to a keen NPC store")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void TestStore()
+        {
+            if (!MyDefinitionId.TryParse("Ingot", "Iron", out MyDefinitionId id)) return;
+            SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, "Iron");
+
+            int price = 500;
+
+            int amount = 50000;
+
+            MyStoreItemData itemInsert =
+                new MyStoreItemData(itemId, amount, price,
+                    null, null);
+            ConcurrentBag<MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group> gridWithSubGrids = GridFinder.FindLookAtGridGroup(Context.Player.Character);
+            List<MyCubeGrid> grids = new List<MyCubeGrid>();
+            foreach (var item in gridWithSubGrids)
+            {
+                foreach (MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Node groupNodes in item.Nodes)
+                {
+                    MyCubeGrid grid = groupNodes.NodeData;
+                    var station = MySession.Static.Factions.GetStationByGridId(grid.EntityId);
+                    if (station != null)
+                    {
+                        var storeid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.CONTRACT,
+                            MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM) + Core.random.Next(1, 200);
+                        MyStoreItem test = new MyStoreItem(storeid, itemId, amount, price, StoreItemTypes.Offer);
+                        station.StoreItems.Add(test);
+
+                    }
+
+                }
+            }
+            Context.Respond($"Done");
+        }
     }
 }

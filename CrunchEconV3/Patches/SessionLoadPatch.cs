@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using CoreSystems.Api;
 using CrunchEconV3.APIs;
 using NLog;
 using Sandbox.Definitions;
@@ -58,9 +59,12 @@ namespace CrunchEconV3.Patches
                Core.AIEnabledAPI = new RemoteBotAPI();
                Core.WaterAPI = new WaterModAPI();
                Core.WaterAPI.Register();
+               Core.WeaponcoreAPI = new WcApi();
+               Core.WeaponcoreAPI.Load();
                Loaded = true;
             }
         }
+
 
         public static void YeetKeenLimit(ref int __result)
         {

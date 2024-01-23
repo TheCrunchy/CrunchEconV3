@@ -243,6 +243,8 @@
   <ItemGroup>
     <Compile Include="APIs\MESApi.cs" />
     <Compile Include="APIs\RemoteBotAPI.cs" />
+    <Compile Include="APIs\Weaponcore\CoreSystemsApiBase.cs" />
+    <Compile Include="APIs\Weaponcore\CoreSystemsApiDefs.cs" />
     <Compile Include="APIs\WtaterModAPI.cs" />
     <Compile Include="Commands\CategoryCommands.cs" />
     <Compile Include="Commands\Commands.cs" />

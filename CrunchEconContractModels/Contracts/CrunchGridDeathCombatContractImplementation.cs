@@ -321,6 +321,8 @@ namespace CrunchEconContractModels.Contracts
                 }
 
                 if (!File.Exists($"{Core.path}//Grids//{grid.GridName}")) continue;
+
+
                 var Ids = GridManagerUpdated.LoadGrid($"{Core.path}//Grids//{grid.GridName}", Position, false,
                     (ulong)faction.Members.FirstOrDefault().Key, grid.GridName.Replace(".sbc", ""), false);
 

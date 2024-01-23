@@ -96,9 +96,13 @@
     <Compile Include="Random Stuff\GridSales.cs" />
     <Compile Include="Random Stuff\GridSalesTwo.cs" />
     <Compile Include="Random Stuff\NexusHelper.cs" />
+    <Compile Include="Random Stuff\PCUStuff.cs" />
+    <Compile Include="Random Stuff\ReputationScript.cs" />
+    <Compile Include="Random Stuff\StorePurchaseLimit.cs" />
     <Compile Include="StationLogics\CargoShipLogic.cs" />
     <Compile Include="StationLogics\FactionBalanceLogic.cs" />
     <Compile Include="StationLogics\StationCraftingLogic.cs" />
+    <Compile Include="Random Stuff\KeenStoreManagement.cs" />
     <Compile Include="StationLogics\StoreManagementLogic.cs" />
     <Compile Include="Random Stuff\SpawnPatch.cs" />
     <Compile Include="Random Stuff\GridTracking.cs" />
