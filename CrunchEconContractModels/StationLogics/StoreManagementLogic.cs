@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -17,18 +18,99 @@ using Sandbox.Game.EntityComponents;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Ingame;
+using Torch.Commands;
+using Torch.Commands.Permissions;
 using VRage;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.ModAPI;
 using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ObjectBuilders.Definitions;
+using VRage.Groups;
 using VRage.ObjectBuilders;
 using IMyCubeBlock = VRage.Game.ModAPI.IMyCubeBlock;
 using IMyInventory = VRage.Game.ModAPI.IMyInventory;
 
 namespace CrunchEconContractModels.StationLogics
 {
+    public class ExampleCommand : CommandModule
+    {
+        [Command("exportstore", "export the orders and offers in a store block to store file")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void ExportStore(string storename)
+        {
+            var items = new Dictionary<string, StoreEntryModel>();
+            ConcurrentBag<MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group> gridWithSubGrids = GridFinder.FindLookAtGridGroup(Context.Player.Character);
+            List<MyCubeGrid> grids = new List<MyCubeGrid>();
+            foreach (var item in gridWithSubGrids)
+            {
+                foreach (MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Node groupNodes in item.Nodes)
+                {
+                    MyCubeGrid grid = groupNodes.NodeData;
+                    foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>())
+                    {
+                        foreach (var thing in store.PlayerItems)
+                        {
+                            if (items.TryGetValue($"{thing.Item.Value.TypeIdString}/{thing.Item.Value.SubtypeId}", out var stored))
+                            {
+                                if (thing.StoreItemType == StoreItemTypes.Offer)
+                                {
+                                    stored.AmountToBuyMax = thing.Amount;
+                                    stored.AmountToBuyMin = thing.Amount;
+                                    stored.Type = thing.Item.Value.TypeIdString;
+                                    stored.Subtype = thing.Item.Value.SubtypeId;
+                                    stored.BuyFromPlayerPriceMax = thing.PricePerUnit;
+                                    stored.BuyFromPlayerPriceMin = thing.PricePerUnit;
+                                    stored.SpawnIfBelowThisQuantity = thing.Amount;
+                                    stored.SpawnItemsIfMissing = true;
+                                }
+                                if (thing.StoreItemType == StoreItemTypes.Order)
+                                {
+                                    stored.AmountToSellMax = thing.Amount;
+                                    stored.AmountToSellMin = thing.Amount;
+                                    stored.Type = thing.Item.Value.TypeIdString;
+                                    stored.Subtype = thing.Item.Value.SubtypeId;
+                                    stored.SellToPlayerPriceMax = thing.PricePerUnit;
+                                    stored.SellToPlayerPriceMin = thing.PricePerUnit;
+                                    stored.SpawnIfBelowThisQuantity = thing.Amount;
+                                }
+                            }
+                            else
+                            {
+                                if (thing.StoreItemType == StoreItemTypes.Offer)
+                                {
+                                    stored = new StoreEntryModel();
+                                    stored.AmountToBuyMax = thing.Amount;
+                                    stored.AmountToBuyMin = thing.Amount;
+                                    stored.Type = thing.Item.Value.TypeIdString;
+                                    stored.Subtype = thing.Item.Value.SubtypeId;
+                                    stored.BuyFromPlayerPriceMax = thing.PricePerUnit;
+                                    stored.BuyFromPlayerPriceMin = thing.PricePerUnit;
+                                    stored.SpawnIfBelowThisQuantity = thing.Amount;
+                                    stored.SpawnItemsIfMissing = true;
+                                }
+                                if (thing.StoreItemType == StoreItemTypes.Order)
+                                {
+                                    stored = new StoreEntryModel();
+                                    stored.AmountToSellMax = thing.Amount;
+                                    stored.AmountToSellMin = thing.Amount;
+                                    stored.Type = thing.Item.Value.TypeIdString;
+                                    stored.Subtype = thing.Item.Value.SubtypeId;
+                                    stored.SellToPlayerPriceMax = thing.PricePerUnit;
+                                    stored.SellToPlayerPriceMin = thing.PricePerUnit;
+                                    stored.SpawnIfBelowThisQuantity = thing.Amount;
+                                }
+                                items[$"{thing.Item.Value.TypeIdString}/{thing.Item.Value.SubtypeId}"] = stored;
+                            }
+                        
+                        }
+                    }
+
+                }
+            }
+            Context.Respond("Store block exported!");
+        }
+    }
     public class StoreManagementLogic : IStationLogic
     {
         public void Setup()
@@ -44,7 +126,7 @@ namespace CrunchEconContractModels.StationLogics
         {
             List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();
             var gridOwnerFac = FacUtils.GetOwner(grid);
-      
+
             foreach (var block in grid.GetFatBlocks().OfType<MyCargoContainer>().Where(x => x.OwnerId == gridOwnerFac))
             {
                 for (int i = 0; i < block.InventoryCount; i++)
@@ -117,13 +199,13 @@ namespace CrunchEconContractModels.StationLogics
                     NextDelete = DateTime.Now.AddMinutes(MinutesBetweenDeletes);
                     ClearInventories(grid);
                 }
-     
+
             }
 
             var gridOwnerFac = FacUtils.GetOwner(grid);
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == gridOwnerFac))
             {
-        
+
                 ClearStoreOfPlayersBuyingOffers(store);
                 ClearStoreOfPlayersSellingOrders(store);
                 var items = StoreItemsHandler.GetByBlockName(store.DisplayNameText);
@@ -139,7 +221,7 @@ namespace CrunchEconContractModels.StationLogics
                     try
                     {
                         DoBuy(item, store, quantity, inventories);
-                        DoSell(item,store, quantity, inventories);
+                        DoSell(item, store, quantity, inventories);
                     }
                     catch (Exception e)
                     {
@@ -161,14 +243,14 @@ namespace CrunchEconContractModels.StationLogics
             }
 
             if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id)) return;
-    
+
             SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, item.Subtype);
-         
+
             int price = CrunchEconV3.Core.random.Next((int)item.BuyFromPlayerPriceMin, (int)item.BuyFromPlayerPriceMax);
- 
+
             int amount = CrunchEconV3.Core.random.Next((int)item.AmountToBuyMin,
                 (int)item.AmountToBuyMax);
-  
+
             MyStoreItemData itemInsert =
                 new MyStoreItemData(itemId, amount, price,
                     null, null);
@@ -177,10 +259,10 @@ namespace CrunchEconContractModels.StationLogics
                 store.InsertOrder(itemInsert,
                     out long notUsingThis);
 
-            
 
 
-          //  station.StoreItems.Add(myStoreItem);
+
+            //  station.StoreItems.Add(myStoreItem);
             if (result != MyStoreInsertResults.Success)
             {
                 CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} Amount:{itemInsert.Amount} Price:{itemInsert.PricePerUnit} {result.ToString()}");
@@ -332,7 +414,7 @@ namespace CrunchEconContractModels.StationLogics
 
                 utils.WriteToJsonFile($"{CrunchEconV3.Core.path}/StoreConfigs/Example.json", list);
             }
-     
+
             foreach (var file in Directory.GetFiles($"{CrunchEconV3.Core.path}/StoreConfigs/"))
             {
                 try

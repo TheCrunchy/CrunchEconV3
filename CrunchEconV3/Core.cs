@@ -89,8 +89,8 @@ namespace CrunchEconV3
 
             if (ticks == 1)
             {
-                Core.DamageHandlerWeaponCore = new WcApi.DamageHandlerHelper(Core.WeaponcoreAPI);
-                Core.DamageHandlerWeaponCore.RegisterForDamage(3245, WcApi.DamageHandlerHelper.EventType.SystemWideDamageEvents);
+                //Core.DamageHandlerWeaponCore = new WcApi.DamageHandlerHelper(Core.WeaponcoreAPI);
+                //Core.DamageHandlerWeaponCore.RegisterForDamage(3245, WcApi.DamageHandlerHelper.EventType.SystemWideDamageEvents);
             }
             try
             {
