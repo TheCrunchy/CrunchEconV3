@@ -10,6 +10,24 @@ namespace CrunchEconV3.Models
 {
     public class StationConfig
     {
+        public StationConfig Clone()
+        {
+            StationConfig clonedConfig = new StationConfig
+            {
+                Enabled = this.Enabled,
+                LocationGPS = "Put a gps here", // Default value for LocationGPS in the cloned instance
+                FactionTag = this.FactionTag,
+                SecondsBetweenContractRefresh = this.SecondsBetweenContractRefresh,
+                ContractFiles = this.ContractFiles?.ToList(), // Copy the ContractFiles list if it's not null
+                FileName = this.FileName,
+                UseAsDeliveryLocation = this.UseAsDeliveryLocation,
+                configs = this.configs?.ToList(), // Clone each IContractConfig in the list
+                Logics = this.Logics?.ToList(), // Copy the Logics list if it's not null
+                FirstLoad = this.FirstLoad
+            };
+
+            return clonedConfig;
+        }
         public bool Enabled { get; set; } = true;
         private MyCubeGrid grid { get; set; }
         public string LocationGPS { get; set; } = "Put a gps here";

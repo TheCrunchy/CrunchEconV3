@@ -22,8 +22,13 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CSharp;
 using NLog;
+using Sandbox.Common.ObjectBuilders;
+using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.Entities.Planet;
+using Sandbox.Game.GameSystems;
+using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
@@ -34,10 +39,14 @@ using Torch.Managers.PatchManager;
 using Torch.Utils;
 using VRage;
 using VRage.Game;
+using VRage.Game.Entity;
 using VRage.Game.ModAPI;
+using VRage.Game.ObjectBuilders.Components;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Groups;
+using VRage.Library.Collections;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 using VRageMath;
 
 namespace CrunchEconV3.Commands
@@ -271,6 +280,110 @@ namespace CrunchEconV3.Commands
         }
 
 
+        [Command("generate", "generate stations using an existing station as a template")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void GenerateStations(string ownerFactionTag, string existingStationName, int amountToGenerate, int minDistanceFromPlanet = 50000, int maxDistanceFromPlanet = 250000, int safezoneSize = 250)
+        {
+            var faction = MySession.Static.Factions.TryGetFactionByTag(ownerFactionTag);
+            if (faction == null)
+            {
+                Context.Respond("Target faction null.");
+                return;
+            }
+            var generated = 0;
+            var planets = MyPlanets.GetPlanets();
+
+            if (Core.StationStorage.GetAll().Any(x => x.FileName.Replace(".json", "") == existingStationName))
+            {
+                var station = Core.StationStorage.GetAll()
+                    .FirstOrDefault(x => x.FileName.Replace(".json", "") == existingStationName);
+                if (station.GetGrid() == null)
+                {
+                    Context.Respond("Station grid not found, run the command in the sector the station lives in.");
+                    return;
+                }
+
+                var path = $"{Core.path}\\Grids\\{station.GetGrid().DisplayName}.sbc";
+                if (!File.Exists(path))
+                {
+                    GridManager.SaveGridNoDelete(path, $"{station.GetGrid().DisplayName}.sbc", false, false, new List<MyCubeGrid>(){station.GetGrid()});
+                }
+
+                for (int i = 0; i < amountToGenerate; i++)
+                {
+                    var planetToUse = planets.GetRandomItemFromList();
+                    var planetPosition = planetToUse.PositionComp.GetPosition();
+
+                    if (minDistanceFromPlanet < planetToUse.AtmosphereRadius)
+                    {
+                        minDistanceFromPlanet = (int)(planetToUse.AtmosphereRadius + 25000);
+                    }
+
+                    // Generate a random direction vector
+                    Vector3D randomDirection = MyUtils.GetRandomVector3Normalized();
+
+                    // Generate a random distance within the specified range
+                    double randomDistance = MyUtils.GetRandomDouble(minDistanceFromPlanet, maxDistanceFromPlanet);
+
+                    // Calculate the new position by adding the random direction multiplied by the random distance
+                    Vector3D newPosition = planetPosition + randomDirection * randomDistance;
+                    var inGrav = MyGravityProviderSystem.IsPositionInNaturalGravity(newPosition);
+                    var attempts = 0;
+                    while (inGrav)
+                    {
+                        if (attempts >= 10)
+                        {
+                            inGrav = false;
+                        }
+                        attempts++;
+                        minDistanceFromPlanet += 15000;
+                        randomDistance = MyUtils.GetRandomDouble(minDistanceFromPlanet, maxDistanceFromPlanet);
+                        newPosition = planetPosition + randomDirection * randomDistance;
+                        inGrav = MyGravityProviderSystem.IsPositionInNaturalGravity(newPosition);
+                    }
+
+                    //spawn the station
+                    var spawnedGrid = GridManagerUpdated.LoadGrid(path, newPosition, false,
+                        (ulong)faction.Members.FirstOrDefault().Key,$"{station.GetGrid().DisplayName}  {i}",false);
+                    var gps = new MyGps();
+                    gps.Coords = newPosition;
+                    gps.Name = "Station";
+                    if (spawnedGrid.Any())
+                    {
+                        var newStation = station.Clone();
+                        newStation.FactionTag = ownerFactionTag;
+                        newStation.FileName = $"{newStation.FileName.Replace(".json","")} {i}.json";
+                        newStation.SetFirstLoad(true);
+                        newStation.LocationGPS = gps.ToString();
+
+                        Core.StationStorage.Save(newStation);
+                        MyObjectBuilder_SafeZone objectBuilderSafeZone = new MyObjectBuilder_SafeZone();
+                        objectBuilderSafeZone.PositionAndOrientation = new MyPositionAndOrientation?(new MyPositionAndOrientation(newPosition, Vector3.Forward, Vector3.Up));
+                        objectBuilderSafeZone.PersistentFlags = MyPersistentEntityFlags2.InScene;
+                        objectBuilderSafeZone.Shape = MySafeZoneShape.Sphere;
+                        objectBuilderSafeZone.Radius = (float)safezoneSize;
+                        objectBuilderSafeZone.Enabled = true;
+                        objectBuilderSafeZone.DisplayName = $"Store Safezone";
+                        objectBuilderSafeZone.AccessTypeGrids = MySafeZoneAccess.Blacklist;
+                        objectBuilderSafeZone.AccessTypeFloatingObjects = MySafeZoneAccess.Blacklist;
+                        objectBuilderSafeZone.AccessTypeFactions = MySafeZoneAccess.Blacklist;
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            MyEntity ent =
+                                Sandbox.Game.Entities.MyEntities.CreateFromObjectBuilderAndAdd(
+                                    (MyObjectBuilder_EntityBase)objectBuilderSafeZone, true);
+                        });
+                    }
+                    generated++;
+                }
+            }
+            else
+            {
+                Context.Respond("No station of that name found.");
+            }
+
+            Context.Respond($"Generated {generated} stations.");
+        }
 
         [Command("teststore", "test adding items to a keen NPC store")]
         [Permission(MyPromoteLevel.Admin)]

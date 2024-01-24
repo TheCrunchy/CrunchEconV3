@@ -59,8 +59,8 @@ namespace CrunchEconV3.Patches
                Core.AIEnabledAPI = new RemoteBotAPI();
                Core.WaterAPI = new WaterModAPI();
                Core.WaterAPI.Register();
-               Core.WeaponcoreAPI = new WcApi();
-               Core.WeaponcoreAPI.Load();
+            //   Core.WeaponcoreAPI = new WcApi();
+           //    Core.WeaponcoreAPI.Load();
                Loaded = true;
             }
         }
