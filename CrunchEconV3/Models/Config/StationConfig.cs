@@ -38,6 +38,10 @@ namespace CrunchEconV3.Models
         public bool UseAsDeliveryLocation { get; set; } = true;
         private List<IContractConfig> configs = new List<IContractConfig>();
 
+        public double StorePriceModifier { get; set; } = 1;
+        public double StoreQuantityModifier { get; set; } = 1;
+        public double ContractPriceModifier { get; set; } = 1;
+
         public void SetGrid(MyCubeGrid grid)
         {
             this.grid = grid;
