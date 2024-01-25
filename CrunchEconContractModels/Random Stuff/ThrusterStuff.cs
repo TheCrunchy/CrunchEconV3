@@ -69,9 +69,7 @@ namespace CrunchEconContractModels.StationLogics
             //    grid.GridGeneralDamageModifier.ValidateAndSet(1.5f);
             //    Core.Log.Info("Setting modifier to 0.5f");
             //}
-            MyBatteryBlock bat = null;
-            bat.CurrentStoredPower -= 5;
-            
+
             if (block.BlockDefinition != null && block.BlockDefinition.Id.SubtypeName.Contains("Epstein"))
             {
                 IMyCubeGrid cubeGrid = block.CubeGrid;

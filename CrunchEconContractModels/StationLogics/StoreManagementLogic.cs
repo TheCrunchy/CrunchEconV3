@@ -37,9 +37,9 @@ namespace CrunchEconContractModels.StationLogics
     {
         [Command("exportstore", "export the orders and offers in a store block to store file")]
         [Permission(MyPromoteLevel.Admin)]
-        public void ExportStore(string storename)
+        public void ExportStore()
         {
-            var items = new Dictionary<string, StoreEntryModel>();
+            var items = new Dictionary<string, Dictionary<string, StoreEntryModel>>();
             ConcurrentBag<MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group> gridWithSubGrids = GridFinder.FindLookAtGridGroup(Context.Player.Character);
             List<MyCubeGrid> grids = new List<MyCubeGrid>();
             foreach (var item in gridWithSubGrids)
@@ -51,64 +51,79 @@ namespace CrunchEconContractModels.StationLogics
                     {
                         foreach (var thing in store.PlayerItems)
                         {
-                            if (items.TryGetValue($"{thing.Item.Value.TypeIdString}/{thing.Item.Value.SubtypeId}", out var stored))
+                            if (items.TryGetValue(store.DisplayNameText, out var savedItems))
                             {
-                                if (thing.StoreItemType == StoreItemTypes.Offer)
+                                if (savedItems.TryGetValue($"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}", out var stored))
                                 {
-                                    stored.AmountToBuyMax = thing.Amount;
-                                    stored.AmountToBuyMin = thing.Amount;
-                                    stored.Type = thing.Item.Value.TypeIdString;
-                                    stored.Subtype = thing.Item.Value.SubtypeId;
-                                    stored.BuyFromPlayerPriceMax = thing.PricePerUnit;
-                                    stored.BuyFromPlayerPriceMin = thing.PricePerUnit;
-                                    stored.SpawnIfBelowThisQuantity = thing.Amount;
-                                    stored.SpawnItemsIfMissing = true;
+                                    stored = MapItem(thing, stored);
                                 }
-                                if (thing.StoreItemType == StoreItemTypes.Order)
+                                else
                                 {
-                                    stored.AmountToSellMax = thing.Amount;
-                                    stored.AmountToSellMin = thing.Amount;
-                                    stored.Type = thing.Item.Value.TypeIdString;
-                                    stored.Subtype = thing.Item.Value.SubtypeId;
-                                    stored.SellToPlayerPriceMax = thing.PricePerUnit;
-                                    stored.SellToPlayerPriceMin = thing.PricePerUnit;
-                                    stored.SpawnIfBelowThisQuantity = thing.Amount;
+                                    var mapped = MapItem(thing, new StoreEntryModel());
+                                    savedItems[$"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}"] = mapped;
                                 }
                             }
                             else
                             {
-                                if (thing.StoreItemType == StoreItemTypes.Offer)
-                                {
-                                    stored = new StoreEntryModel();
-                                    stored.AmountToBuyMax = thing.Amount;
-                                    stored.AmountToBuyMin = thing.Amount;
-                                    stored.Type = thing.Item.Value.TypeIdString;
-                                    stored.Subtype = thing.Item.Value.SubtypeId;
-                                    stored.BuyFromPlayerPriceMax = thing.PricePerUnit;
-                                    stored.BuyFromPlayerPriceMin = thing.PricePerUnit;
-                                    stored.SpawnIfBelowThisQuantity = thing.Amount;
-                                    stored.SpawnItemsIfMissing = true;
-                                }
-                                if (thing.StoreItemType == StoreItemTypes.Order)
-                                {
-                                    stored = new StoreEntryModel();
-                                    stored.AmountToSellMax = thing.Amount;
-                                    stored.AmountToSellMin = thing.Amount;
-                                    stored.Type = thing.Item.Value.TypeIdString;
-                                    stored.Subtype = thing.Item.Value.SubtypeId;
-                                    stored.SellToPlayerPriceMax = thing.PricePerUnit;
-                                    stored.SellToPlayerPriceMin = thing.PricePerUnit;
-                                    stored.SpawnIfBelowThisQuantity = thing.Amount;
-                                }
-                                items[$"{thing.Item.Value.TypeIdString}/{thing.Item.Value.SubtypeId}"] = stored;
+                                savedItems = new Dictionary<string, StoreEntryModel>();
+                                var mapped = MapItem(thing, new StoreEntryModel());
+                                savedItems[$"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}"] = mapped;
+
+                                items[store.DisplayNameText] = savedItems;
                             }
-                        
                         }
                     }
 
                 }
             }
+
+            foreach (var item in items)
+            {
+                var path = $"{CrunchEconV3.Core.path}/StoreConfigs/{item.Key}.json";
+                if (File.Exists(path))
+                {
+                    Context.Respond($"File name {item.Key} existed, overwriting");
+                }
+                FileUtils utils = new FileUtils();
+                var values = item.Value.Select(x => x.Value).ToList();
+
+                utils.WriteToJsonFile(path, values);
+            }
+
+
             Context.Respond("Store block exported!");
+        }
+
+        private static StoreEntryModel MapItem(MyStoreItem thing, StoreEntryModel stored)
+        {
+            if (thing.StoreItemType == StoreItemTypes.Offer)
+            {
+                stored.AmountToBuyMax = thing.Amount;
+                stored.AmountToBuyMin = thing.Amount;
+                stored.Type = thing.Item.Value.TypeIdString;
+                stored.Subtype = thing.Item.Value.SubtypeId;
+                stored.BuyFromPlayerPriceMax = thing.PricePerUnit;
+                stored.BuyFromPlayerPriceMin = thing.PricePerUnit;
+                stored.SpawnIfBelowThisQuantity = thing.Amount;
+                stored.SpawnItemsIfMissing = true;
+                stored.BuyFromChanceToAppear = 1;
+                stored.BuyFromPlayers = true;
+            }
+
+            if (thing.StoreItemType == StoreItemTypes.Order)
+            {
+                stored.AmountToSellMax = thing.Amount;
+                stored.AmountToSellMin = thing.Amount;
+                stored.Type = thing.Item.Value.TypeIdString;
+                stored.Subtype = thing.Item.Value.SubtypeId;
+                stored.SellToPlayerPriceMax = thing.PricePerUnit;
+                stored.SellToPlayerPriceMin = thing.PricePerUnit;
+                stored.SpawnIfBelowThisQuantity = thing.Amount;
+                stored.BuyFromChanceToAppear = 1;
+                stored.SellToPlayers = true;
+            }
+
+            return stored;
         }
     }
     public class StoreManagementLogic : IStationLogic
@@ -345,14 +360,14 @@ namespace CrunchEconContractModels.StationLogics
     {
         public string Type { get; set; } = "MyObjectBuilder_Ingot";
         public string Subtype { get; set; } = "Iron";
-        public bool BuyFromPlayers { get; set; } = true;
+        public bool BuyFromPlayers { get; set; } = false;
         public long BuyFromPlayerPriceMin { get; set; } = 1;
         public long BuyFromPlayerPriceMax { get; set; } = 3;
         public int AmountToBuyMin { get; set; } = 50;
         public int AmountToBuyMax { get; set; } = 60;
         public float BuyFromChanceToAppear = 1;
 
-        public bool SellToPlayers { get; set; } = true;
+        public bool SellToPlayers { get; set; } = false;
         public long SellToPlayerPriceMin { get; set; } = 1;
         public long SellToPlayerPriceMax { get; set; } = 3;
         public int AmountToSellMin { get; set; } = 10;
