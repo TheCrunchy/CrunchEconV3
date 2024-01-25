@@ -99,7 +99,7 @@
     <Compile Include="Random Stuff\PCUStuff.cs" />
     <Compile Include="Random Stuff\ReputationScript.cs" />
     <Compile Include="Random Stuff\StorePurchaseLimit.cs" />
-    <Compile Include="StationLogics\CargoShipLogic.cs" />
+    <Compile Include="StationLogics\GrowthLogic.cs" />
     <Compile Include="StationLogics\FactionBalanceLogic.cs" />
     <Compile Include="StationLogics\StationCraftingLogic.cs" />
     <Compile Include="Random Stuff\KeenStoreManagement.cs" />
