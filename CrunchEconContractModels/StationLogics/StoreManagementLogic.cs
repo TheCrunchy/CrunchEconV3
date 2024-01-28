@@ -216,6 +216,11 @@ namespace CrunchEconContractModels.StationLogics
                 }
 
             }
+            var Station = Core.StationStorage.GetAll().FirstOrDefault(x => x.GetGrid() == grid);
+            if (Station == null)
+            {
+                return Task.FromResult(true);
+            }
 
             var gridOwnerFac = FacUtils.GetOwner(grid);
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == gridOwnerFac))

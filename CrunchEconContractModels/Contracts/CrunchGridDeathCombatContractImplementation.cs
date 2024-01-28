@@ -96,8 +96,7 @@ namespace CrunchEconContractModels.Contracts
 
         public MyObjectBuilder_Contract BuildAssignedContract()
         {
-            var contractDescription = $"You must go engage the enemy at the target GPS.";
-            return BuildUnassignedContract(contractDescription);
+            return BuildUnassignedContract(Description);
         }
 
         public Tuple<bool, MyContractResults> TryAcceptContract(CrunchPlayerData playerData, long identityId, MyContractBlock __instance)
@@ -449,6 +448,8 @@ namespace CrunchEconContractModels.Contracts
         public bool SpawnAroundGps { get; set; }
         public bool WaterModSpawn { get; set; }
 
+
+
         public List<GridDestruction> GridsToDestroy = new List<GridDestruction>();
 
         public double PayPerDamage { get; set; }
@@ -524,8 +525,7 @@ namespace CrunchEconContractModels.Contracts
             contract.SpawnAroundGps = this.SpawnAroundGps;
             contract.Waves = this.Waves;
             contract.GridsToDestroy = this.GridsToDestroy;
-            description.AppendLine($"Reward is calculated from blocks destroyed. Minimum payout of {MinimumPay:##,###}");
-            description.AppendLine($" ||| Maximum payout of {MaximumPay:##,###}");
+            description.AppendLine($"{this.Description}");
             contract.ReadyToDeliver = false;
             if (this.ReputationRequired != 0)
             {
@@ -538,8 +538,8 @@ namespace CrunchEconContractModels.Contracts
 
         public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {
-            var min = 100;
-            var max = 300;
+            var min = MinSpawnRangeInKM;
+            var max = MaxSpawnRangeInKM;
             if (this.DeliveryGPSes.Any())
             {
                 if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())
@@ -621,8 +621,10 @@ namespace CrunchEconContractModels.Contracts
         public long MaximumPay { get; set; }
         public bool SpawnAroundGps { get; set; }
         public bool WaterModSpawn { get; set; }
-
+        public int MinSpawnRangeInKM = 50;
+        public int MaxSpawnRangeInKM = 75;
         public string ContractName { get; set; } = "Anti Piracy Operations Grid Death";
+        public string Description { get; set; } = "Destroy enemy power sources to kill the grid!";
 
         public List<SpawnWave> Waves = new List<SpawnWave>();
         public List<GridDestruction> GridsToDestroy = new List<GridDestruction>();
