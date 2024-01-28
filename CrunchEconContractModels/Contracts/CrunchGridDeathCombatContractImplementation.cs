@@ -569,8 +569,14 @@ namespace CrunchEconContractModels.Contracts
             {
                 for (int i = 0; i < 10; i++)
                 {
-                    Vector3 Position = keenstation.Position;
-                    Position.Add(new Vector3(Core.random.Next(min * 1000, max * 1000), Core.random.Next(min * 1000, max * 1000), Core.random.Next(min * 1000, max * 1000)));
+          
+                    Vector3D randomDirection = MyUtils.GetRandomVector3Normalized();
+
+                    // Generate a random distance within the specified range
+                    double randomDistance = MyUtils.GetRandomDouble(min, max);
+
+                    // Calculate the new position by adding the random direction multiplied by the random distance
+                    Vector3 Position = keenstation.Position + randomDirection * randomDistance;
 
                     if (MyGravityProviderSystem.IsPositionInNaturalGravity(Position))
                     {
@@ -587,8 +593,14 @@ namespace CrunchEconContractModels.Contracts
             {
                 for (int i = 0; i < 10; i++)
                 {
-                    Vector3 Position = __instance.PositionComp.GetPosition();
-                    Position.Add(new Vector3(Core.random.Next(min * 1000, max * 1000), Core.random.Next(min * 1000, max * 1000), Core.random.Next(min * 1000, max * 1000)));
+                    // Generate a random direction vector
+                    Vector3D randomDirection = MyUtils.GetRandomVector3Normalized();
+
+                    // Generate a random distance within the specified range
+                    double randomDistance = MyUtils.GetRandomDouble(min, max);
+
+                    // Calculate the new position by adding the random direction multiplied by the random distance
+                    Vector3D Position = __instance.PositionComp.GetPosition() + randomDirection * randomDistance;
                     if (MyGravityProviderSystem.IsPositionInNaturalGravity(Position))
                     {
                         min += 100;
