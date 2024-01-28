@@ -250,7 +250,7 @@ namespace CrunchEconContractModels.Contracts
 
             if (!Waves.Any(x => x.WaveNumber > CurrentWave) && DateTime.Now > NextSpawn || Waves.Any(x => x.WaveNumber == CurrentWave && x.Repeat))
             {
-                Core.Log.Info("No more waves");
+              
                 var result2 = TryCompleteContract(this.AssignedPlayerSteamId, null);
                 if (result2)
                 {
@@ -538,8 +538,8 @@ namespace CrunchEconContractModels.Contracts
 
         public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {
-            var min = MinSpawnRangeInKM;
-            var max = MaxSpawnRangeInKM;
+            var min = MinSpawnRangeInKM * 1000;
+            var max = MaxSpawnRangeInKM * 1000;
             if (this.DeliveryGPSes.Any())
             {
                 if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())
@@ -600,7 +600,7 @@ namespace CrunchEconContractModels.Contracts
                     double randomDistance = MyUtils.GetRandomDouble(min, max);
 
                     // Calculate the new position by adding the random direction multiplied by the random distance
-                    Vector3D Position = __instance.PositionComp.GetPosition() + randomDirection * randomDistance;
+                    Vector3D Position = __instance.CubeGrid.PositionComp.GetPosition() + randomDirection * randomDistance;
                     if (MyGravityProviderSystem.IsPositionInNaturalGravity(Position))
                     {
                         min += 100;
@@ -633,8 +633,8 @@ namespace CrunchEconContractModels.Contracts
         public long MaximumPay { get; set; }
         public bool SpawnAroundGps { get; set; }
         public bool WaterModSpawn { get; set; }
-        public int MinSpawnRangeInKM = 50;
-        public int MaxSpawnRangeInKM = 75;
+        public int MinSpawnRangeInKM { get; set; } = 50;
+        public int MaxSpawnRangeInKM { get; set; } = 75;
         public string ContractName { get; set; } = "Anti Piracy Operations Grid Death";
         public string Description { get; set; } = "Destroy enemy power sources to kill the grid!";
 
