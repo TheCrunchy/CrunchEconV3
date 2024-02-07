@@ -2,6 +2,7 @@
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Torch.API.Managers;
 using Torch.Commands;
 using Torch.Managers.PatchManager;
+using Torch.Utils;
 
 namespace CrunchEconV3.Utils
 {
@@ -31,14 +33,32 @@ namespace CrunchEconV3.Utils
                 if (!assembly.IsDynamic && assembly.Location != null & string.Empty != assembly.Location)
                     metadataReferenceList.Add((MetadataReference)MetadataReference.CreateFromFile(assembly.Location));
             }
+            var folder = Core.basePath.Replace(@"\Instance", "");
 
-            foreach (var filePath in Directory.GetFiles($"{Core.basePath}/{Core.PluginName}/").Where(x => x.Contains(".dll")))
+            var plugins = $"{folder}/plugins/CrunchEconV3.zip";
+            using (var zipArchive = ZipFile.OpenRead(plugins))
             {
-                using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                foreach (var entry in zipArchive.Entries)
                 {
-                    metadataReferenceList.Add(MetadataReference.CreateFromStream(fileStream));
+                    if (entry.Name.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        using (var stream = entry.Open())
+                        {
+                            byte[] end = MiscExtensions.ReadToEnd(stream, (int)entry.Length);
+                            metadataReferenceList.Add((MetadataReference)MetadataReference.CreateFromImage(end));
+                        }
+
+                    }
                 }
             }
+
+            //foreach (var filePath in Directory.GetFiles($"{Core.basePath}/{Core.PluginName}/").Where(x => x.Contains(".dll")))
+            //{
+            //    using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            //    {
+            //        metadataReferenceList.Add(MetadataReference.CreateFromStream(fileStream));
+            //    }
+            //}
 
             foreach (var filePath in Directory.GetFiles(Core.path).Where(x => x.Contains(".dll")))
             {

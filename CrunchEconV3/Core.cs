@@ -216,37 +216,7 @@ namespace CrunchEconV3
                 utils.WriteToXmlFile<Config>(path, config, false);
 
             }
-            try
-            {
-
-                var folder = StoragePath.Replace(@"\Instance", "");
-                var tempfolder = StoragePath + "/CRUNCHECONTEMP/";
-
-                CreatePath();
-                if (Directory.Exists(tempfolder))
-                {
-                    Directory.Delete(tempfolder, true);
-                }
-                Directory.CreateDirectory(tempfolder);
-
-                var plugins = $"{folder}/plugins/CrunchEconV3.zip";
-
-                ZipFile.ExtractToDirectory(plugins, tempfolder);
-                Directory.CreateDirectory($"{path}/Scripts/");
-
-                foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".dll")))
-                {
-
-                    File.Copy(item, $"{basePath}/{PluginName}/{Path.GetFileName(item)}", true);
-
-                }
-                Directory.Delete(tempfolder, true);
-            }
-            catch (Exception e)
-            {
-
-            }
-
+            
             //foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs")))
             //{
 
