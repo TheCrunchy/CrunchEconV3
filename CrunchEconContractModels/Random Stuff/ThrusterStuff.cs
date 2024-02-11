@@ -1,22 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using CrunchEconV3;
-using Sandbox.Common.ObjectBuilders;
-using Sandbox.Game.Entities;
-using Sandbox.Game.Entities.Character;
-using Sandbox.Game.Entities.Cube;
+﻿using System.Collections.Generic;
 using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
-using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
-using VRageMath;
 
-namespace CrunchEconContractModels.StationLogics
+namespace CrunchEconContractModels.Random_Stuff
 {
     [PatchShim]
     public static class FunctionalBlockPatch

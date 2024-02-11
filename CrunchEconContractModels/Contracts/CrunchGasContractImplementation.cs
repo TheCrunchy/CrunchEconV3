@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using CrunchEconV3;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
+using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
@@ -18,7 +20,7 @@ using VRage.ObjectBuilder;
 using VRage.Utils;
 using VRageMath;
 
-namespace CrunchEconV3.Models.Contracts
+namespace CrunchEconContractModels.Contracts
 {
     public class CrunchGasContractImplementation : ICrunchContract
     {

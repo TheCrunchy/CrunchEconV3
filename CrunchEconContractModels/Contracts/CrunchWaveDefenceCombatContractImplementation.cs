@@ -7,11 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
 using CrunchEconV3.APIs;
-using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
-using Newtonsoft.Json;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Entities.Character;
@@ -32,7 +30,7 @@ using VRage.ObjectBuilder;
 using VRage.Utils;
 using VRageMath;
 
-namespace CrunchEconContractModels.Contracts.WaveDefence
+namespace CrunchEconContractModels.Contracts
 {
     public class CrunchWaveDefenceCombatContractImplementation : ICrunchContract
     {

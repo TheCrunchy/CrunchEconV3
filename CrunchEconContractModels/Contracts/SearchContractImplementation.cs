@@ -2,27 +2,24 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using CrunchEconContractModels.Contracts;
+using CrunchEconV3;
 using CrunchEconV3.APIs;
 using CrunchEconV3.Interfaces;
+using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
-using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
-using Sandbox.Game.GameSystems;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
-using SpaceEngineers.Game.Entities.Blocks;
 using VRage.Game;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRage.ObjectBuilder;
 using VRage.Utils;
 using VRageMath;
 
-namespace CrunchEconV3.Models
+namespace CrunchEconContractModels.Contracts
 {
     public class SearchContractImplementation : ICrunchContract
     {

@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CrunchEconV3.APIs;
+using CrunchEconV3;
+using CrunchEconV3.Interfaces;
 using Sandbox.Game.Entities;
-using Sandbox.ModAPI;
-using VRage.Utils;
-using VRageMath; // Consider having the extension method in an appropriate namespace
 
-namespace CrunchEconV3.Interfaces
+// Consider having the extension method in an appropriate namespace
+
+namespace CrunchEconContractModels.StationLogics
 {
     public class GrowthLogic : IStationLogic
     {

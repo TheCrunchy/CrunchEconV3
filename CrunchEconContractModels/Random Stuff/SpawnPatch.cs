@@ -1,26 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using CrunchEconV3;
-using Sandbox.Common.ObjectBuilders;
-using Sandbox.Game.Entities;
-using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.GameSystems;
 using Sandbox.Game.SessionComponents;
-using Sandbox.ModAPI;
-using SpaceEngineers.Game.Entities.Blocks;
 using SpaceEngineers.Game.World;
 using Torch.Managers.PatchManager;
-using VRage.Game;
-using VRage.Game.Entity;
-using VRage.Game.ModAPI;
-using VRage.ModAPI;
 using VRageMath;
 
-namespace CrunchEconContractModels.StationLogics
+namespace CrunchEconContractModels.Random_Stuff
 {
     [PatchShim]
     public static class SpawnPatch

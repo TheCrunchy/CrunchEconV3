@@ -1,11 +1,11 @@
 ﻿using System;
-using SpaceEngineers.Game.World;
 using System.Reflection;
 using Sandbox.Game.SessionComponents;
+using SpaceEngineers.Game.World;
 using Torch.Managers.PatchManager;
 using VRageMath;
 
-namespace HardcodedRespawn
+namespace CrunchEconContractModels.Random_Stuff
 {
     [PatchShim]
     public static class SpawnPatchTwo
