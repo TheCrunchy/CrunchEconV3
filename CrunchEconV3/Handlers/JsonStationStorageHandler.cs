@@ -154,6 +154,8 @@ namespace CrunchEconV3.Handlers
                 example.ContractFiles = new List<string>();
                 example.ContractFiles.Add("/Example/Contracts.json");
                 example.Logics = new List<IStationLogic>();
+
+                example.LocationGPS = "GPS:New:0:0:0:#FF75C9F1:";
                 var examples = new List<IContractConfig>();
 
                 var configs = from t in Core.myAssemblies.Select(x => x)

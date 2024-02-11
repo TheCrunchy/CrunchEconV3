@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CrunchEconV3;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Character;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
@@ -51,7 +52,11 @@ namespace CrunchEconContractModels.StationLogics
                 }
                 return false;
             });
+
+
         }
+
+
         private static void OnEntityAdd(IMyEntity entity)
         {
             if (entity is IMyCubeGrid grid)

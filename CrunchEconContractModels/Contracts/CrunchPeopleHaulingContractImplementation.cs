@@ -25,6 +25,14 @@ namespace CrunchEconV3.Models.Contracts
     public class CrunchPeopleHaulingContractImplementation : ICrunchContract
     {
         public string ContractType { get; set; }
+        public bool ConsumeOxygen { get; set; } = false;
+        public long OxygenLitrePerPassenger { get; set; } = 1000;
+        public int SecondsBetweenOxygenChecks { get; set; } = 60;
+        public DateTime NextOxygenCheck { get; set; }
+        public int DeadPassengers { get; set; }
+        public double PercentDeathsPerFail { get; set; } = 0.1;
+        public double BaseRewardPerPassenger { get; set; }
+        private MyCubeGrid playersGrid { get; set; }
         public MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
         {
             string definition = this.DefinitionId;
@@ -63,6 +71,11 @@ namespace CrunchEconV3.Models.Contracts
         {
             var contractDescription = $"You must go deliver {this.PassengerCount} passengers, using the ship that accepted the contract.";
             contractDescription += $" ||| Distance bonus: {this.DistanceReward:##,###}";
+            if (this.ConsumeOxygen)
+            {
+                contractDescription += $" ||| Oxygen Consumption: {this.OxygenLitrePerPassenger:##,###} per passenger, per {this.SecondsBetweenOxygenChecks} seconds.";
+            }
+
             foreach (var passengerBlock in this.PassengerBlocks)
             {
                 contractDescription += $" ||| block {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace} capacity";
@@ -124,7 +137,11 @@ namespace CrunchEconV3.Models.Contracts
                 if (owner)
                 {
                     capacity += PassengerTransportUtils.GetPassengerCount(gridInGroup as MyCubeGrid, this);
+                    var t = gridInGroup as MyCubeGrid;
+                    playersGrid = t.GetBiggestGridInGroup();
                 }
+
+
             }
 
             if (capacity <= 0)
@@ -146,6 +163,8 @@ namespace CrunchEconV3.Models.Contracts
             {
                 max = 1;
             }
+
+            this.BaseRewardPerPassenger = this.RewardMoney;
             this.PassengerCount = max;
             this.RewardMoney *= this.PassengerCount;
             this.ReadyToDeliver = true;
@@ -157,6 +176,7 @@ namespace CrunchEconV3.Models.Contracts
 
             this.AssignedPlayerIdentityId = identityId;
             this.AssignedPlayerSteamId = playerData.PlayerSteamId;
+
             return Tuple.Create(true, MyContractResults.Success);
         }
         public void SendDeliveryGPS()
@@ -198,7 +218,61 @@ namespace CrunchEconV3.Models.Contracts
                 return true;
             }
 
+            if (this.ConsumeOxygen && this.NextOxygenCheck <= DateTime.Now)
+            {
+                NextOxygenCheck = DateTime.Now.AddSeconds(this.SecondsBetweenOxygenChecks);
+                var toConsume = this.PassengerCount * this.OxygenLitrePerPassenger;
+                if (playersGrid == null)
+                {
+                    var sphere = new BoundingSphereD(PlayersCurrentPosition, 1000 * 2);
+                    var playersGrids = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyCubeGrid>()
+                        .Where(x => x.BlocksCount > 0 && FacUtils.IsOwnerOrFactionOwned(x, this.AssignedPlayerIdentityId, true)).ToList();
 
+                    if (playersGrids.Any())
+                    {
+                        playersGrid = playersGrids.First().GetBiggestGridInGroup();
+                    }
+                    else
+                    {
+                        double dying = PassengerCount * PercentDeathsPerFail;
+                        if (dying < 1)
+                        {
+                            dying = 1;
+                        }
+
+                        DeadPassengers += (int)dying;
+                        this.PassengerCount -= (int)dying;
+                        return false;
+                    }
+                }
+                var test = playersGrid.GetGridGroup(GridLinkTypeEnum.Physical);
+                var grids = new List<IMyCubeGrid>();
+                var tanks = new List<IMyGasTank>();
+
+                test.GetGrids(grids);
+                foreach (var gridInGroup in grids)
+                {
+                    tanks.AddRange(gridInGroup.GetFatBlocks<IMyGasTank>());
+                }
+
+                var playerTanks = TankHelper.MakeTankGroup(tanks, this.AssignedPlayerIdentityId, 0, "Oxygen");
+                if (playerTanks.GasInTanks <= toConsume)
+                {
+                    double dying = PassengerCount * PercentDeathsPerFail;
+                    if (dying < 1)
+                    {
+                        dying = 1;
+                    }
+
+                    DeadPassengers += (int)dying;
+                    this.PassengerCount -= (int)dying;
+                    Core.SendMessage($"Contracts", $"{dying} passengers have suffocated.", Color.DarkRed, this.AssignedPlayerSteamId);
+                }
+                else
+                {
+                    TankHelper.RemoveGasFromTanksInGroup(playerTanks, toConsume);
+                }
+            }
 
             return false;
         }
@@ -227,11 +301,35 @@ namespace CrunchEconV3.Models.Contracts
                 return false;
             }
 
-            EconUtils.addMoney(this.AssignedPlayerIdentityId, this.RewardMoney + this.DistanceReward);
-            if (this.ReputationGainOnComplete != 0)
+            if (DeadPassengers != 0)
             {
-                MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
-                    this.FactionId, this.ReputationGainOnComplete, true);
+                var alive = this.PassengerCount - this.DeadPassengers;
+                if (alive >= 1)
+                {
+                    this.RewardMoney = (long)(this.BaseRewardPerPassenger * alive + this.DistanceReward);
+
+                }
+                else
+                {
+                    this.RewardMoney = 0;
+                }
+                EconUtils.addMoney(this.AssignedPlayerIdentityId, this.RewardMoney);
+                if (this.ReputationLossOnAbandon != 0)
+                {
+                    MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1);
+                }
+                Core.SendMessage("Contracts", $"{this.Name} completed, passengers have died. You have been docked pay.", Color.Green, this.AssignedPlayerSteamId);
+                return true;
+            }
+            else
+            {
+                EconUtils.addMoney(this.AssignedPlayerIdentityId, this.RewardMoney + this.DistanceReward);
+                if (this.ReputationGainOnComplete != 0)
+                {
+                    MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
+                        this.FactionId, this.ReputationGainOnComplete, true);
+                }
+                Core.SendMessage("Contracts", $"{this.Name} completed.", Color.Green, this.AssignedPlayerSteamId);
             }
 
             return true;
@@ -268,7 +366,7 @@ namespace CrunchEconV3.Models.Contracts
         public string Name { get; set; }
         public string Description { get; set; }
         public long SecondsToComplete { get; set; }
-        
+
         public long DeliveryFactionId { get; set; }
 
         public int GpsId { get; set; }
@@ -337,6 +435,10 @@ namespace CrunchEconV3.Models.Contracts
             var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
             contract.DeliverLocation = result.Item1;
             contract.DeliveryFactionId = result.Item2;
+            contract.ConsumeOxygen = this.ConsumeOxygen;
+            contract.OxygenLitrePerPassenger = this.OxygenLitrePerPassenger;
+            contract.SecondsBetweenOxygenChecks = this.SecondsBetweenOxygenChecks;
+            contract.PercentDeathsPerFail = this.PercentDeathsPerFail;
             if (contract.DeliverLocation == null || contract.DeliverLocation.Equals(Vector3.Zero))
             {
                 return null;
@@ -419,7 +521,13 @@ namespace CrunchEconV3.Models.Contracts
 
             return Tuple.Create(Vector3D.Zero, 0l);
         }
-
+        public bool ConsumeOxygen { get; set; } = false;
+        public long OxygenLitrePerPassenger { get; set; } = 1000;
+        public int SecondsBetweenOxygenChecks { get; set; } = 60;
+        public DateTime NextOxygenCheck { get; set; }
+        public int DeadPassengers { get; set; }
+        public double PercentDeathsPerFail { get; set; } = 0.1;
+        public double BaseRewardPerPassenger { get; set; }
         public int AmountOfContractsToGenerate { get; set; } = 3;
         public float ChanceToAppear { get; set; } = 0.5f;
         public long CollateralMin { get; set; } = 1;
