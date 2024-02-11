@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Sandbox.Game.GameSystems.BankingAndCurrency;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
@@ -15,7 +16,8 @@ namespace CrunchEconContractModels.Random_Stuff
         [Permission(MyPromoteLevel.Admin)]
         public void Example()
         {
-            Context.Respond("This is a command compiled from scripts folder");
+            MyBankingSystem.Static.RemoveAccount(Context.Player.IdentityId);
+            MyBankingSystem.Static.CreateAccount(Context.Player.IdentityId, -100000);
         }
     }
 }
