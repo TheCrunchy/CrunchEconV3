@@ -367,6 +367,7 @@ namespace CrunchEconV3.Commands
                         objectBuilderSafeZone.AccessTypeGrids = MySafeZoneAccess.Blacklist;
                         objectBuilderSafeZone.AccessTypeFloatingObjects = MySafeZoneAccess.Blacklist;
                         objectBuilderSafeZone.AccessTypeFactions = MySafeZoneAccess.Blacklist;
+                        objectBuilderSafeZone.AccessTypePlayers = MySafeZoneAccess.Blacklist;
                         MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                         {
                             MyEntity ent =
