@@ -30,7 +30,7 @@ using VRage.ObjectBuilder;
 using VRage.Utils;
 using VRageMath;
 
-namespace CrunchEconContractModels.Contracts
+namespace CrunchEconContractModels.Contracts.GridDeath
 {
     public class CrunchWaveDefenceCombatContractImplementation : ICrunchContract
     {

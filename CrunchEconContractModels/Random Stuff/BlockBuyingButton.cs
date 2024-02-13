@@ -133,7 +133,7 @@ namespace CrunchEconContractModels.Random_Stuff
                                 if (rep.Item2 <= actualSale.Reputation)
                                 {
                                     var text =
-                                        $"Reputation requirement not met, required {actualSale.ReputationRequired} with {actualSale.FacTagForReputation}";
+                                        $"Reputation requirement not met, required {actualSale.Reputation} with {actualSale.FacTagForReputation}";
                                     Core.SendMessage("Grid Sales", text, Color.Red, steamId);
                                     var message = new NotificationMessage(text, 5000, "Red");
                                     ModCommunication.SendMessageTo(message, player.Id.SteamId);
@@ -146,7 +146,7 @@ namespace CrunchEconContractModels.Random_Stuff
                                 {
 
                                     var text =
-                                        $"Reputation requirement not met, required {actualSale.ReputationRequired} with {actualSale.FacTagForReputation}";
+                                        $"Reputation requirement not met, required {actualSale.Reputation} with {actualSale.FacTagForReputation}";
                                     Core.SendMessage("Grid Sales", text, Color.Red, steamId);
                                     var message = new NotificationMessage(text, 5000, "Red");
                                     ModCommunication.SendMessageTo(message, player.Id.SteamId);
@@ -186,15 +186,17 @@ namespace CrunchEconContractModels.Random_Stuff
                                 {
                                     MyCubeBlock slim = (MyCubeBlock)block;
                                     slim.ChangeOwner(player.Identity.IdentityId, MyOwnershipShareModeEnum.None);
-                                    
+                                    block.CustomData = $"Owned by {player.Id.SteamId}";
                                 }
-                               // Core.Session.Torch.Invoke(() =>
-                              //      {
-                                         bool consumed = true;
+                                __instance.CubeGrid.RemoveBlock(__instance.SlimBlock);
+                                // Core.Session.Torch.Invoke(() =>
+                                //      {
+                                bool consumed = true;
                                 var manager = Core.Session.Managers.GetManager<CommandManager>();
                                 manager?.HandleCommand("!entities refresh", player.Id.SteamId, ref consumed);
                                //     });
-                                return false;
+                   
+                                return true;
 
                             }
                             else
