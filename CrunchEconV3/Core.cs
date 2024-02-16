@@ -287,6 +287,7 @@ namespace CrunchEconV3
 
             if (newState is TorchSessionState.Loaded)
             {
+
                 try
                 {
                     Compiler.Compile($"{Core.path}/Scripts/");
@@ -296,7 +297,6 @@ namespace CrunchEconV3
                 {
                     Core.Log.Error($"compile error {e}");
                 }
-
                 if (!CompileFailed)
                 {
                     StationStorage = new JsonStationStorageHandler(path);
@@ -310,6 +310,9 @@ namespace CrunchEconV3
 
             }
         }
+
+        public static List<StationConfig> Fakes { get; set; } = new List<StationConfig>();
+
     }
 }
 

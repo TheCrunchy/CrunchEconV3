@@ -16,7 +16,6 @@ namespace CrunchEconV3.Handlers
     public class JsonStationStorageHandler : ICrunchStationStorage
     {
         private List<StationConfig> Configs { get; set; } = new List<StationConfig>();
-        public List<StationConfig> Fakes { get; set; } = new List<StationConfig>();
 
         private Dictionary<string, List<IContractConfig>> MappedConfigs { get; set; } = new Dictionary<string, List<IContractConfig>>();
         private Dictionary<string, List<IContractConfig>> MappedKeenConfigs { get; set; } = new Dictionary<string, List<IContractConfig>>();
@@ -52,7 +51,12 @@ namespace CrunchEconV3.Handlers
             Configs.Clear();
             MappedConfigs.Clear();
             MappedKeenConfigs.Clear();
-         //   Thread.Sleep(Core.random.next);
+            //   Thread.Sleep(Core.random.next);
+            foreach (var fake in Core.Fakes)
+            {
+                SetupContracts(fake);
+            }
+
             foreach (var item in Directory.GetFiles(BasePath))
             {
                 var loaded = FileUtils.ReadFromJsonFile<StationConfig>(item);
@@ -163,7 +167,6 @@ namespace CrunchEconV3.Handlers
         {
             if (StationData.GetFake())
             {
-                SetupContracts(StationData);
                 return;
             }
             FileUtils.WriteToJsonFile($"{BasePath}/{StationData.FileName}", StationData);

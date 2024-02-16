@@ -21,7 +21,7 @@ namespace CrunchEconContractModels.Random_Stuff
         public static void Patch(PatchContext ctx)
         {
             MyAPIGateway.Entities.OnEntityAdd += OnEntityAdd;
-
+            Core.Fakes.Clear();
             // Iterate through all existing grids when the mod initializes
             var grids = new List<IMyEntity>();
             MyAPIGateway.Entities.GetEntities(null, (entity) =>
@@ -55,7 +55,17 @@ namespace CrunchEconContractModels.Random_Stuff
                         var entry = Core.config.KeenNPCContracts.FirstOrDefault(x =>
                             x.NPCFactionTags.Contains(faction.Tag));
                         var fake = new StationConfig();
-                        fake.ContractFiles = entry.ContractFiles;
+                        foreach (var item in entry.ContractFiles)
+                        {
+                            if (item.Contains("/Stations/"))
+                            {
+                                fake.ContractFiles.Add(item.Replace("/Stations", ""));
+                            }
+                            else
+                            {
+                                fake.ContractFiles.Add(item);
+                            }
+                        }
                         var gps = new MyGps();
                         fake.FactionTag = faction.Tag;
                         gps.Name = "Fake Station";
@@ -63,7 +73,9 @@ namespace CrunchEconContractModels.Random_Stuff
                         fake.LocationGPS = gps.ToString();
                         fake.SetFake();
                         fake.SetGrid(grid.GetBiggestGridInGroup());
-                        Core.StationStorage.Save(fake);
+                        fake.FileName = grid.GetBiggestGridInGroup().DisplayName;
+                        Core.Fakes.Add(fake);
+                        Core.Log.Info("Adding a fake");
                     }
                 }
             }
