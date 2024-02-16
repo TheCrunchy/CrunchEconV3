@@ -156,7 +156,6 @@ namespace CrunchEconV3.Handlers
             var location = MyAPIGateway.Entities.GetEntityById(blockId) as MyContractBlock;
             foreach (var station in Core.StationStorage.GetAll())
             {
-                Core.Log.Info(station.FactionTag);
                 if (station.GetGrid() != null && station.GetGrid().EntityId == location.CubeGrid.GetBiggestGridInGroup().EntityId)
                 {
                     if (location.OwnerId == FacUtils.GetOwner(station.GetGrid()))
@@ -164,13 +163,14 @@ namespace CrunchEconV3.Handlers
                         MappedContractBlocks.Add(blockId, station.FileName);
                         return station.FileName;
                     }
-                     }
+                }
+
                 var gps = GPSHelper.ScanChat(station.LocationGPS);
                 if (gps == null)
                 {
                     continue;
                 }
-                
+
                 var sphere = new BoundingSphereD(gps.Coords, 1000 * 2);
                 if (MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyContractBlock>()
                     .Where(x => !x.Closed).Any(block => block.EntityId == blockId && block.GetOwnerFactionTag() == station.FactionTag))
@@ -194,13 +194,13 @@ namespace CrunchEconV3.Handlers
         public static List<ICrunchContract> GenerateNewContracts(long blockId)
         {
             BlocksContracts.Remove(blockId);
-          //  Core.Log.Info(1);
+            //  Core.Log.Info(1);
             List<ICrunchContract> NewContracts = new List<ICrunchContract>();
             if (GetByStationId == null)
             {
                 GetByStationId = MySession.Static.Factions.GetType().GetMethod("GetStationByStationId", BindingFlags.Instance | BindingFlags.NonPublic);
             }
-        //    Core.Log.Info(2);
+            //    Core.Log.Info(2);
             if (!MappedStations.ContainsKey(blockId) && !MappedContractBlocks.ContainsKey(blockId))
             {
 
@@ -217,10 +217,10 @@ namespace CrunchEconV3.Handlers
                     MappedStations.Add(blockId, stat);
                 }
             }
-        //    Core.Log.Info(3);
+            //    Core.Log.Info(3);
             if (MappedStations.TryGetValue(blockId, out var station))
             {
-         //       Core.Log.Info(3.5);
+                //       Core.Log.Info(3.5);
                 var faction = MySession.Static.Factions.TryGetFactionById(station.FactionId);
                 foreach (var contract in Core.StationStorage.GetForKeen(faction.Tag))
                 {
@@ -247,17 +247,17 @@ namespace CrunchEconV3.Handlers
 
                 return NewContracts;
             }
-         //   Core.Log.Info(4);
+            //   Core.Log.Info(4);
             var stationName = GetStationNameForBlock(blockId);
             if (stationName == null)
             {
                 return NewContracts;
             }
-         //   Core.Log.Info(5);
+            //   Core.Log.Info(5);
             var foundStation = Core.StationStorage.GetAll().FirstOrDefault(x => x.FileName == stationName);
             var location = MyAPIGateway.Entities.GetEntityById(blockId) as MyContractBlock;
             if (foundStation == null) return null;
-          //  Core.Log.Info(6);
+            //  Core.Log.Info(6);
             foreach (var contract in foundStation.GetConfigs())
             {
                 var i = 0;
@@ -271,7 +271,7 @@ namespace CrunchEconV3.Handlers
 
                 }
             }
-        //    Core.Log.Info(7);
+            //    Core.Log.Info(7);
             return NewContracts;
         }
     }

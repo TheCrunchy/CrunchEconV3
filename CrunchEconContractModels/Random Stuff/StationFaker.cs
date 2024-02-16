@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CrunchEconV3;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Screens.Helpers;
+
 using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
 using VRage.Game.ModAPI;
@@ -33,6 +31,7 @@ namespace CrunchEconContractModels.Random_Stuff
                 return false;
             });
         }
+
         private static void OnEntityAdd(IMyEntity entity)
         {
             if (entity is MyCubeGrid grid)
@@ -55,6 +54,7 @@ namespace CrunchEconContractModels.Random_Stuff
                         var entry = Core.config.KeenNPCContracts.FirstOrDefault(x =>
                             x.NPCFactionTags.Contains(faction.Tag));
                         var fake = new StationConfig();
+                        fake.ContractFiles = new List<string>();
                         foreach (var item in entry.ContractFiles)
                         {
                             if (item.Contains("/Stations/"))
@@ -66,6 +66,8 @@ namespace CrunchEconContractModels.Random_Stuff
                                 fake.ContractFiles.Add(item);
                             }
                         }
+
+                    
                         var gps = new MyGps();
                         fake.FactionTag = faction.Tag;
                         gps.Name = "Fake Station";
