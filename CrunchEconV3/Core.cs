@@ -30,9 +30,14 @@ using CoreSystems.Api;
 using CrunchEconV3.APIs;
 using CrunchEconV3.Patches;
 using Sandbox.Definitions;
+using Sandbox.Game.Entities;
+using Sandbox.Game.Screens.Helpers;
+using Sandbox.ModAPI;
 using Torch.Commands;
 using VRage.Game;
 using VRage.Game.Components;
+using VRage.Game.ModAPI;
+using VRage.ModAPI;
 
 namespace CrunchEconV3
 {
@@ -89,8 +94,6 @@ namespace CrunchEconV3
 
             if (ticks == 1)
             {
-                //Core.DamageHandlerWeaponCore = new WcApi.DamageHandlerHelper(Core.WeaponcoreAPI);
-                //Core.DamageHandlerWeaponCore.RegisterForDamage(3245, WcApi.DamageHandlerHelper.EventType.SystemWideDamageEvents);
             }
             try
             {
@@ -216,7 +219,7 @@ namespace CrunchEconV3
                 utils.WriteToXmlFile<Config>(path, config, false);
 
             }
-            
+
             //foreach (var item in Directory.GetFiles(tempfolder).Where(x => x.EndsWith(".cs")))
             //{
 
@@ -304,7 +307,7 @@ namespace CrunchEconV3
                 {
                     Core.Log.Error("Compile failed, station and player data not loaded");
                 }
-          
+
             }
         }
     }

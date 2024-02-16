@@ -64,7 +64,9 @@ namespace CrunchEconContractModels.Random_Stuff
                 else
                 {
                     var beacons = grids.Cast<MyCubeGrid>().SelectMany(x => x.GetFatBlocks().OfType<MyBeacon>()).Select(x => x.BlockDefinition.BlockPairName).Distinct();
-
+                    var shipClass = GetMaxLimitByBeaconPairName(beacons);
+                    GridsClass[__instance.GetBiggestGridInGroup().EntityId] = shipClass.Key;
+                    limit = shipClass.Value;
                     //find the class
                 }
 
@@ -82,6 +84,24 @@ namespace CrunchEconContractModels.Random_Stuff
                 }
 
                 return true;
+            }
+
+            public static KeyValuePair<string, int> GetMaxLimitByBeaconPairName(IEnumerable<string> beacons)
+            {
+                KeyValuePair<string, int> maxLimitPair = default(KeyValuePair<string, int>);
+                int maxLimit = int.MinValue;
+
+                foreach (var beacon in beacons)
+                {
+                    int limit;
+                    if (LimitsByBeaconPairName.TryGetValue(beacon, out limit) && limit > maxLimit)
+                    {
+                        maxLimit = limit;
+                        maxLimitPair = new KeyValuePair<string, int>(beacon, limit);
+                    }
+                }
+
+                return maxLimitPair;
             }
         }
     }

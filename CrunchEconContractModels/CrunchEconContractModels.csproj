@@ -97,10 +97,12 @@
     <Compile Include="Random Stuff\ExampleCommand.cs" />
     <Compile Include="Random Stuff\GridSales.cs" />
     <Compile Include="Random Stuff\GridSalesTwo.cs" />
+    <Compile Include="Random Stuff\Inventory.cs" />
     <Compile Include="Random Stuff\NexusHelper.cs" />
     <Compile Include="Random Stuff\PCUStuff.cs" />
     <Compile Include="Random Stuff\ReputationScript.cs" />
     <Compile Include="Random Stuff\SpawnPatchTwo.cs" />
+    <Compile Include="Random Stuff\StationFaker.cs" />
     <Compile Include="Random Stuff\StorePurchaseLimit.cs" />
     <Compile Include="Random Stuff\PCULimits.cs" />
     <Compile Include="StationLogics\GrowthLogic.cs" />
