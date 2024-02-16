@@ -62,47 +62,22 @@ namespace CrunchEconV3.Handlers
                     Core.Log.Error($"GPS for station {loaded.FileName} is not valid, station not loaded");
                     continue;
                 }
-                if (loaded.ContractFiles != null || loaded.ContractFiles.Any())
+                SetupContracts(loaded);
+                foreach (var substation in loaded.SubstationGpsStrings)
                 {
-                    foreach (var file in loaded.ContractFiles)
+                    var station = loaded.Clone();
+                    gps = GPSHelper.ScanChat(substation);
+                    if (gps == null)
                     {
-                        try
-                        {
-                            if (!MappedConfigs.ContainsKey(file))
-                            {
-                                try
-                                {
-                                    MappedConfigs.Add(file, FileUtils.ReadFromJsonFile<List<IContractConfig>>($"{BasePath}/{file}"));
-                                }
-                                catch (Exception e)
-                                {
-                                    Core.Log.Error(e);
-                                    continue;
-                                }
-                            }
-                            loaded.SetConfigs(MappedConfigs[file]);
-                        }
-                        catch (Exception exception)
-                        {
-                            Core.Log.Error(exception);
-                        }
+                        Core.Log.Error($"GPS for station {loaded.FileName} is not valid, station not loaded");
+                        continue;
                     }
-                    if (loaded.Enabled)
-                    {
-                        Configs.Add(loaded);
-                    }
+                    station.LocationGPS = substation;
+                    station.SetFake();
+                    SetupContracts(station);
                 }
-                else
-                {
-                    loaded.ContractFiles = new List<string>();
-                    loaded.SetConfigs(new List<IContractConfig>());
-                    if (loaded.Enabled)
-                    {
-                        Configs.Add(loaded);
-                    }
-                }
-
             }
+
 
             foreach (var NPC in Core.config.KeenNPCContracts)
             {
@@ -138,8 +113,58 @@ namespace CrunchEconV3.Handlers
             }
         }
 
+        private void SetupContracts(StationConfig loaded)
+        {
+            if (loaded.ContractFiles != null || loaded.ContractFiles.Any())
+            {
+                foreach (var file in loaded.ContractFiles)
+                {
+                    try
+                    {
+                        if (!MappedConfigs.ContainsKey(file))
+                        {
+                            try
+                            {
+                                MappedConfigs.Add(file,
+                                    FileUtils.ReadFromJsonFile<List<IContractConfig>>($"{BasePath}/{file}"));
+                            }
+                            catch (Exception e)
+                            {
+                                Core.Log.Error(e);
+                                continue;
+                            }
+                        }
+
+                        loaded.SetConfigs(MappedConfigs[file]);
+                    }
+                    catch (Exception exception)
+                    {
+                        Core.Log.Error(exception);
+                    }
+                }
+
+                if (loaded.Enabled)
+                {
+                    Configs.Add(loaded);
+                }
+            }
+            else
+            {
+                loaded.ContractFiles = new List<string>();
+                loaded.SetConfigs(new List<IContractConfig>());
+                if (loaded.Enabled)
+                {
+                    Configs.Add(loaded);
+                }
+            }
+        }
+
         public void Save(StationConfig StationData)
         {
+            if (StationData.GetFake())
+            {
+                return;
+            }
             FileUtils.WriteToJsonFile($"{BasePath}/{StationData.FileName}", StationData);
         }
 

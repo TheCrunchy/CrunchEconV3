@@ -28,6 +28,21 @@ namespace CrunchEconV3.Models
 
             return clonedConfig;
         }
+
+        private bool IsFakeStation { get; set; } = false;
+
+        public bool GetFake()
+        {
+            return IsFakeStation;
+        }
+
+        public void SetFake()
+        {
+            IsFakeStation = true;
+        }
+
+        public List<string> SubstationGpsStrings = new List<string>();
+
         public bool Enabled { get; set; } = true;
         private MyCubeGrid grid { get; set; }
         public string LocationGPS { get; set; } = "Put a gps here";

@@ -102,6 +102,7 @@
     <Compile Include="Random Stuff\ReputationScript.cs" />
     <Compile Include="Random Stuff\SpawnPatchTwo.cs" />
     <Compile Include="Random Stuff\StorePurchaseLimit.cs" />
+    <Compile Include="Random Stuff\PCULimits.cs" />
     <Compile Include="StationLogics\GrowthLogic.cs" />
     <Compile Include="StationLogics\FactionBalanceLogic.cs" />
     <Compile Include="StationLogics\StationCraftingLogic.cs" />

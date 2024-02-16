@@ -279,6 +279,22 @@ namespace CrunchEconV3.Commands
             Context.Respond($"Exported grid: {gridname}");
         }
 
+        [Command("addsub", "add a substation from current location to target station")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void addsub(string existingStationName)
+        {
+            var generated = 0;
+
+            if (Core.StationStorage.GetAll().Any(x => x.FileName.Replace(".json", "") == existingStationName))
+            {
+                var station = Core.StationStorage.GetAll()
+                    .FirstOrDefault(x => x.FileName.Replace(".json", "") == existingStationName);
+                var gps = new MyGps();
+                gps.Coords = Context.Player.Character.GetPosition();
+                station.SubstationGpsStrings.Add(gps.ToString());
+                Core.StationStorage.Save(station);
+            }
+        }
 
         [Command("generate", "generate stations using an existing station as a template")]
         [Permission(MyPromoteLevel.Admin)]
@@ -350,13 +366,7 @@ namespace CrunchEconV3.Commands
                     gps.Name = "Station";
                     if (spawnedGrid.Any())
                     {
-                        var newStation = station.Clone();
-                        newStation.FactionTag = ownerFactionTag;
-                        newStation.FileName = $"{newStation.FileName.Replace(".json","")} {i}.json";
-                        newStation.SetFirstLoad(true);
-                        newStation.LocationGPS = gps.ToString();
-
-                        Core.StationStorage.Save(newStation);
+                        station.SubstationGpsStrings.Add(gps.ToString());
                         MyObjectBuilder_SafeZone objectBuilderSafeZone = new MyObjectBuilder_SafeZone();
                         objectBuilderSafeZone.PositionAndOrientation = new MyPositionAndOrientation?(new MyPositionAndOrientation(newPosition, Vector3.Forward, Vector3.Up));
                         objectBuilderSafeZone.PersistentFlags = MyPersistentEntityFlags2.InScene;
@@ -377,6 +387,7 @@ namespace CrunchEconV3.Commands
                     }
                     generated++;
                 }
+                Core.StationStorage.Save(station);
             }
             else
             {
