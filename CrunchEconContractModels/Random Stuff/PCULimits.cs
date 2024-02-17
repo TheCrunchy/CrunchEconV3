@@ -7,6 +7,7 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using SpaceEngineers.Game.Entities.Blocks;
 using Torch.Managers.PatchManager;
 using VRage.Audio;
 using VRage.Game;
@@ -30,7 +31,7 @@ namespace CrunchEconContractModels.Random_Stuff
             {
                 MethodInfo method = typeof(MyCubeGrid).GetMethod("BuildBlocksRequest", BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                 ctx.GetPattern((MethodBase)method).Prefixes.Add(typeof(BuildBlockPatch).GetMethod("BuildBlocksRequest", BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic));
-
+                ctx.GetPattern((MethodBase)typeof(MyShipMergeBlock).GetMethod("UpdateBeforeSimulation10", BindingFlags.Instance | BindingFlags.Public)).Prefixes.Add(typeof(PCULimits).GetMethod("MergeCheck", BindingFlags.Static | BindingFlags.NonPublic));
                 LimitsByBeaconPairName.Clear();
                 LimitsByBeaconPairName.Add("LargeBlockBeacon", 50000);
                 LimitsByBeaconPairName.Add("PairName2", 50000);
@@ -80,6 +81,43 @@ namespace CrunchEconContractModels.Random_Stuff
                     {
                         Core.SendMessage("PCU Limit", $"Grid PCU Limit reached. Limit of {limit:##,###}", Color.Red, steamId);
                     }
+                    return false;
+                }
+
+                return true;
+            }
+
+            private static bool MergeCheck(MyShipMergeBlock __instance)
+            {
+                if (__instance?.Other == null || __instance.IsLocked || (!__instance.IsFunctional || !__instance.Other.IsFunctional))
+                    return true;
+                var grids = new List<IMyCubeGrid>();
+
+                __instance.CubeGrid.GetGridGroup(GridLinkTypeEnum.Mechanical).GetGrids(grids);
+
+                var limit = 0;
+                if (GridsClass.TryGetValue(__instance.CubeGrid.GetBiggestGridInGroup().EntityId, out var foundClass))
+                {
+                    limit = LimitsByBeaconPairName[foundClass];
+                }
+                else
+                {
+                    var beacons = grids.Cast<MyCubeGrid>().SelectMany(x => x.GetFatBlocks().OfType<MyBeacon>()).Select(x => x.BlockDefinition.BlockPairName).Distinct();
+                    var shipClass = GetMaxLimitByBeaconPairName(beacons);
+                    GridsClass[__instance.CubeGrid.GetBiggestGridInGroup().EntityId] = shipClass.Key;
+                    limit = shipClass.Value;
+                    //find the class
+                }
+                var pcu = grids.Cast<MyCubeGrid>().Sum(Grid => Grid.BlocksPCU);
+
+                var targetGrids = new List<IMyCubeGrid>();
+
+                __instance.Other.CubeGrid.GetGridGroup(GridLinkTypeEnum.Mechanical).GetGrids(targetGrids);
+                var targetpcu = grids.Cast<MyCubeGrid>().Sum(Grid => Grid.BlocksPCU);
+
+                if (pcu > limit || pcu + targetpcu > limit)
+                {
+                    __instance.Enabled = false;
                     return false;
                 }
 

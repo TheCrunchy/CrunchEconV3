@@ -237,7 +237,19 @@ namespace CrunchEconV3.Commands
             Context.Respond("done, check logs for any errors");
         }
 
-
+        [Command("importgrid", "import a grid from a sellable file")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void ExportGrid(string fileName)
+        {
+            var path = $"{Core.path}\\Grids\\{fileName.Replace(".sbc", "")}.sbc";
+            if (!File.Exists(path))
+            {
+                Context.Respond("Grid file not found with that name.");
+                return;
+            }
+            GridManager.LoadGrid(path, Context.Player.Character.PositionComp.GetPosition(), false, Context.Player.SteamUserId, fileName, true);
+            Context.Respond($"Imported grid");
+        }
 
         [Command("exportgrid", "export a grid to a sellable file")]
         [Permission(MyPromoteLevel.Admin)]

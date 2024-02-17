@@ -71,6 +71,7 @@ namespace CrunchEconV3.Handlers
                 foreach (var substation in loaded.SubstationGpsStrings)
                 {
                     var station = loaded.Clone();
+                    station.FileName = $"{station.FileName} clone";
                     gps = GPSHelper.ScanChat(substation);
                     if (gps == null)
                     {

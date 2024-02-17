@@ -57,7 +57,26 @@ namespace CrunchEconContractModels.Contracts
 
             return false;
         }
+        private bool HasActiveThrusters(IMyCubeGrid grid)
+        {
+            var blocks = new List<IMySlimBlock>();
+            grid.GetBlocks(blocks);
 
+            foreach (var block in blocks)
+            {
+                var terminalBlock = block.FatBlock as IMyTerminalBlock;
+                if (terminalBlock != null && terminalBlock is IMyThrust)
+                {
+                    var thrust = terminalBlock as IMyThrust;
+                    if (thrust.IsWorking)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
         public long ContractId { get; set; }
         public string ContractType { get; set; }
         public MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
@@ -211,10 +230,12 @@ namespace CrunchEconContractModels.Contracts
                 {
                     if (grid.Closed || grid.MarkedForClose)
                     {
+                        UncollectedPay += item.Value;
                         temp.Add(item.Key);
+                        Core.SendMessage($"{this.Name}", $"{grid.DisplayName} destroyed.", Color.LightGreen, this.AssignedPlayerSteamId);
                         continue;
                     }
-                    if (!HasPower(grid))
+                    if (!HasPower(grid) || !HasActiveThrusters(grid))
                     {
                         UncollectedPay += item.Value;
                         temp.Add(item.Key);
@@ -324,7 +345,10 @@ namespace CrunchEconContractModels.Contracts
 
                 var Ids = GridManagerUpdated.LoadGrid($"{Core.path}//Grids//{grid.GridName}", Position, false,
                     (ulong)faction.Members.FirstOrDefault().Key, grid.GridName.Replace(".sbc", ""), false);
-
+                foreach (var tempGrid in Ids)
+                {
+                    tempGrid.GridGeneralDamageModifier.ValidateAndSet(grid.TakenDamagerModifier);
+                }
                 if (!Ids.Any())
                 {
                     Core.Log.Info($"Could not load grid {grid.GridName}");
@@ -661,6 +685,7 @@ namespace CrunchEconContractModels.Contracts
         public string GridName = $"pirate.sbc";
         public double ChanceToSpawn = 0.5;
         public string FacTagToOwnThisGrid = "SPRT";
+        public float TakenDamagerModifier = 1;
     }
 
     public class GridDestruction
