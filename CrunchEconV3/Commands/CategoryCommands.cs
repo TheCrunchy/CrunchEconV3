@@ -303,6 +303,7 @@ namespace CrunchEconV3.Commands
                     .FirstOrDefault(x => x.FileName.Replace(".json", "") == existingStationName);
                 var gps = new MyGps();
                 gps.Coords = Context.Player.Character.GetPosition();
+                gps.Name = "Station";
                 station.SubstationGpsStrings.Add(gps.ToString());
                 Core.StationStorage.Save(station);
             }
