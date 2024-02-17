@@ -185,6 +185,7 @@ namespace CrunchEconContractModels.Contracts
 
         public Dictionary<long, long> GridIdsToPay = new Dictionary<long, long>();
         private Dictionary<long, MyCubeGrid> MappedGrids = new Dictionary<long, MyCubeGrid>();
+        public Dictionary<long, int> StartingBlockCounts = new Dictionary<long, int>();
         public bool Update100(Vector3 PlayersCurrentPosition)
         {
             if (ReadyToDeliver)
@@ -235,7 +236,7 @@ namespace CrunchEconContractModels.Contracts
                         Core.SendMessage($"{this.Name}", $"{grid.DisplayName} destroyed.", Color.LightGreen, this.AssignedPlayerSteamId);
                         continue;
                     }
-                    if (!HasPower(grid) || !HasActiveThrusters(grid))
+                    if (!HasPower(grid) || !HasActiveThrusters(grid) || grid.BlocksCount <= StartingBlockCounts[grid.EntityId] / 2)
                     {
                         UncollectedPay += item.Value;
                         temp.Add(item.Key);
@@ -352,6 +353,7 @@ namespace CrunchEconContractModels.Contracts
                 if (!Ids.Any())
                 {
                     Core.Log.Info($"Could not load grid {grid.GridName}");
+                    
                 }
                 else
                 {
@@ -366,6 +368,7 @@ namespace CrunchEconContractModels.Contracts
                         Core.Log.Info("How the fuck did this happen");
                     }
                     GridIdsToPay.Add(main.EntityId, isPay);
+                    StartingBlockCounts.Add(main.EntityId, main.BlocksCount);
                     spawns += 1;
                 }
             }

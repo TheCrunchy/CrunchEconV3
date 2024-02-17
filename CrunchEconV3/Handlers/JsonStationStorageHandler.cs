@@ -80,6 +80,7 @@ namespace CrunchEconV3.Handlers
                     }
                     station.LocationGPS = substation;
                     station.SetFake();
+                    station.SetFirstLoad(true);
                     SetupContracts(station);
                 }
             }
