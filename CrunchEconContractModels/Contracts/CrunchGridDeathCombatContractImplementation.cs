@@ -234,20 +234,23 @@ namespace CrunchEconContractModels.Contracts
                         UncollectedPay += item.Value;
                         temp.Add(item.Key);
                         Core.SendMessage($"{this.Name}", $"{grid.DisplayName} destroyed.", Color.LightGreen, this.AssignedPlayerSteamId);
-                        continue;
-                    }
-                    if (!HasPower(grid) || !HasActiveThrusters(grid) || grid.BlocksCount <= StartingBlockCounts[grid.EntityId] / 2)
-                    {
-                        UncollectedPay += item.Value;
-                        temp.Add(item.Key);
-       
-                        Core.SendMessage($"{this.Name}",$"{grid.DisplayName} destroyed.", Color.LightGreen, this.AssignedPlayerSteamId);
-                        //      Core.Log.Info("grid has no power");
                     }
                     else
                     {
-                 //       Core.Log.Info("grid has power");
+                        if (!HasPower(grid) || !HasActiveThrusters(grid) || grid.BlocksCount <= StartingBlockCounts[grid.EntityId] / 2)
+                        {
+                            UncollectedPay += item.Value;
+                            temp.Add(item.Key);
+                            grid.SwitchPower();
+                            Core.SendMessage($"{this.Name}", $"{grid.DisplayName} destroyed.", Color.LightGreen, this.AssignedPlayerSteamId);
+                            //      Core.Log.Info("grid has no power");
+                        }
+                        else
+                        {
+                            //       Core.Log.Info("grid has power");
+                        }
                     }
+        
                 }
                 else
                 {

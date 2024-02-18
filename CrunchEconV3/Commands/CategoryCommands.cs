@@ -306,6 +306,7 @@ namespace CrunchEconV3.Commands
                 gps.Name = "Station";
                 station.SubstationGpsStrings.Add(gps.ToString());
                 Core.StationStorage.Save(station);
+                Context.Respond("Sub station added, !crunchecon reload to refresh stations.");
             }
         }
 

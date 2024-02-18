@@ -381,7 +381,12 @@ namespace CrunchEconV3.Patches
                         return true;
                     }
                 }
+                else
+                {
+                    FailedContractIds.Add(contract.ContractId, MyContractResults.Fail_ContractNotFound_Finish);
+                }
             }
+
             return true;
         }
     }

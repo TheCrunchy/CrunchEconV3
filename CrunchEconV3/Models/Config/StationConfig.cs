@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Interfaces;
+using CrunchEconV3.Utils;
+using Newtonsoft.Json;
 using Sandbox.Game.Entities;
 
 namespace CrunchEconV3.Models
@@ -22,11 +24,27 @@ namespace CrunchEconV3.Models
                 FileName = this.FileName,
                 UseAsDeliveryLocation = this.UseAsDeliveryLocation,
                 configs = this.configs?.ToList(), // Clone each IContractConfig in the list
-                Logics = this.Logics?.ToList(), // Copy the Logics list if it's not null
+                Logics = new List<IStationLogic>(),
                 FirstLoad = this.FirstLoad
             };
+            
+                var json = JsonConvert.SerializeObject(this.Logics, new JsonSerializerSettings()
+                {
+                    TypeNameHandling = TypeNameHandling.Auto,
+                    Binder = new MySerializationBinder(),
+                    Formatting = Newtonsoft.Json.Formatting.Indented
+                });
 
-            return clonedConfig;
+                var asItem = JsonConvert.DeserializeObject<List<IStationLogic>>(json, new JsonSerializerSettings()
+                {
+                    TypeNameHandling = TypeNameHandling.Auto,
+                    Binder = new MySerializationBinder(),
+                    Formatting = Newtonsoft.Json.Formatting.Indented
+                });
+
+                clonedConfig.Logics = asItem;
+            
+                return clonedConfig;
         }
 
         private bool IsFakeStation { get; set; } = false;
