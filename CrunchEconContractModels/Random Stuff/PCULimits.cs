@@ -22,21 +22,31 @@ namespace CrunchEconContractModels.Random_Stuff
     [PatchShim]
     public static class PCULimits
     {
-        public static List<string> LimitedBlocks = new List<string>();
 
         public class ShipLimits : ICloneable
         {
             public Dictionary<string, BlockGroupLimit> PairNameToLimits { get; set; } = new Dictionary<string, BlockGroupLimit>();
 
-            public bool CheckCanAddBlock(MyCubeBlockDefinition definition)
+            public (bool, BlockGroupLimit) CheckCanAddBlock(MyCubeBlockDefinition definition)
             {
 
+                Core.Log.Info(PairNameToLimits.Count);
                 if (PairNameToLimits.TryGetValue(definition.BlockPairName, out var limited))
                 {
+                    Core.Log.Info("Checking if pairnames contains it");
                     return limited.AddBlock(definition);
                 }
+                else
+                {
+                    Core.Log.Info("Checking if limited blocks contains it");
+                    if (BuildBlockPatch.LimitedBlocks.Contains(definition.BlockPairName))
+                    {
+                        return (false, null);
+                    }
+                }
 
-                return true;
+                Core.Log.Info("Returning true");
+                return (true, null);
             }
             public int MaximumPCU { get; set; }
             public string BeaconPairName { get; set; }
@@ -55,6 +65,26 @@ namespace CrunchEconContractModels.Random_Stuff
 
                 return clonedLimits;
             }
+
+            public void Setup(MyCubeGrid cubeGrid)
+            {
+                List<MyCubeBlock>
+                    BlocksToRemove = new List<MyCubeBlock>();
+                foreach (var block in cubeGrid.GetFatBlocks())
+                {
+                    var (canAdd, blockGroupLimit) = CheckCanAddBlock(block.BlockDefinition);
+                    if (!canAdd)
+                    {
+                        BlocksToRemove.Add(block);
+                    }
+                }
+
+                foreach (var block in BlocksToRemove)
+                {
+                    cubeGrid.RemoveBlock(block.SlimBlock);
+                }
+            }
+
         }
 
         public class BlockGroupLimit : ICloneable
@@ -63,15 +93,15 @@ namespace CrunchEconContractModels.Random_Stuff
             public int MaximumPCUForLimits = 5000;
             public int UsedPCU = 0;
 
-            public bool AddBlock(MyCubeBlockDefinition definition)
+            public (bool, BlockGroupLimit) AddBlock(MyCubeBlockDefinition definition)
             {
                 if (UsedPCU + definition.PCU > MaximumPCUForLimits)
                 {
-                    return false;
+                    return (false, this);
                 }
 
                 UsedPCU += definition.PCU;
-                return true;
+                return (true, this);
             }
 
             public object Clone()
@@ -85,24 +115,51 @@ namespace CrunchEconContractModels.Random_Stuff
             }
         }
 
-        public static Dictionary<string, int> LimitsByBeaconPairName { get; set; }
-        public static Dictionary<string, ShipLimits> LimitDefinitions { get; set; }
-        public static Dictionary<long, ShipLimits> GridsClass { get; set; }
 
 
         [PatchShim]
         public static class BuildBlockPatch
         {
+            public static List<string> LimitedBlocks = new List<string>();
+
+            public static Dictionary<string, int> LimitsByBeaconPairName { get; set; } = new Dictionary<string, int>();
+
+            public static Dictionary<string, ShipLimits> LimitDefinitions { get; set; } =
+                new Dictionary<string, ShipLimits>();
+
+            public static Dictionary<long, ShipLimits> GridsClass { get; set; } = new Dictionary<long, ShipLimits>();
+
+
             public static void Patch(PatchContext ctx)
             {
-                MethodInfo method = typeof(MyCubeGrid).GetMethod("BuildBlocksRequest", BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-                ctx.GetPattern((MethodBase)method).Prefixes.Add(typeof(BuildBlockPatch).GetMethod("BuildBlocksRequest", BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic));
-                ctx.GetPattern((MethodBase)typeof(MyShipMergeBlock).GetMethod("UpdateBeforeSimulation10", BindingFlags.Instance | BindingFlags.Public)).Prefixes.Add(typeof(PCULimits).GetMethod("MergeCheck", BindingFlags.Static | BindingFlags.NonPublic));
+
                 LimitsByBeaconPairName.Clear();
-                LimitsByBeaconPairName.Add("LargeBlockBeacon", 50000);
+                LimitsByBeaconPairName.Add("Beacon", 35000);
                 LimitsByBeaconPairName.Add("PairName2", 50000);
                 LimitsByBeaconPairName.Add("PairName3", 50000);
 
+                var limit = new BlockGroupLimit()
+                {
+                    AllowedBlocks = new List<string>() { "CWIS","C30mmRevolver", "C30mmSingleT", "VXM-08 Multi Launch Missile System" },
+                    MaximumPCUForLimits = 2000,
+                    UsedPCU = 0
+                };
+                var gridLimit = new ShipLimits()
+                {
+                    MaximumPCU = 35000,
+                    BeaconPairName = "Beacon",
+                    PairNameToLimits = new Dictionary<string, BlockGroupLimit>()
+
+                };
+                foreach (var block in limit.AllowedBlocks)
+                {
+                    gridLimit.PairNameToLimits.Add(block, limit);
+                }
+
+                LimitDefinitions.Add("Beacon", gridLimit);
+                MethodInfo method = typeof(MyCubeGrid).GetMethod("BuildBlocksRequest", BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                ctx.GetPattern((MethodBase)method).Prefixes.Add(typeof(BuildBlockPatch).GetMethod("BuildBlocksRequest", BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic));
+                // ctx.GetPattern((MethodBase)typeof(MyShipMergeBlock).GetMethod("UpdateBeforeSimulation10", BindingFlags.Instance | BindingFlags.Public)).Prefixes.Add(typeof(PCULimits).GetMethod("MergeCheck", BindingFlags.Static | BindingFlags.NonPublic));
             }
 
             private static bool BuildBlocksRequest(
@@ -127,10 +184,12 @@ namespace CrunchEconContractModels.Random_Stuff
                 var shipClass = GetGridsClass(__instance, grids);
                 if (shipClass == null)
                 {
+                    Core.Log.Info("Ship class be null");
                     return true;
                 }
                 var limit = shipClass.MaximumPCU;
                 ulong steamId = MyEventContext.Current.Sender.Value;
+          
                 if (MySession.Static.Players.TryGetPlayerBySteamId(steamId, out var player))
                 {
 
@@ -139,9 +198,21 @@ namespace CrunchEconContractModels.Random_Stuff
                     if (pcu > limit || pcu + definition.PCU > limit)
                     {
                         Core.SendMessage("PCU Limit", $"Grid PCU Limit reached. Limit of {limit:##,###}", Color.Red, steamId);
+                        return false;
+                    }
+           
+                }
+
+                var addResult = shipClass.CheckCanAddBlock(definition);
+                if (!addResult.Item1)
+                {
+                    if (addResult.Item2 != null)
+                    {
+                        Core.SendMessage("PCU Limit", $"Block Group PCU Limit reached. Limit of {addResult.Item2.MaximumPCUForLimits:##,###}", Color.Red, steamId);
                     }
                     return false;
                 }
+
 
                 return true;
             }
@@ -152,23 +223,29 @@ namespace CrunchEconContractModels.Random_Stuff
                 {
                     return foundClass;
                 }
-                else
+
+                var beacons = grids.Cast<MyCubeGrid>().SelectMany(x => x.GetFatBlocks().OfType<MyBeacon>())
+                    .Select(x => x.BlockDefinition.BlockPairName).Distinct();
+                var shipClass = GetMaxLimitByBeaconPairName(beacons);
+                if (shipClass.Key == null)
                 {
-                    var beacons = grids.Cast<MyCubeGrid>().SelectMany(x => x.GetFatBlocks().OfType<MyBeacon>())
-                        .Select(x => x.BlockDefinition.BlockPairName).Distinct();
-                    var shipClass = GetMaxLimitByBeaconPairName(beacons);
-                    if (LimitDefinitions.TryGetValue(shipClass.Key, out var shipDefinition))
-                    {
-                        var newClass = (ShipLimits)shipDefinition.Clone();
-                        GridsClass[__instance.GetBiggestGridInGroup().EntityId] = newClass;
-
-                        return newClass;
-                    }
-
+                    Core.Log.Info("null key");
                     return null;
-
-                    //find the class
                 }
+                Core.Log.Info($"{LimitDefinitions.Count}");
+                Core.Log.Info($"{shipClass.Key}");
+                if (LimitDefinitions.TryGetValue(shipClass.Key, out var shipDefinition))
+                {
+                    Core.Log.Info("Trying to setup new definition");
+                    var newClass = (ShipLimits)shipDefinition.Clone();
+                    GridsClass[__instance.GetBiggestGridInGroup().EntityId] = newClass;
+                    newClass.Setup(__instance.GetBiggestGridInGroup());
+                    return newClass;
+                }
+                Core.Log.Info("Cant setup definition");
+                return null;
+
+                //find the class
 
             }
 
@@ -206,20 +283,10 @@ namespace CrunchEconContractModels.Random_Stuff
 
             public static KeyValuePair<string, int> GetMaxLimitByBeaconPairName(IEnumerable<string> beacons)
             {
-                KeyValuePair<string, int> maxLimitPair = default(KeyValuePair<string, int>);
-                int maxLimit = int.MinValue;
-
-                foreach (var beacon in beacons)
-                {
-                    int limit;
-                    if (LimitsByBeaconPairName.TryGetValue(beacon, out limit) && limit > maxLimit)
-                    {
-                        maxLimit = limit;
-                        maxLimitPair = new KeyValuePair<string, int>(beacon, limit);
-                    }
-                }
-
-                return maxLimitPair;
+                return beacons
+                    .Select(beacon => new KeyValuePair<string, int>(beacon, LimitsByBeaconPairName.TryGetValue(beacon, out int limit) ? limit : 5000))
+                    .OrderByDescending(pair => pair.Value)
+                    .FirstOrDefault();
             }
         }
     }
