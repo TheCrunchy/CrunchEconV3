@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using CrunchEconV3;
@@ -21,9 +22,74 @@ namespace CrunchEconContractModels.Random_Stuff
     [PatchShim]
     public static class PCULimits
     {
+        public static List<string> LimitedBlocks = new List<string>();
+
+        public class ShipLimits : ICloneable
+        {
+            public Dictionary<string, BlockGroupLimit> PairNameToLimits { get; set; } = new Dictionary<string, BlockGroupLimit>();
+
+            public bool CheckCanAddBlock(MyCubeBlockDefinition definition)
+            {
+
+                if (PairNameToLimits.TryGetValue(definition.BlockPairName, out var limited))
+                {
+                    return limited.AddBlock(definition);
+                }
+
+                return true;
+            }
+            public int MaximumPCU { get; set; }
+            public string BeaconPairName { get; set; }
+
+            public object Clone()
+            {
+                ShipLimits clonedLimits = new ShipLimits();
+                clonedLimits.MaximumPCU = this.MaximumPCU;
+                clonedLimits.BeaconPairName = this.BeaconPairName;
+
+                // Clone PairNameToLimits dictionary and its contents
+                foreach (var pair in this.PairNameToLimits)
+                {
+                    clonedLimits.PairNameToLimits.Add(pair.Key, (BlockGroupLimit)pair.Value.Clone());
+                }
+
+                return clonedLimits;
+            }
+        }
+
+        public class BlockGroupLimit : ICloneable
+        {
+            public List<string> AllowedBlocks = new List<string>();
+            public int MaximumPCUForLimits = 5000;
+            public int UsedPCU = 0;
+
+            public bool AddBlock(MyCubeBlockDefinition definition)
+            {
+                if (UsedPCU + definition.PCU > MaximumPCUForLimits)
+                {
+                    return false;
+                }
+
+                UsedPCU += definition.PCU;
+                return true;
+            }
+
+            public object Clone()
+            {
+                return new BlockGroupLimit
+                {
+                    AllowedBlocks = new List<string>(this.AllowedBlocks),
+                    MaximumPCUForLimits = this.MaximumPCUForLimits,
+                    UsedPCU = this.UsedPCU
+                };
+            }
+        }
 
         public static Dictionary<string, int> LimitsByBeaconPairName { get; set; }
-        public static Dictionary<long, string> GridsClass { get; set; }
+        public static Dictionary<string, ShipLimits> LimitDefinitions { get; set; }
+        public static Dictionary<long, ShipLimits> GridsClass { get; set; }
+
+
         [PatchShim]
         public static class BuildBlockPatch
         {
@@ -57,20 +123,13 @@ namespace CrunchEconContractModels.Random_Stuff
                 var grids = new List<IMyCubeGrid>();
                 __instance.GetGridGroup(GridLinkTypeEnum.Mechanical).GetGrids(grids);
 
-                var limit = 0;
-                if (GridsClass.TryGetValue(__instance.GetBiggestGridInGroup().EntityId, out var foundClass))
-                {
-                    limit = LimitsByBeaconPairName[foundClass];
-                }
-                else
-                {
-                    var beacons = grids.Cast<MyCubeGrid>().SelectMany(x => x.GetFatBlocks().OfType<MyBeacon>()).Select(x => x.BlockDefinition.BlockPairName).Distinct();
-                    var shipClass = GetMaxLimitByBeaconPairName(beacons);
-                    GridsClass[__instance.GetBiggestGridInGroup().EntityId] = shipClass.Key;
-                    limit = shipClass.Value;
-                    //find the class
-                }
 
+                var shipClass = GetGridsClass(__instance, grids);
+                if (shipClass == null)
+                {
+                    return true;
+                }
+                var limit = shipClass.MaximumPCU;
                 ulong steamId = MyEventContext.Current.Sender.Value;
                 if (MySession.Static.Players.TryGetPlayerBySteamId(steamId, out var player))
                 {
@@ -87,6 +146,32 @@ namespace CrunchEconContractModels.Random_Stuff
                 return true;
             }
 
+            private static ShipLimits GetGridsClass(MyCubeGrid __instance, List<IMyCubeGrid> grids)
+            {
+                if (GridsClass.TryGetValue(__instance.GetBiggestGridInGroup().EntityId, out var foundClass))
+                {
+                    return foundClass;
+                }
+                else
+                {
+                    var beacons = grids.Cast<MyCubeGrid>().SelectMany(x => x.GetFatBlocks().OfType<MyBeacon>())
+                        .Select(x => x.BlockDefinition.BlockPairName).Distinct();
+                    var shipClass = GetMaxLimitByBeaconPairName(beacons);
+                    if (LimitDefinitions.TryGetValue(shipClass.Key, out var shipDefinition))
+                    {
+                        var newClass = (ShipLimits)shipDefinition.Clone();
+                        GridsClass[__instance.GetBiggestGridInGroup().EntityId] = newClass;
+
+                        return newClass;
+                    }
+
+                    return null;
+
+                    //find the class
+                }
+
+            }
+
             private static bool MergeCheck(MyShipMergeBlock __instance)
             {
                 if (__instance?.Other == null || __instance.IsLocked || (!__instance.IsFunctional || !__instance.Other.IsFunctional))
@@ -95,19 +180,14 @@ namespace CrunchEconContractModels.Random_Stuff
 
                 __instance.CubeGrid.GetGridGroup(GridLinkTypeEnum.Mechanical).GetGrids(grids);
 
-                var limit = 0;
-                if (GridsClass.TryGetValue(__instance.CubeGrid.GetBiggestGridInGroup().EntityId, out var foundClass))
+                var shipClass = GetGridsClass(__instance.CubeGrid, grids);
+                if (shipClass == null)
                 {
-                    limit = LimitsByBeaconPairName[foundClass];
+                    return true;
                 }
-                else
-                {
-                    var beacons = grids.Cast<MyCubeGrid>().SelectMany(x => x.GetFatBlocks().OfType<MyBeacon>()).Select(x => x.BlockDefinition.BlockPairName).Distinct();
-                    var shipClass = GetMaxLimitByBeaconPairName(beacons);
-                    GridsClass[__instance.CubeGrid.GetBiggestGridInGroup().EntityId] = shipClass.Key;
-                    limit = shipClass.Value;
-                    //find the class
-                }
+
+                var limit = shipClass.MaximumPCU;
+
                 var pcu = grids.Cast<MyCubeGrid>().Sum(Grid => Grid.BlocksPCU);
 
                 var targetGrids = new List<IMyCubeGrid>();
