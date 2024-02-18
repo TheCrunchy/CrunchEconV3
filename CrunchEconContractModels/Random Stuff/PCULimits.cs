@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using CrunchEconV3;
+using CrunchEconV3.Utils;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
@@ -25,14 +27,13 @@ namespace CrunchEconContractModels.Random_Stuff
 
         public class ShipLimits : ICloneable
         {
+            public bool Enabled { get; set; }
             private Dictionary<string, BlockGroupLimit> PairNameToLimits { get; set; } =
                 new Dictionary<string, BlockGroupLimit>();
 
             public List<BlockGroupLimit> Limits = new List<BlockGroupLimit>();
             public (bool, BlockGroupLimit) CheckCanAddBlock(MyCubeBlockDefinition definition)
             {
-
-                Core.Log.Info(PairNameToLimits.Count);
                 if (PairNameToLimits.TryGetValue(definition.BlockPairName, out var limited))
                 {
                     return limited.AddBlock(definition);
@@ -105,12 +106,10 @@ namespace CrunchEconContractModels.Random_Stuff
                 if (definition == null)
                     return;
 
-                Core.Log.Info("trying to reduce pcu");
                 var blockGroupLimit = GetBlockGroupLimitForGrid(removedBlock.CubeGrid.EntityId);
                 if (blockGroupLimit != null && blockGroupLimit.PairNameToLimits.TryGetValue(definition.BlockPairName, out var limit))
                 {
                     limit.UsedPCU -= definition.PCU;
-                    Core.Log.Info("reducing pcu");
                 }
             }
 
@@ -176,9 +175,6 @@ namespace CrunchEconContractModels.Random_Stuff
                 BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             ctx.GetPattern(method).Prefixes.Add(typeof(BuildBlockPatch).GetMethod("BuildBlocksRequest",
                 BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic));
-            MethodInfo methodTwo = typeof(MyShipMergeBlock).GetMethod("UpdateBeforeSimulation10",
-                BindingFlags.Instance | BindingFlags.Public) ?? throw new DllNotFoundException();
-            ctx.GetPattern(methodTwo).Prefixes.Add(typeof(PCULimits).GetMethod("MergeCheck", BindingFlags.Static | BindingFlags.NonPublic));
         }
 
         private static void SetupLimitsByBeaconPairName()
@@ -201,10 +197,27 @@ namespace CrunchEconContractModels.Random_Stuff
                 Limits = new List<BlockGroupLimit>() { limit }
             };
 
-            gridLimit.SetupPairNamesToLimits();
-            LimitDefinitions.Add("Beacon", gridLimit);
-        }
+          //  gridLimit.SetupPairNamesToLimits();
+         //   LimitDefinitions.Add("Beacon", gridLimit);
+            gridLimit.Enabled = false;
 
+            string jsonFilePath = Path.Combine($"{CrunchEconV3.Core.path}/ShipClasses/", "Example.json");
+            Directory.CreateDirectory($"{CrunchEconV3.Core.path}/ShipClasses/");
+            FileUtils utils = new FileUtils();
+            utils.WriteToJsonFile(jsonFilePath, gridLimit, false);
+            string[] filePaths = Directory.GetFiles($"{CrunchEconV3.Core.path}/ShipClasses/");
+            foreach (string filePath in filePaths)
+            {
+        
+                PCULimits.ShipLimits shipLimit = utils.ReadFromJsonFile<PCULimits.ShipLimits>(filePath);
+                if (shipLimit.Enabled)
+                {
+                    shipLimit.SetupPairNamesToLimits();
+                    LimitDefinitions.Add(shipLimit.BeaconPairName, shipLimit);
+                }
+            
+            }
+        }
         private static bool BuildBlocksRequest(MyCubeGrid __instance, HashSet<MyCubeGrid.MyBlockLocation> locations)
         {
             if (__instance == null || !locations.Any())
