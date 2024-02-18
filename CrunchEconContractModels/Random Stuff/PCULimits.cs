@@ -25,9 +25,10 @@ namespace CrunchEconContractModels.Random_Stuff
 
         public class ShipLimits : ICloneable
         {
-            public Dictionary<string, BlockGroupLimit> PairNameToLimits { get; set; } =
+            private Dictionary<string, BlockGroupLimit> PairNameToLimits { get; set; } =
                 new Dictionary<string, BlockGroupLimit>();
 
+            public List<BlockGroupLimit> Limits = new List<BlockGroupLimit>();
             public (bool, BlockGroupLimit) CheckCanAddBlock(MyCubeBlockDefinition definition)
             {
 
@@ -45,6 +46,18 @@ namespace CrunchEconContractModels.Random_Stuff
                 }
 
                 return (true, null);
+            }
+
+            public void SetupPairNamesToLimits()
+            {
+                foreach (var limit in Limits)
+                {
+                    foreach (var block in limit.AllowedBlocks)
+                    {
+                        PairNameToLimits.Add(block, limit);
+                    }
+
+                }
             }
 
             public int MaximumPCU { get; set; }
@@ -185,14 +198,10 @@ namespace CrunchEconContractModels.Random_Stuff
             {
                 MaximumPCU = 35000,
                 BeaconPairName = "Beacon",
-                PairNameToLimits = new Dictionary<string, BlockGroupLimit>()
-
+                Limits = new List<BlockGroupLimit>() { limit }
             };
-            foreach (var block in limit.AllowedBlocks)
-            {
-                gridLimit.PairNameToLimits.Add(block, limit);
-            }
 
+            gridLimit.SetupPairNamesToLimits();
             LimitDefinitions.Add("Beacon", gridLimit);
         }
 
