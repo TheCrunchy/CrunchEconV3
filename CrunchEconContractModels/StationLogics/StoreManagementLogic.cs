@@ -12,6 +12,7 @@ using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
 using NLog.Fluent;
+using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.EntityComponents;
@@ -340,9 +341,17 @@ namespace CrunchEconContractModels.StationLogics
                     out long notUsingThis);
 
             //long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-            //MyStoreItem myStoreItem = new MyStoreItem(newid, amount, 50, StoreItemTypes.Offer, ItemTypes.Hydrogen);
-            //MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
-
+            //MyStoreItem myStoreItem = new MyStoreItem(newid, amount, 50, StoreItemTypes.Offer, ItemTypes.Grid);
+            //myStoreItem.IsCustomStoreItem = true;
+            //myStoreItem.PrefabName = "TestDestroyer";
+            
+            ////MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
+            //var prefab = MyDefinitionManager.Static.GetPrefabDefinition("TestDestroyer");
+            //MyDefinitionManager.Static.ReloadPrefabsFromFile(@"C:\Users\Cameron\Documents\4 Torch Server\Instance\content\244850\3164289794\Data\Prefabs\TestDestroyer.sbc");
+            //Core.Log.Info($"PREFAB {prefab.DisplayNameString}");
+            //Core.Log.Info($"PREFAB {prefab.DisplayNameText}");
+            //Core.Log.Info($"PREFAB {prefab.DisplayNameEnum}");
+            //Core.Log.Info($"subtype {prefab.Id.SubtypeName}");
             //store.PlayerItems.Add(myStoreItem);
             //store.PlayerItems.Add(myStoreItem2);
 

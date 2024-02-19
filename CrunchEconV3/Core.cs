@@ -78,7 +78,7 @@ namespace CrunchEconV3
             SetupConfig();
             CreatePath();
             PluginInstance = this;
-
+            Directory.CreateDirectory(path + "/Scripts/");
         }
 
         public static ITorchSession Session;

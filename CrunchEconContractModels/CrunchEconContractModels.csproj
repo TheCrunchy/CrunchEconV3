@@ -113,6 +113,7 @@
     <Compile Include="Random Stuff\SpawnPatch.cs" />
     <Compile Include="Random Stuff\GridTracking.cs" />
     <Compile Include="Random Stuff\ThrusterStuff.cs" />
+    <Compile Include="StationLogics\StupidShit.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CrunchEconV3\CrunchEconV3.csproj">
