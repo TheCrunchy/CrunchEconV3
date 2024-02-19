@@ -21,14 +21,17 @@ using Sandbox.ModAPI;
 using Sandbox.ModAPI.Ingame;
 using Torch.Commands;
 using Torch.Commands.Permissions;
+using Torch.Managers.PatchManager;
 using VRage;
 using VRage.Game;
 using VRage.Game.Components;
+using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Groups;
 using VRage.ObjectBuilders;
+using VRageMath;
 using IMyCubeBlock = VRage.Game.ModAPI.IMyCubeBlock;
 using IMyInventory = VRage.Game.ModAPI.IMyInventory;
 
@@ -129,6 +132,52 @@ namespace CrunchEconContractModels.StationLogics
     }
     public class StoreManagementLogic : IStationLogic
     {
+        public static void Patch(PatchContext ctx)
+        {
+            Core.Log.Info("Patching buy prefab");
+            MethodInfo method = typeof(MyStoreBlock).GetMethod("BuyPrefabInternal", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo patchMethod = typeof(StoreManagementLogic).GetMethod(nameof(BuyPrefabInternalPatch), BindingFlags.NonPublic | BindingFlags.Static);
+            ctx.GetPattern(method).Prefixes.Add(patchMethod);
+        }
+
+        public static Dictionary<long, long> Safezones = new Dictionary<long, long>();
+        private static bool BuyPrefabInternalPatch(
+            MyStoreBlock __instance,
+            MyStoreItem storeItem,
+            int amount,
+            MyPlayer player,
+            MyFaction faction,
+            Vector3D storePosition,
+           ref long safezoneId,
+            MyStationTypeEnum stationType,
+            MyEntity entity,
+            long totalPrice)
+        {
+            Core.Log.Info(safezoneId);
+            if (safezoneId == 0l)
+            {
+                if (Safezones.TryGetValue(__instance.EntityId, out var foundZone))
+                {
+                    Core.Log.Info("Setting ID");
+                    safezoneId = foundZone;
+                    return true;
+                }
+
+
+                BoundingSphereD sphere = new BoundingSphereD(storePosition, 1000);
+
+                foreach (MySafeZone zone in MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere)
+                             .OfType<MySafeZone>())
+                {
+                    Core.Log.Info("Setting ID 2");
+                    Safezones[__instance.EntityId] = zone.EntityId;
+                    safezoneId = zone.EntityId;
+                    return true;
+                }
+            }
+            return true;
+        }
+
         public void Setup()
         {
             StoreItemsHandler.LoadTheFiles();
@@ -340,20 +389,15 @@ namespace CrunchEconContractModels.StationLogics
                 store.InsertOffer(itemInsert,
                     out long notUsingThis);
 
-            //long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-            //MyStoreItem myStoreItem = new MyStoreItem(newid, amount, 50, StoreItemTypes.Offer, ItemTypes.Grid);
-            //myStoreItem.IsCustomStoreItem = true;
-            //myStoreItem.PrefabName = "TestDestroyer";
-            
-            ////MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
-            //var prefab = MyDefinitionManager.Static.GetPrefabDefinition("TestDestroyer");
-            //MyDefinitionManager.Static.ReloadPrefabsFromFile(@"C:\Users\Cameron\Documents\4 Torch Server\Instance\content\244850\3164289794\Data\Prefabs\TestDestroyer.sbc");
-            //Core.Log.Info($"PREFAB {prefab.DisplayNameString}");
-            //Core.Log.Info($"PREFAB {prefab.DisplayNameText}");
-            //Core.Log.Info($"PREFAB {prefab.DisplayNameEnum}");
-            //Core.Log.Info($"subtype {prefab.Id.SubtypeName}");
-            //store.PlayerItems.Add(myStoreItem);
-            //store.PlayerItems.Add(myStoreItem2);
+            long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+            MyStoreItem myStoreItem = new MyStoreItem(newid, amount, 50, StoreItemTypes.Offer, ItemTypes.Grid);
+            myStoreItem.IsCustomStoreItem = true;
+            myStoreItem.PrefabName = "TestDestroyer";
+
+            //MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
+            var prefab = MyDefinitionManager.Static.GetPrefabDefinition("TestDestroyer");
+            store.PlayerItems.Add(myStoreItem);
+           // store.PlayerItems.Add(myStoreItem2);
 
             if (result != MyStoreInsertResults.Success)
             {
