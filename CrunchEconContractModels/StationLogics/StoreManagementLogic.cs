@@ -158,7 +158,6 @@ namespace CrunchEconContractModels.StationLogics
             {
                 if (Safezones.TryGetValue(__instance.EntityId, out var foundZone))
                 {
-                    Core.Log.Info("Setting ID");
                     safezoneId = foundZone;
                     return true;
                 }
@@ -169,7 +168,6 @@ namespace CrunchEconContractModels.StationLogics
                 foreach (MySafeZone zone in MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere)
                              .OfType<MySafeZone>())
                 {
-                    Core.Log.Info("Setting ID 2");
                     Safezones[__instance.EntityId] = zone.EntityId;
                     safezoneId = zone.EntityId;
                     return true;
