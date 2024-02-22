@@ -30,7 +30,7 @@ namespace CrunchEconV3.Handlers
         }
 
         public static DateTime NextSave = DateTime.Now;
-        public static async Task DoStationLoop()
+        public static void DoStationLoop()
         {
             foreach (var station in Core.StationStorage.GetAll())
             {
@@ -82,7 +82,7 @@ namespace CrunchEconV3.Handlers
                     {
                         try
                         {
-                            var ShouldNextOneRun = await logic.DoLogic((MyCubeGrid)grid);
+                            var ShouldNextOneRun = logic.DoLogic((MyCubeGrid)grid).Result;
                             if (!ShouldNextOneRun)
                             {
                                 break;

@@ -85,7 +85,7 @@ namespace CrunchEconV3
 
         public DateTime NextContractGps = DateTime.Now;
         public DateTime NextKeenMap = DateTime.Now;
-        public override async void Update()
+        public override void Update()
         {
             if (Paused)
             {
@@ -107,10 +107,7 @@ namespace CrunchEconV3
                     }
                     try
                     {
-                        Task.Run(async () =>
-                                {
-                                    StationHandler.DoStationLoop();
-                                });
+                        StationHandler.DoStationLoop();
                     }
                     catch (Exception e)
                     {

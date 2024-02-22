@@ -33,6 +33,9 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\..\AlliancesPlugin\0Harmony.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\Newtonsoft.Json.dll</HintPath>
@@ -107,6 +110,7 @@
     <Compile Include="Random Stuff\PCULimits.cs" />
     <Compile Include="StationLogics\GrowthLogic.cs" />
     <Compile Include="StationLogics\FactionBalanceLogic.cs" />
+    <Compile Include="StationLogics\HarmonyStuff.cs" />
     <Compile Include="StationLogics\StationCraftingLogic.cs" />
     <Compile Include="Random Stuff\KeenStoreManagement.cs" />
     <Compile Include="StationLogics\StoreManagementLogic.cs" />

@@ -115,10 +115,11 @@ namespace CrunchEconV3.Handlers
             //        return true;
             //    }
             //}
+ 
             foreach (var inv in inventories)
             {
-
-                MyItemType itemType = new MyInventoryItemFilter(id.TypeId + "/" + id.SubtypeName).ItemType;
+            
+                    MyItemType itemType = new MyInventoryItemFilter(id.TypeId + "/" + id.SubtypeName).ItemType;
                 if (inv.CanItemsBeAdded(amount, itemType))
                 {
                     inv.AddItems(amount,
@@ -126,7 +127,6 @@ namespace CrunchEconV3.Handlers
                     return true;
                 }
             }
-
             return false;
         }
     }

@@ -173,8 +173,8 @@ namespace CrunchEconContractModels.Random_Stuff
 
             MethodInfo method = typeof(MyCubeGrid).GetMethod("BuildBlocksRequest",
                 BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            ctx.GetPattern(method).Prefixes.Add(typeof(BuildBlockPatch).GetMethod("BuildBlocksRequest",
-                BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic));
+        //    ctx.GetPattern(method).Prefixes.Add(typeof(BuildBlockPatch).GetMethod("BuildBlocksRequest",
+          //      BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic));
         }
 
         private static void SetupLimitsByBeaconPairName()

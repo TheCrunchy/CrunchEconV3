@@ -217,10 +217,7 @@ namespace CrunchEconContractModels.StationLogics
             List<MyStoreItem> yeet = new List<MyStoreItem>();
             foreach (MyStoreItem item in store.PlayerItems)
             {
-                if (item.StoreItemType == StoreItemTypes.Offer)
-                {
-                    yeet.Add(item);
-                }
+                yeet.Add(item);
             }
             foreach (MyStoreItem item in yeet)
             {
@@ -228,22 +225,6 @@ namespace CrunchEconContractModels.StationLogics
             }
         }
 
-        public void ClearStoreOfPlayersSellingOrders(MyStoreBlock store)
-        {
-            List<MyStoreItem> yeet = new List<MyStoreItem>();
-            foreach (MyStoreItem item in store.PlayerItems)
-            {
-                if (item.StoreItemType == StoreItemTypes.Order)
-                {
-
-                    yeet.Add(item);
-                }
-            }
-            foreach (MyStoreItem item in yeet)
-            {
-                store.CancelStoreItem(item.Id);
-            }
-        }
         public Task<bool> DoLogic(MyCubeGrid grid)
         {
             if (DateTime.Now >= NextRefresh)
@@ -275,7 +256,6 @@ namespace CrunchEconContractModels.StationLogics
             {
 
                 ClearStoreOfPlayersBuyingOffers(store);
-                ClearStoreOfPlayersSellingOrders(store);
                 var items = StoreItemsHandler.GetByBlockName(store.DisplayNameText);
                 foreach (var item in items)
                 {
@@ -328,12 +308,33 @@ namespace CrunchEconContractModels.StationLogics
                     out long notUsingThis);
 
 
+        //    long newid2 = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+         //   MyStoreItem myStoreItem3 = new MyStoreItem(newid2, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
+        //    myStoreItem3.IsCustomStoreItem = true;
+         //   myStoreItem3.PrefabName = "TestDestroyer";
+          //  long newid3 = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+          //  MyStoreItem myStoreItem2 = new MyStoreItem(newid3, amount, 50, StoreItemTypes.Order, ItemTypes.Grid);
 
-
+           // myStoreItem2.IsCustomStoreItem = true;
+          //  myStoreItem2.PrefabName = "TestDestroyer";
+         //   store.PlayerItems.Add(myStoreItem3);
+         //   store.PlayerItems.Add(myStoreItem2);
+            
             //  station.StoreItems.Add(myStoreItem);
             if (result != MyStoreInsertResults.Success)
             {
-                CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} Amount:{itemInsert.Amount} Price:{itemInsert.PricePerUnit} {result.ToString()}");
+                if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum)
+                {
+                    long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+                    MyStoreItem myStoreItem = new MyStoreItem(newid, amount, price, StoreItemTypes.Order, ItemTypes.PhysicalItem);
+                    myStoreItem.Item = itemId;
+                    store.PlayerItems.Add(myStoreItem);
+                }
+                else
+                {
+                    CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} Amount:{itemInsert.Amount} Price:{itemInsert.PricePerUnit} {result.ToString()}");
+                }
+           
             }
         }
 
@@ -359,10 +360,14 @@ namespace CrunchEconContractModels.StationLogics
                 if (item.SpawnItemsIfMissing && quantityInGrid < item.SpawnIfBelowThisQuantity)
                 {
                     var amountToSpawn = amount - quantityInGrid;
-                    if (!CrunchEconV3.Handlers.InventoriesHandler.SpawnItems(id, amountToSpawn, gridInventories))
+                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {
-                        CrunchEconV3.Core.Log.Error($"Unable to spawn items for offer in grid {item.Type} {item.Subtype}");
-                    }
+                        if (!CrunchEconV3.Handlers.InventoriesHandler.SpawnItems(id, amountToSpawn, gridInventories))
+                        {
+                            CrunchEconV3.Core.Log.Error(
+                                $"Unable to spawn items for offer in grid {item.Type} {item.Subtype}");
+                        }
+                    });
                 }
                 else
                 {
@@ -387,19 +392,30 @@ namespace CrunchEconContractModels.StationLogics
                 store.InsertOffer(itemInsert,
                     out long notUsingThis);
 
-            long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-            MyStoreItem myStoreItem = new MyStoreItem(newid, amount, 50, StoreItemTypes.Offer, ItemTypes.Grid);
-            myStoreItem.IsCustomStoreItem = true;
-            myStoreItem.PrefabName = "TestDestroyer";
+            //long newid2 = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+           /// MyStoreItem myStoreItem3 = new MyStoreItem(newid2, amount, 50, StoreItemTypes.Offer, ItemTypes.Hydrogen);
+          //  myStoreItem3.IsCustomStoreItem = true;
+    //        myStoreItem3.PrefabName = "TestDestroyer";
 
             //MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
-            var prefab = MyDefinitionManager.Static.GetPrefabDefinition("TestDestroyer");
-            store.PlayerItems.Add(myStoreItem);
-           // store.PlayerItems.Add(myStoreItem2);
+       //     var prefab = MyDefinitionManager.Static.GetPrefabDefinition("TestDestroyer");
+           // store.PlayerItems.Add(myStoreItem3);
+            // store.PlayerItems.Add(myStoreItem2);
 
             if (result != MyStoreInsertResults.Success)
             {
-                CrunchEconV3.Core.Log.Error($"Unable to insert this offer into store {item.Type} {item.Subtype} Amount:{itemInsert.Amount} Price:{itemInsert.PricePerUnit} {result.ToString()}");
+                if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum)
+                {
+                    long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+                    MyStoreItem myStoreItem = new MyStoreItem(newid, amount, price, StoreItemTypes.Offer, ItemTypes.PhysicalItem);
+                    myStoreItem.Item = itemId;
+                    store.PlayerItems.Add(myStoreItem);
+                }
+                else
+                {
+                    CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} Amount:{itemInsert.Amount} Price:{itemInsert.PricePerUnit} {result.ToString()}");
+                }
+
             }
         }
 
