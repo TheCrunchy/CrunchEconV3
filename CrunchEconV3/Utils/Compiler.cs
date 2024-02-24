@@ -35,22 +35,32 @@ namespace CrunchEconV3.Utils
             }
             var folder = Core.basePath.Replace(@"\Instance", "");
 
-            var plugins = $"{folder}/plugins/CrunchEconV3.zip";
-            using (var zipArchive = ZipFile.OpenRead(plugins))
+            var plugins = new List<String> { $"{folder}/plugins/CrunchEconV3.zip", $"{folder}/plugins/ad7fcfad-0ce0-4e1c-867d-4fe6edf533de.zip" };
+            foreach (var plugin in plugins)
             {
-                foreach (var entry in zipArchive.Entries)
+                try
                 {
-                    if (entry.Name.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase))
+                    using (var zipArchive = ZipFile.OpenRead(plugin))
                     {
-                        using (var stream = entry.Open())
+                        foreach (var entry in zipArchive.Entries)
                         {
-                            byte[] end = MiscExtensions.ReadToEnd(stream, (int)entry.Length);
-                            metadataReferenceList.Add((MetadataReference)MetadataReference.CreateFromImage(end));
-                        }
+                            if (entry.Name.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase))
+                            {
+                                using (var stream = entry.Open())
+                                {
+                                    byte[] end = MiscExtensions.ReadToEnd(stream, (int)entry.Length);
+                                    metadataReferenceList.Add((MetadataReference)MetadataReference.CreateFromImage(end));
+                                }
 
+                            }
+                        }
                     }
                 }
+                catch (Exception e)
+                {
+                }
             }
+     
 
             //foreach (var filePath in Directory.GetFiles($"{Core.basePath}/{Core.PluginName}/").Where(x => x.Contains(".dll")))
             //{
