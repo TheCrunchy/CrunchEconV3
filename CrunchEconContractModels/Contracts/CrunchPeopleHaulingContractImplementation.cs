@@ -249,6 +249,11 @@ namespace CrunchEconContractModels.Contracts
                     playersGrid = cockpit.CubeGrid;
                 }
 
+                if (playersGrid == null)
+                {
+                    KillPassengers();
+                    return false;
+                }
                 var test = playersGrid.GetGridGroup(GridLinkTypeEnum.Physical);
                 var grids = new List<IMyCubeGrid>();
                 var tanks = new List<IMyGasTank>();
@@ -266,15 +271,7 @@ namespace CrunchEconContractModels.Contracts
              //   Core.Log.Info(playerTanks.GasInTanks);
                 if (playerTanks.GasInTanks <= toConsume)
                 {
-                    double dying = PassengerCount * PercentDeathsPerFail;
-                    if (dying < 1)
-                    {
-                        dying = 1;
-                    }
-
-                    DeadPassengers += (int)dying;
-                    this.PassengerCount -= (int)dying;
-                    Core.SendMessage($"Contracts", $"{(int)dying} passengers have suffocated.", Color.DarkRed, this.AssignedPlayerSteamId);
+                    KillPassengers();
                 }
                 else
                 {
@@ -290,6 +287,21 @@ namespace CrunchEconContractModels.Contracts
             }
             return false;
         }
+
+        private void KillPassengers()
+        {
+            double dying = PassengerCount * PercentDeathsPerFail;
+            if (dying < 1)
+            {
+                dying = 1;
+            }
+
+            DeadPassengers += (int)dying;
+            this.PassengerCount -= (int)dying;
+            Core.SendMessage($"Contracts", $"{(int)dying} passengers have suffocated.", Color.DarkRed,
+                this.AssignedPlayerSteamId);
+        }
+
         public bool TryCompleteContract(ulong steamId, Vector3D? currentPosition)
         {
             if (!MySession.Static.Players.TryGetPlayerBySteamId((ulong)this.AssignedPlayerSteamId, out var player))
