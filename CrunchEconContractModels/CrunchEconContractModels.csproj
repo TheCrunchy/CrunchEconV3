@@ -43,6 +43,10 @@
     <Reference Include="NLog">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\NLog.dll</HintPath>
     </Reference>
+    <Reference Include="ProtoBuf.Net.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\4 Torch Server\DedicatedServer64\ProtoBuf.Net.Core.dll</HintPath>
+    </Reference>
     <Reference Include="Sandbox.Common">
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\Sandbox.Common.dll</HintPath>
     </Reference>
@@ -111,6 +115,7 @@
     <Compile Include="StationLogics\GrowthLogic.cs" />
     <Compile Include="StationLogics\FactionBalanceLogic.cs" />
     <Compile Include="StationLogics\HarmonyStuff.cs" />
+    <Compile Include="StationLogics\PrefabInsertScript.cs" />
     <Compile Include="StationLogics\StationCraftingLogic.cs" />
     <Compile Include="Random Stuff\KeenStoreManagement.cs" />
     <Compile Include="StationLogics\StoreManagementLogic.cs" />

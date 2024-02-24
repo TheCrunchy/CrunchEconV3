@@ -88,9 +88,10 @@ namespace CrunchEconV3.Utils
                     {
                         continue;
                     }
-                    group.TanksInGroup.Add(tank);
+            
                     var tankk = tank as MyGasTank;
                     if (tankk.BlockDefinition.StoredGasId != gasId) continue;
+                    group.TanksInGroup.Add(tank);
                     if (tankk.FilledRatio > 0)
                     {
                         group.GasInTanks += (float)(tankk.FilledRatio) * tankk.GasCapacity;

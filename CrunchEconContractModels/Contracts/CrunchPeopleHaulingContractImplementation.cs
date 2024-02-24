@@ -32,7 +32,6 @@ namespace CrunchEconContractModels.Contracts
         public int DeadPassengers { get; set; }
         public double PercentDeathsPerFail { get; set; } = 0.1;
         public double BaseRewardPerPassenger { get; set; }
-        private MyCubeGrid playersGrid { get; set; }
         public MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
         {
             string definition = this.DefinitionId;
@@ -73,7 +72,7 @@ namespace CrunchEconContractModels.Contracts
             contractDescription += $" ||| Distance bonus: {this.DistanceReward:##,###}";
             if (this.ConsumeOxygen)
             {
-                contractDescription += $" ||| Oxygen Consumption: {this.OxygenLitrePerPassenger:##,###} per passenger, per {this.SecondsBetweenOxygenChecks} seconds.";
+                contractDescription += $" ||| Oxygen Consumption: {this.OxygenLitrePerPassenger * this.PassengerCount:##,###}, per {this.SecondsBetweenOxygenChecks} seconds.";
             }
 
             foreach (var passengerBlock in this.PassengerBlocks)
@@ -137,11 +136,7 @@ namespace CrunchEconContractModels.Contracts
                 if (owner)
                 {
                     capacity += PassengerTransportUtils.GetPassengerCount(gridInGroup as MyCubeGrid, this);
-                    var t = gridInGroup as MyCubeGrid;
-                    playersGrid = t.GetBiggestGridInGroup();
                 }
-
-
             }
 
             if (capacity <= 0)
@@ -222,8 +217,11 @@ namespace CrunchEconContractModels.Contracts
             {
                 NextOxygenCheck = DateTime.Now.AddSeconds(this.SecondsBetweenOxygenChecks);
                 var toConsume = this.PassengerCount * this.OxygenLitrePerPassenger;
-                if (playersGrid == null)
+                MySession.Static.Players.TryGetPlayerBySteamId(this.AssignedPlayerSteamId, out var player);
+                MyCubeGrid playersGrid;
+                if (!(player?.Controller?.ControlledEntity is MyCockpit))
                 {
+                 //   Core.Log.Info("players grid is null");
                     var sphere = new BoundingSphereD(PlayersCurrentPosition, 1000 * 2);
                     var playersGrids = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyCubeGrid>()
                         .Where(x => x.BlocksCount > 0 && FacUtils.IsOwnerOrFactionOwned(x, this.AssignedPlayerIdentityId, true)).ToList();
@@ -245,17 +243,27 @@ namespace CrunchEconContractModels.Contracts
                         return false;
                     }
                 }
+                else
+                {
+                    var cockpit = player?.Controller?.ControlledEntity as MyCockpit;
+                    playersGrid = cockpit.CubeGrid;
+                }
+
                 var test = playersGrid.GetGridGroup(GridLinkTypeEnum.Physical);
                 var grids = new List<IMyCubeGrid>();
                 var tanks = new List<IMyGasTank>();
 
                 test.GetGrids(grids);
+             //   grids.Add(playersGrid);
                 foreach (var gridInGroup in grids)
                 {
                     tanks.AddRange(gridInGroup.GetFatBlocks<IMyGasTank>());
                 }
-
+                
                 var playerTanks = TankHelper.MakeTankGroup(tanks, this.AssignedPlayerIdentityId, 0, "Oxygen");
+             //   Core.Log.Info(playerTanks.Capacity);
+             //   Core.Log.Info(playerTanks.TanksInGroup.Count);
+             //   Core.Log.Info(playerTanks.GasInTanks);
                 if (playerTanks.GasInTanks <= toConsume)
                 {
                     double dying = PassengerCount * PercentDeathsPerFail;
@@ -266,14 +274,20 @@ namespace CrunchEconContractModels.Contracts
 
                     DeadPassengers += (int)dying;
                     this.PassengerCount -= (int)dying;
-                    Core.SendMessage($"Contracts", $"{dying} passengers have suffocated.", Color.DarkRed, this.AssignedPlayerSteamId);
+                    Core.SendMessage($"Contracts", $"{(int)dying} passengers have suffocated.", Color.DarkRed, this.AssignedPlayerSteamId);
                 }
                 else
                 {
+                    Core.SendMessage($"Contracts", $"{toConsume:##,##} Litres of Oxygen Consumed.", Color.Green, this.AssignedPlayerSteamId);
                     TankHelper.RemoveGasFromTanksInGroup(playerTanks, toConsume);
                 }
             }
 
+            if (PassengerCount <= 0)
+            {
+                FailContract();
+                return true;
+            }
             return false;
         }
         public bool TryCompleteContract(ulong steamId, Vector3D? currentPosition)
@@ -307,7 +321,6 @@ namespace CrunchEconContractModels.Contracts
                 if (alive >= 1)
                 {
                     this.RewardMoney = (long)(this.BaseRewardPerPassenger * alive + this.DistanceReward);
-
                 }
                 else
                 {
@@ -342,9 +355,18 @@ namespace CrunchEconContractModels.Contracts
                 MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1);
             }
 
-            Core.SendMessage("Contracts",
-                DateTime.Now > ExpireAt ? $"{this.Name} failed, time expired." : $"{this.Name} failed.", Color.Red,
-                this.AssignedPlayerSteamId);
+            if (this.PassengerCount <= 0)
+            {
+                Core.SendMessage("Contracts", $"{this.Name} failed. All Passengers have suffocated.", Color.Red,
+                    this.AssignedPlayerSteamId);
+            }
+            else
+            {
+                Core.SendMessage("Contracts",
+                    DateTime.Now > ExpireAt ? $"{this.Name} failed, time expired." : $"{this.Name} failed.", Color.Red,
+                    this.AssignedPlayerSteamId);
+            }
+       
         }
         public int ReputationRequired { get; set; }
         public long ContractId { get; set; }
@@ -456,6 +478,11 @@ namespace CrunchEconContractModels.Contracts
 
             description.AppendLine($"Reward = {contract.RewardMoney} multiplied by Passenger count");
             description.AppendLine($" ||| Maximum possible passengers: {1500 * this.ReputationMultiplierForMaximumPassengers}");
+            if (this.ConsumeOxygen)
+            {
+                description.AppendLine($"||| Oxygen Consumption: {this.OxygenLitrePerPassenger:##,###} per passenger, per {this.SecondsBetweenOxygenChecks} seconds.");
+            }
+
             foreach (var passengerBlock in this.PassengerBlocksAvailable)
             {
                 description.AppendLine($"||| {passengerBlock.BlockPairName} provides {passengerBlock.PassengerSpace} capacity");
@@ -527,7 +554,6 @@ namespace CrunchEconContractModels.Contracts
         public DateTime NextOxygenCheck { get; set; }
         public int DeadPassengers { get; set; }
         public double PercentDeathsPerFail { get; set; } = 0.1;
-        public double BaseRewardPerPassenger { get; set; }
         public int AmountOfContractsToGenerate { get; set; } = 3;
         public float ChanceToAppear { get; set; } = 0.5f;
         public long CollateralMin { get; set; } = 1;
