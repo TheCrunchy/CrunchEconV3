@@ -146,8 +146,16 @@ namespace CrunchEconV3.Patches
                 {
                     component.RemoveContract(con.Id);
                 }
-                __result.Clear();
 
+                if (Core.config.RemoveKeenContractsOnStations)
+                {
+                    __result.Clear();
+                }
+
+                if (Core.config.RemoveHauling)
+                {
+                    __result = __result.Where(x => x.SubtypeName.Replace("MyObjectBuilder_ContractTypeDefinition/", "") != "Deliver").ToList();
+                }
                 var contracts = StationHandler.GenerateNewContracts(stationId);
                 var built = BuildContracts(contracts);
                 List<ICrunchContract> BlocksContracts = built.Item2;
