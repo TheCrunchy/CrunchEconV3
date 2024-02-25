@@ -159,7 +159,7 @@ namespace CrunchEconV3.Patches
                 var contracts = StationHandler.GenerateNewContracts(stationId);
                 var built = BuildContracts(contracts);
                 List<ICrunchContract> BlocksContracts = built.Item2;
-                __result = built.Item1;
+                __result.AddRange(built.Item1);
 
                 if (StationHandler.BlocksContracts.TryGetValue(stationId, out var cont))
                 {
@@ -389,10 +389,7 @@ namespace CrunchEconV3.Patches
                         return true;
                     }
                 }
-                else
-                {
-                    FailedContractIds.Add(contract.ContractId, MyContractResults.Fail_ContractNotFound_Finish);
-                }
+
             }
 
             return true;
