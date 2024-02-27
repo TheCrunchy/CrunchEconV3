@@ -45,10 +45,7 @@ namespace CrunchEconContractModels.Random_Stuff
 
         public static bool Update()
         {
-            Core.Log.Info("Store Update");
-            if (!MyDefinitionId.TryParse("Ingot", "Iron", out MyDefinitionId id)) return true;
-            SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, "Iron");
-
+            //Core.Log.Info("Store Update");
             int price = 500;
 
             int amount = 50000;
@@ -56,18 +53,18 @@ namespace CrunchEconContractModels.Random_Stuff
             {
                 foreach (MyStation station in faction.Value.Stations)
                 {
-          
-                    var storeid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.CONTRACT,
-                        MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM) + Core.random.Next(1, 200);
-                    MyStoreItem test = new MyStoreItem(storeid, itemId, amount, price, StoreItemTypes.Offer);
-                    station.StoreItems.Clear();
-                    station.StoreItems.Add(test);
+                    long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+                    MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, price, StoreItemTypes.Offer, ItemTypes.Grid);
+                    myStoreItem2.IsCustomStoreItem = true;
+                    myStoreItem2.PrefabName = "L531StarterShip";
+
+                    station.StoreItems.Add(myStoreItem2);
 
                 }
             }
 
             Core.Log.Info("Update happened");
-            return false;
+            return true;
         }
     }
 }

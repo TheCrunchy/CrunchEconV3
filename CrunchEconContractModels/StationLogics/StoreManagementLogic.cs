@@ -384,39 +384,53 @@ namespace CrunchEconContractModels.StationLogics
                 return;
             }
 
-            MyStoreItemData itemInsert =
-                new MyStoreItemData(itemId, amount, price,
-                    null, null);
+            if (!item.IsPrefab)
+            {
+                MyStoreItemData itemInsert =
+                    new MyStoreItemData(itemId, amount, price,
+                        null, null);
 
-            MyStoreInsertResults result =
-                store.InsertOffer(itemInsert,
-                    out long notUsingThis);
+                MyStoreInsertResults result =
+                    store.InsertOffer(itemInsert,
+                        out long notUsingThis);
+                if (result != MyStoreInsertResults.Success)
+                {
+                    if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum)
+                    {
+                        long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+                        MyStoreItem myStoreItem = new MyStoreItem(newid, amount, price, StoreItemTypes.Offer, ItemTypes.PhysicalItem);
+                        myStoreItem.Item = itemId;
+                        store.PlayerItems.Add(myStoreItem);
+                    }
+                    else
+                    {
+                        CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} Amount:{itemInsert.Amount} Price:{itemInsert.PricePerUnit} {result.ToString()}");
+                    }
+
+                }
+            }
+            else
+            {
+                long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+                 MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, price, StoreItemTypes.Offer, ItemTypes.Grid);
+                myStoreItem2.IsCustomStoreItem = true;
+                myStoreItem2.PrefabName = item.PrefabSubType;
+
+                store.PlayerItems.Add(myStoreItem2);
+            }
+
 
             //long newid2 = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-           /// MyStoreItem myStoreItem3 = new MyStoreItem(newid2, amount, 50, StoreItemTypes.Offer, ItemTypes.Hydrogen);
-          //  myStoreItem3.IsCustomStoreItem = true;
-    //        myStoreItem3.PrefabName = "TestDestroyer";
+            /// MyStoreItem myStoreItem3 = new MyStoreItem(newid2, amount, 50, StoreItemTypes.Offer, ItemTypes.Hydrogen);
+            //  myStoreItem3.IsCustomStoreItem = true;
+            //        myStoreItem3.PrefabName = "TestDestroyer";
 
             //MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
-       //     var prefab = MyDefinitionManager.Static.GetPrefabDefinition("TestDestroyer");
-           // store.PlayerItems.Add(myStoreItem3);
+            //     var prefab = MyDefinitionManager.Static.GetPrefabDefinition("TestDestroyer");
+            // store.PlayerItems.Add(myStoreItem3);
             // store.PlayerItems.Add(myStoreItem2);
 
-            if (result != MyStoreInsertResults.Success)
-            {
-                if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum)
-                {
-                    long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-                    MyStoreItem myStoreItem = new MyStoreItem(newid, amount, price, StoreItemTypes.Offer, ItemTypes.PhysicalItem);
-                    myStoreItem.Item = itemId;
-                    store.PlayerItems.Add(myStoreItem);
-                }
-                else
-                {
-                    CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} Amount:{itemInsert.Amount} Price:{itemInsert.PricePerUnit} {result.ToString()}");
-                }
 
-            }
         }
 
         public int Priority { get; set; }
@@ -430,6 +444,8 @@ namespace CrunchEconContractModels.StationLogics
 
     public class StoreEntryModel
     {
+        public bool IsPrefab = false;
+        public string PrefabSubType = "Subtypehere";
         public string Type { get; set; } = "MyObjectBuilder_Ingot";
         public string Subtype { get; set; } = "Iron";
         public bool BuyFromPlayers { get; set; } = false;
