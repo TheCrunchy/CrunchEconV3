@@ -149,20 +149,27 @@ namespace CrunchEconContractModels.Contracts
                 return true;
             }
 
-            if (Grid != null && !HasSpawnedGrid)
+            if (HasSpawnedGrid && Grid != null)
             {
-                foreach (var block in Grid.GetFatBlocks().Where(block => !block.SlimBlock.ComponentStack.IsFunctional))
+                foreach (var block in Grid.GetFatBlocks().Where(x => !x.IsFunctional))
                 {
-                    this.BlockIdsToRepair.Add(block.EntityId);
-                    block.SlimBlock.SubscribeForIsFunctionalChanged(new Action<MySlimBlock>(this.BlockFunctionalityChanged));
+                    block.SlimBlock.IncreaseMountLevel(100, block.OwnerId);
                 }
 
-
+                BlocksToRepair = Grid.GetFatBlocks().Count(x => !x.IsFunctional);
+            }
+            if (Grid != null && !HasSpawnedGrid)
+            {
+                //foreach (var block in Grid.GetFatBlocks().Where(block => !block.SlimBlock.ComponentStack.IsFunctional))
+                //{
+                //    this.BlockIdsToRepair.Add(block.EntityId);
+                //}
                 Grid.OnBlockRemoved += BlockRemoved;
-                this.BlocksToRepair = this.BlockIdsToRepair.Count();
+                //  this.BlocksToRepair = this.BlockIdsToRepair.Count();
                 HasSpawnedGrid = true;
                 return false;
             }
+
             if (this.BlocksToRepair <= 0 && HasSpawnedGrid)
             {
                 return TryCompleteContract(this.AssignedPlayerSteamId, PlayersCurrentPosition);
@@ -177,15 +184,16 @@ namespace CrunchEconContractModels.Contracts
             {
                 return false;
             }
-            else
+
+            if (HasSpawnedGrid)
             {
-                if (HasSpawnedGrid)
+                var found = MyAPIGateway.Entities.GetEntityById(GridEntityId);
+                Core.Log.Info("Trying to get entity");
+                if (found != null)
                 {
-                    var found = MyAPIGateway.Entities.GetEntityById(GridEntityId);
-                    if (found != null)
-                    {
-                        Grid = (MyCubeGrid)found;
-                    }
+                    Core.Log.Info("Found entity");
+                    Grid = (MyCubeGrid)found;
+                    return false;
                 }
             }
 
@@ -219,33 +227,10 @@ namespace CrunchEconContractModels.Contracts
             {
                 var main = Ids.OrderByDescending(x => x.BlocksCount).FirstOrDefault();
                 Grid = main;
+                GridEntityId = Grid.EntityId;
             }
 
             return false;
-        }
-
-        private void BlockFunctionalityChanged(MySlimBlock block)
-        {
-            if (BlockIdsToRepair.Contains(block.FatBlock.EntityId))
-            {
-                if (block.ComponentStack.IsFunctional)
-                {
-                    --this.BlocksToRepair;
-                    BlockIdsToRepair.Remove(block.FatBlock.EntityId);
-                }
-                else
-                {
-                    this.brokeBlocks = true;
-                    FailContract();
-                }
-            }
-            else
-            {
-                if (block.FatBlock is IMyDoor) return;
-
-                this.brokeBlocks = true;
-                FailContract();
-            }
         }
 
         private void BlockRemoved(MySlimBlock obj)
