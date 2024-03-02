@@ -144,6 +144,11 @@ namespace CrunchEconContractModels.Contracts
 
         public bool Update100(Vector3 PlayersCurrentPosition)
         {
+            if (this.brokeBlocks)
+            {
+                return true;
+            }
+
             if (Grid != null && !HasSpawnedGrid)
             {
                 foreach (var block in Grid.GetFatBlocks().Where(block => !block.SlimBlock.ComponentStack.IsFunctional))
@@ -321,8 +326,6 @@ namespace CrunchEconContractModels.Contracts
 
         }
 
-        public long GasAmount { get; set; }
-        public string GasName { get; set; }
         public int ReputationRequired { get; set; }
         public long ContractId { get; set; }
         public long BlockId { get; set; }
