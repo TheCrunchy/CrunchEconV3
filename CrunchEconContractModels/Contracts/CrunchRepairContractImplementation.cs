@@ -248,7 +248,7 @@ namespace CrunchEconContractModels.Contracts
             sb.AppendLine("Repair Location.");
             MyGps gpsRef = new MyGps();
             gpsRef.Coords = DeliverLocation;
-            gpsRef.Name = $"Repair Grid";
+            gpsRef.Name = $"--> REPAIR HERE <--";
             gpsRef.GPSColor = Color.Orange;
             gpsRef.ShowOnHud = true;
             gpsRef.AlwaysVisible = true;
@@ -283,7 +283,7 @@ namespace CrunchEconContractModels.Contracts
                 {
                     Grid.Close();
                 }
-
+                CrunchEconV3.Core.SendMessage("Contracts", $"{this.Name} completed, you have been paid.", Color.Green, this.AssignedPlayerSteamId);
                 return true;
             }
             catch (Exception e)
