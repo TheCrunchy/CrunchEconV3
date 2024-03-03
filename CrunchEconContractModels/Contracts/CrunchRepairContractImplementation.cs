@@ -41,6 +41,7 @@ namespace CrunchEconContractModels.Contracts
         //no cheeky repairing the same block
         public List<long> BlockIdsToRepair { get; set; }
 
+        public DateTime NextMessage = DateTime.Now;
         public MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
         {
             string definition = this.DefinitionId;
@@ -149,50 +150,47 @@ namespace CrunchEconContractModels.Contracts
                 return true;
             }
 
-            if (HasSpawnedGrid && Grid != null)
+            if (HasSpawnedGrid && GetGrid() != null)
             {
-                foreach (var block in Grid.GetFatBlocks().Where(x => !x.IsFunctional))
+                foreach (var block in GetGrid().GetFatBlocks().Where(x => !x.IsFunctional))
                 {
                     block.SlimBlock.IncreaseMountLevel(100, block.OwnerId);
                 }
 
-                BlocksToRepair = Grid.GetFatBlocks().Count(x => !x.IsFunctional);
+                BlocksToRepair = GetGrid().GetFatBlocks().Count(x => !x.IsFunctional);
             }
-            if (Grid != null && !HasSpawnedGrid)
+            if (GetGrid() != null && !HasSpawnedGrid)
             {
-                //foreach (var block in Grid.GetFatBlocks().Where(block => !block.SlimBlock.ComponentStack.IsFunctional))
-                //{
-                //    this.BlockIdsToRepair.Add(block.EntityId);
-                //}
-                Grid.OnBlockRemoved += BlockRemoved;
-                //  this.BlocksToRepair = this.BlockIdsToRepair.Count();
+                GetGrid().OnBlockRemoved += BlockRemoved;
                 HasSpawnedGrid = true;
                 return false;
             }
 
-            if (this.BlocksToRepair <= 0 && HasSpawnedGrid)
+            switch (this.BlocksToRepair)
             {
-                return TryCompleteContract(this.AssignedPlayerSteamId, PlayersCurrentPosition);
+                case > 0 when DateTime.Now >= NextMessage:
+                    NextMessage = NextMessage.AddMinutes(1);
+                    Core.SendMessage("Contracts", $"{this.BlocksToRepair} blocks left to repair.", Color.Yellow, AssignedPlayerSteamId);
+                    break;
+                case <= 0 when HasSpawnedGrid:
+                    return TryCompleteContract(this.AssignedPlayerSteamId, PlayersCurrentPosition);
             }
+
             if (DateTime.Now > ExpireAt)
             {
                 FailContract();
                 return true;
             }
 
-            if (HasSpawnedGrid && Grid != null)
+            if (HasSpawnedGrid && GetGrid() != null)
             {
                 return false;
             }
 
             if (HasSpawnedGrid)
             {
-                var found = MyAPIGateway.Entities.GetEntityById(GridEntityId);
-                Core.Log.Info("Trying to get entity");
-                if (found != null)
+                if (GetGrid() == null)
                 {
-                    Core.Log.Info("Found entity");
-                    Grid = (MyCubeGrid)found;
                     return false;
                 }
             }
@@ -231,6 +229,18 @@ namespace CrunchEconContractModels.Contracts
             }
 
             return false;
+        }
+
+        private MyCubeGrid GetGrid()
+        {
+            if (Grid != null)
+            {
+                return Grid;
+            }
+            var found = MyAPIGateway.Entities.GetEntityById(GridEntityId);
+            if (found == null) return null;
+            Grid = (MyCubeGrid)found;
+            return Grid;
         }
 
         private void BlockRemoved(MySlimBlock obj)
@@ -279,9 +289,9 @@ namespace CrunchEconContractModels.Contracts
                 }
                 EconUtils.addMoney(this.AssignedPlayerIdentityId, this.RewardMoney);
 
-                if (this.DeleteGridOnComplete && Grid != null)
+                if (this.DeleteGridOnComplete && GetGrid() != null)
                 {
-                    Grid.Close();
+                    GetGrid().Close();
                 }
                 CrunchEconV3.Core.SendMessage("Contracts", $"{this.Name} completed, you have been paid.", Color.Green, this.AssignedPlayerSteamId);
                 return true;
@@ -309,6 +319,10 @@ namespace CrunchEconContractModels.Contracts
                 CrunchEconV3.Core.SendMessage("Contracts", DateTime.Now > ExpireAt ? $"{this.Name} failed, time expired." : $"{this.Name} failed.", Color.Red, this.AssignedPlayerSteamId);
             }
 
+            if (this.DeleteGridOnComplete && GetGrid() != null)
+            {
+                GetGrid().Close();
+            }
         }
 
         public int ReputationRequired { get; set; }
