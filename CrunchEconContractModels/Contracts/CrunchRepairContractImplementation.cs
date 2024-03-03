@@ -166,14 +166,15 @@ namespace CrunchEconContractModels.Contracts
                 return false;
             }
 
-            switch (this.BlocksToRepair)
+            if (this.BlocksToRepair > 0 && DateTime.Now >= NextMessage)
             {
-                case > 0 when DateTime.Now >= NextMessage:
-                    NextMessage = NextMessage.AddMinutes(1);
-                    Core.SendMessage("Contracts", $"{this.BlocksToRepair} blocks left to repair.", Color.Yellow, AssignedPlayerSteamId);
-                    break;
-                case <= 0 when HasSpawnedGrid:
-                    return TryCompleteContract(this.AssignedPlayerSteamId, PlayersCurrentPosition);
+                NextMessage = NextMessage.AddMinutes(1);
+                Core.SendMessage("Contracts", $"{this.BlocksToRepair} blocks left to repair.", Color.Yellow,
+                    AssignedPlayerSteamId);
+            }
+            if (this.BlocksToRepair <= 0 && HasSpawnedGrid)
+            {
+                return TryCompleteContract(this.AssignedPlayerSteamId, PlayersCurrentPosition);
             }
 
             if (DateTime.Now > ExpireAt)
