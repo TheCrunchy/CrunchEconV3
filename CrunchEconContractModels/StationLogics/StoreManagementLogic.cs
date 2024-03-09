@@ -180,18 +180,23 @@ namespace CrunchEconContractModels.StationLogics
         {
             StoreItemsHandler.LoadTheFiles();
         }
-        //var cargos = new List<string>() { "Cargo1", "Cargo2" };
-        //if (block.DisplayNameText != null && !cargos.Contains(block.DisplayNameText))
-        //{
-        //    continue;
-        //}
-        public static List<VRage.Game.ModAPI.IMyInventory> GetInventories(MyCubeGrid grid)
+        
+
+        public static List<VRage.Game.ModAPI.IMyInventory> GetInventories(MyCubeGrid grid, string cargoNames = "")
         {
             List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();
             var gridOwnerFac = FacUtils.GetOwner(grid);
-
+            
             foreach (var block in grid.GetFatBlocks().OfType<MyCargoContainer>().Where(x => x.OwnerId == gridOwnerFac))
             {
+                if (cargoNames != "")
+                {
+                    if (block.DisplayNameText != null && !cargoNames.Contains(block.DisplayNameText))
+                    {
+                        continue;
+                    }
+                }
+           
                 for (int i = 0; i < block.InventoryCount; i++)
                 {
                     VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)block).GetInventory(i);
@@ -200,9 +205,9 @@ namespace CrunchEconContractModels.StationLogics
             }
             return inventories;
         }
-        public static List<VRage.Game.ModAPI.IMyInventory> ClearInventories(MyCubeGrid grid)
+        public static List<VRage.Game.ModAPI.IMyInventory> ClearInventories(MyCubeGrid grid, string cargoNames = "")
         {
-            List<VRage.Game.ModAPI.IMyInventory> inventories = GetInventories(grid);
+            List<VRage.Game.ModAPI.IMyInventory> inventories = GetInventories(grid, cargoNames);
 
             foreach (var inv in inventories)
             {
@@ -264,7 +269,7 @@ namespace CrunchEconContractModels.StationLogics
                         CrunchEconV3.Core.Log.Error($"{item.Type} {item.Subtype} not a valid id");
                         continue;
                     };
-                    var inventories = GetInventories(grid);
+                    var inventories = GetInventories(grid, CargoNamesSeperatedByCommas);
                     var quantity = CrunchEconV3.Handlers.InventoriesHandler.CountComponents(inventories, id);
                     try
                     {
@@ -308,18 +313,18 @@ namespace CrunchEconContractModels.StationLogics
                     out long notUsingThis);
 
 
-        //    long newid2 = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-         //   MyStoreItem myStoreItem3 = new MyStoreItem(newid2, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
-        //    myStoreItem3.IsCustomStoreItem = true;
-         //   myStoreItem3.PrefabName = "TestDestroyer";
-          //  long newid3 = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-          //  MyStoreItem myStoreItem2 = new MyStoreItem(newid3, amount, 50, StoreItemTypes.Order, ItemTypes.Grid);
+            //    long newid2 = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+            //   MyStoreItem myStoreItem3 = new MyStoreItem(newid2, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
+            //    myStoreItem3.IsCustomStoreItem = true;
+            //   myStoreItem3.PrefabName = "TestDestroyer";
+            //  long newid3 = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+            //  MyStoreItem myStoreItem2 = new MyStoreItem(newid3, amount, 50, StoreItemTypes.Order, ItemTypes.Grid);
 
-           // myStoreItem2.IsCustomStoreItem = true;
-          //  myStoreItem2.PrefabName = "TestDestroyer";
-         //   store.PlayerItems.Add(myStoreItem3);
-         //   store.PlayerItems.Add(myStoreItem2);
-            
+            // myStoreItem2.IsCustomStoreItem = true;
+            //  myStoreItem2.PrefabName = "TestDestroyer";
+            //   store.PlayerItems.Add(myStoreItem3);
+            //   store.PlayerItems.Add(myStoreItem2);
+
             //  station.StoreItems.Add(myStoreItem);
             if (result != MyStoreInsertResults.Success)
             {
@@ -334,7 +339,7 @@ namespace CrunchEconContractModels.StationLogics
                 {
                     CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {item.Type} {item.Subtype} Amount:{itemInsert.Amount} Price:{itemInsert.PricePerUnit} {result.ToString()}");
                 }
-           
+
             }
         }
 
@@ -412,7 +417,7 @@ namespace CrunchEconContractModels.StationLogics
             else
             {
                 long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-                 MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, price, StoreItemTypes.Offer, ItemTypes.Grid);
+                MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, price, StoreItemTypes.Offer, ItemTypes.Grid);
                 myStoreItem2.IsCustomStoreItem = true;
                 myStoreItem2.PrefabName = item.PrefabSubType;
 
@@ -432,7 +437,7 @@ namespace CrunchEconContractModels.StationLogics
 
 
         }
-
+        public string CargoNamesSeperatedByCommas { get; set; } = "";
         public int Priority { get; set; }
         public bool DeleteItemsPeriodically { get; set; } = true;
         public DateTime NextDelete = DateTime.Now;

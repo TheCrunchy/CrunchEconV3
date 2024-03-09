@@ -19,25 +19,20 @@ using IMyTextPanel = Sandbox.ModAPI.Ingame.IMyTextPanel;
 namespace CrunchEconContractModels.StationLogics
 {
     public class StationCraftingLogic : IStationLogic
-    {  //var cargos = new List<string>() { "Cargo1", "Cargo2" };
-        //if (block.DisplayNameText != null && !cargos.Contains(block.DisplayNameText))
-        //{
-        //    continue;
-        //}
+    {
         public static List<VRage.Game.ModAPI.IMyInventory> GetInventories(MyCubeGrid grid, string cargoNames = "")
         {
             List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();
             var gridOwnerFac = FacUtils.GetOwner(grid);
-            
+
+            var cargos = cargoNames;
             foreach (var block in grid.GetFatBlocks().OfType<MyCargoContainer>().Where(x => x.OwnerId == gridOwnerFac))
             {
-                if (cargoNames != "")
+                if (!cargos.Contains($"{block.DisplayNameText}"))
                 {
-                    if (!cargoNames.Contains($"{block.DisplayNameText}"))
-                    {
-                        continue;
-                    }
+                    continue;
                 }
+
                 for (int i = 0; i < block.InventoryCount; i++)
                 {
                     VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)block).GetInventory(i);
@@ -109,7 +104,7 @@ namespace CrunchEconContractModels.StationLogics
 
         }
 
-        public bool SpawnItems(List<VRage.Game.ModAPI.IMyInventory> inventories,MyDefinitionId id, MyFixedPoint amount)
+        public bool SpawnItems(List<VRage.Game.ModAPI.IMyInventory> inventories, MyDefinitionId id, MyFixedPoint amount)
         {
             foreach (var cargo in inventories)
             {
