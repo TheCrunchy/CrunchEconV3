@@ -287,7 +287,7 @@ namespace CrunchEconContractModels.StationLogics
             return Task.FromResult(true);
         }
 
-        public static void DoBuy(StoreEntryModel item, MyStoreBlock store, MyFixedPoint quantityInGrid, List<IMyInventory> gridInventories)
+        public void DoBuy(StoreEntryModel item, MyStoreBlock store, MyFixedPoint quantityInGrid, List<IMyInventory> gridInventories)
         {
             if (!item.BuyFromPlayers) return;
             if (item.BuyFromChanceToAppear < 1 && CrunchEconV3.Core.random.NextDouble() > item.BuyFromChanceToAppear)
@@ -298,7 +298,13 @@ namespace CrunchEconContractModels.StationLogics
             if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id)) return;
 
             SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, item.Subtype);
-
+            if (this.OnlyAllowToBuyOrSellNotBoth)
+            {
+                if (store.PlayerItems.Any(x => x.Item.HasValue && x.Item.Value.TypeId == itemId.TypeId && x.Item.Value.SubtypeId == itemId.SubtypeId))
+                {
+                    return;
+                }
+            }
             int price = CrunchEconV3.Core.random.Next((int)item.BuyFromPlayerPriceMin, (int)item.BuyFromPlayerPriceMax);
 
             int amount = CrunchEconV3.Core.random.Next((int)item.AmountToBuyMin,
@@ -343,7 +349,7 @@ namespace CrunchEconContractModels.StationLogics
             }
         }
 
-        public static void DoSell(StoreEntryModel item, MyStoreBlock store, MyFixedPoint quantityInGrid, List<IMyInventory> gridInventories)
+        public void DoSell(StoreEntryModel item, MyStoreBlock store, MyFixedPoint quantityInGrid, List<IMyInventory> gridInventories)
         {
             var skip = false;
             if (!item.SellToPlayers) return;
@@ -355,7 +361,13 @@ namespace CrunchEconContractModels.StationLogics
             if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id)) return;
 
             SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, item.Subtype);
-
+            if (this.OnlyAllowToBuyOrSellNotBoth)
+            {
+                if (store.PlayerItems.Any(x => x.Item.HasValue && x.Item.Value.TypeId == itemId.TypeId && x.Item.Value.SubtypeId == itemId.SubtypeId))
+                {
+                    return;
+                }
+            }
             int price = CrunchEconV3.Core.random.Next((int)item.SellToPlayerPriceMin, (int)item.SellToPlayerPriceMax);
 
             int amount = CrunchEconV3.Core.random.Next((int)item.AmountToSellMin,
@@ -443,6 +455,7 @@ namespace CrunchEconContractModels.StationLogics
         public DateTime NextDelete = DateTime.Now;
         public int MinutesBetweenDeletes = 60 * 12;
 
+        public bool OnlyAllowToBuyOrSellNotBoth = false;
         public DateTime NextRefresh { get; set; }
         public int SecondsBetweenRefresh = 600;
     }
