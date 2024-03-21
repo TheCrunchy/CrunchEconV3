@@ -108,6 +108,7 @@
     <Compile Include="Random Stuff\Inventory.cs" />
     <Compile Include="Random Stuff\NexusHelper.cs" />
     <Compile Include="Random Stuff\NoBoomBoom.cs" />
+    <Compile Include="Random Stuff\DisableInSphere.cs" />
     <Compile Include="Random Stuff\PCUStuff.cs" />
     <Compile Include="Random Stuff\ReputationScript.cs" />
     <Compile Include="Random Stuff\SpawnPatchTwo.cs" />
