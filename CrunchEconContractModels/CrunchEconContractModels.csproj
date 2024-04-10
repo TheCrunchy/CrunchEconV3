@@ -101,6 +101,7 @@
     <Compile Include="Contracts\testing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Random Stuff\BlockBuyingButton.cs" />
+    <Compile Include="Random Stuff\ButtonOpenUrl.cs" />
     <Compile Include="Random Stuff\DebtPatch.cs" />
     <Compile Include="Random Stuff\ExampleCommand.cs" />
     <Compile Include="Random Stuff\GridSales.cs" />
