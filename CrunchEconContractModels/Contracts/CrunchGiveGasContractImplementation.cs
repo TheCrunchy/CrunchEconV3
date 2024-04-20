@@ -362,7 +362,15 @@ namespace CrunchEconContractModels.Contracts
                 var GPS = GPSHelper.ScanChat(station.LocationGPS);
                 return Tuple.Create(GPS.Coords, foundFaction.FactionId);
             }
-
+            var keenEndResult = StationHandler.KeenStations.GetRandomItemFromList();
+            if (keenEndResult != null)
+            {
+                var foundFaction = MySession.Static.Factions.TryGetFactionById(keenEndResult.FactionId);
+                if (foundFaction != null)
+                {
+                    return Tuple.Create(keenEndResult.Position, foundFaction.FactionId);
+                }
+            }
             return Tuple.Create(Vector3D.Zero, 0l);
         }
 

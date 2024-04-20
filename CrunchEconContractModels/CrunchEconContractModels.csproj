@@ -116,6 +116,7 @@
     <Compile Include="Random Stuff\StationFaker.cs" />
     <Compile Include="Random Stuff\StorePurchaseLimit.cs" />
     <Compile Include="Random Stuff\PCULimits.cs" />
+    <Compile Include="Random Stuff\Update.cs" />
     <Compile Include="StationLogics\GrowthLogic.cs" />
     <Compile Include="StationLogics\FactionBalanceLogic.cs" />
     <Compile Include="StationLogics\HarmonyStuff.cs" />

@@ -20,6 +20,8 @@ namespace CrunchEconV3.Models
 
         public Dictionary<long, ICrunchContract> PlayersContracts = new Dictionary<long, ICrunchContract>();
 
+        public Dictionary<string, string> RandomJsonStuff = new Dictionary<string, string>();
+
         public List<ICrunchContract> GetContractsForType(string type)
         {
             return PlayersContracts.Where(x => x.Value.ContractType.Equals(type)).Select(x => x.Value).ToList();

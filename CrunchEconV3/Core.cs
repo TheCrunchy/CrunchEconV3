@@ -63,7 +63,7 @@ namespace CrunchEconV3
         public static ITorchPlugin PluginInstance;
 
         public static bool CompileFailed = false;
-
+        public static Action UpdateCycle;
         public override void Init(ITorchBase torch)
         {
             base.Init(torch);
@@ -92,12 +92,18 @@ namespace CrunchEconV3
                 return;
             }
 
-            if (ticks == 1)
-            {
-            }
             try
             {
                 ticks++;
+                try
+                {
+                    UpdateCycle?.Invoke();
+                }
+                catch (Exception e)
+                {
+                    Core.Log.Error(e);
+                }
+
                 if (ticks % 100 == 0 && TorchState == TorchSessionState.Loaded)
                 {
                     if (CompileFailed)
