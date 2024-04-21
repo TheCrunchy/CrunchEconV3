@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<Definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <PhysicalItems>
+    <PhysicalItem xsi:type="MyObjectBuilder_PhysicalItemDefinition">
+      <Id>
+        <TypeId>PhysicalObject</TypeId>
+        <SubtypeId>IconBuffer_CrunchHauling</SubtypeId>
+      </Id>
+      <DisplayName>IconBuffer_CrunchHauling</DisplayName>
+      <Description>IconBuffer_CrunchHauling</Description>
+      <Icon>Textures\GUI\Icons\Contracts\HaulingContract.dds</Icon>
+      <Public>false</Public>
+      <CanPlayerOrder>false</CanPlayerOrder>
+      <CanSpawnFromScreen>false</CanSpawnFromScreen>
+    </PhysicalItem>
+
+    <PhysicalItem xsi:type="MyObjectBuilder_PhysicalItemDefinition">
+      <Id>
+        <TypeId>PhysicalObject</TypeId>
+        <SubtypeId>HeaderBuffer_CrunchHauling</SubtypeId>
+      </Id>
+      <DisplayName>HeaderBuffer_CrunchHauling</DisplayName>
+      <Description>HeaderBuffer_CrunchHauling</Description>
+      <Icon>Textures\GUI\Icons\Contracts\HaulingContractHeader.dds</Icon>
+      <Public>false</Public>
+      <CanPlayerOrder>false</CanPlayerOrder>
+      <CanSpawnFromScreen>false</CanSpawnFromScreen>
+    </PhysicalItem>
+  </PhysicalItems>
+</Definitions>
