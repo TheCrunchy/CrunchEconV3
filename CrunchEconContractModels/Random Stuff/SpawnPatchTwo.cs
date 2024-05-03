@@ -23,6 +23,7 @@ namespace CrunchEconContractModels.Random_Stuff
         public static void Patch(PatchContext ctx)
         {
             ctx.GetPattern(flee).Suffixes.Add(patchFlee);
+
         }
 
         public static void GetSpawnPositionNearPlanet(

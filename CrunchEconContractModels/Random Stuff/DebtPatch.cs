@@ -6,6 +6,7 @@ using Torch.Managers.PatchManager;
 
 namespace CrunchEconContractModels.Random_Stuff
 {
+    [PatchShim]
     public static class DebtPatch
     {
         internal static readonly MethodInfo flee =
@@ -38,37 +39,5 @@ namespace CrunchEconContractModels.Random_Stuff
 
             return true;
         }
-
-        //internal static readonly MethodInfo flee =
-        //    typeof(MyBankingSystem).GetMethod("ChangeBalance",
-        //        BindingFlags.Static | BindingFlags.Public) ??
-        //    throw new Exception("Failed to find patch method");
-
-        //internal static readonly MethodInfo patchFlee =
-        //    typeof(DebtPatch).GetMethod(nameof(DoBalanceChange),
-        //        BindingFlags.Static | BindingFlags.Public) ??
-        //    throw new Exception("Failed to find patch method");
-
-        //public static void Patch(PatchContext ctx)
-        //{
-
-        //    ctx.GetPattern(flee).Prefixes.Add(patchFlee);
-        //}
-
-        //public static bool DoBalanceChange(long identifierId, long amount)
-        //{
-        //    var balance = EconUtils.getBalance(identifierId);
-        //    if (balance < 0)
-        //    {
-        //        var newBalance = balance + amount;
-        //        MyBankingSystem.Static.RemoveAccount(identifierId);
-        //        MyBankingSystem.Static.CreateAccount(identifierId, newBalance);
-        //        return false;
-
-        //    }
-
-        //    return true;
-        //}
-
     }
 }

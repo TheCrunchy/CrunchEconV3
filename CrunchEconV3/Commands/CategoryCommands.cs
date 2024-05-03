@@ -364,6 +364,7 @@ namespace CrunchEconV3.Commands
                         if (attempts >= 10)
                         {
                             inGrav = false;
+                            continue;
                         }
                         attempts++;
                         minDistanceFromPlanet += 15000;
