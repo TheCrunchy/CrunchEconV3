@@ -137,8 +137,8 @@ namespace CrunchEconContractModels.Contracts
 
         private bool HasStarted = false;
 
-        public string CommandToExecute = "Put command here";
-        public int DistanceBeforeSpawnAtGPSInKM = 15000;
+        public string CommandToExecute { get; set; }
+        public int DistanceBeforeSpawnAtGPSInKM { get; set; }
 
         public bool Update100(Vector3 PlayersCurrentPosition)
         {
@@ -286,7 +286,7 @@ namespace CrunchEconContractModels.Contracts
             return contract;
         }
 
-        public int PlayerDistanceToGpsBeforeSpawn;
+     
 
         public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
             long idUsedForDictionary)
@@ -321,7 +321,7 @@ namespace CrunchEconContractModels.Contracts
 
             return Tuple.Create(Vector3D.Zero, 0l);
         }
-
+        public int PlayerDistanceToGpsBeforeSpawn = 15000;
         public int AmountOfContractsToGenerate { get; set; } = 3;
         public float ChanceToAppear { get; set; } = 0.5f;
         public long CollateralMin { get; set; } = 1;
