@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CrunchEconV3;
 using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Multiplayer;
+using Sandbox.Game.World;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
@@ -31,19 +32,27 @@ namespace CrunchEconContractModels.Random_Stuff
             }
             else
             {
-                if (Sync.Players.TryGetPlayerBySteamId((ulong)playerSteamId, out var player))
-                {
-                    Context.Respond("Command executed?");
-                    Core.MesAPI.ChatCommand(command, new MatrixD()
-                    {
-                        Translation = Vector3D.Zero,
-                        Forward = Vector3D.Zero,
-                    }, player.Identity.IdentityId, player.Id.SteamId);
-                    return;
-                }
+                var identity = MySession.Static.Players.TryGetIdentityId((ulong)playerSteamId);
 
-                Context.Respond("Player with that steam id not found");
+                Context.Respond("Command executed?");
+                Core.MesAPI.ChatCommand(command, new MatrixD()
+                {
+                    Translation = Vector3D.Zero,
+                    Forward = Vector3D.Zero,
+                }, identity, (ulong)playerSteamId);
+                return;
+
             }
+        }
+
+        [Command("gts", "Run an MES command")]
+        [Permission(MyPromoteLevel.None)]
+        public void RunCommand()
+        {
+
+            Core.MesAPI.ChatCommand("/MES.GTS", Context.Player.Character.PositionComp.WorldMatrixRef, Context.Player.IdentityId, Context.Player.SteamUserId);
+
+            Context.Respond("Command executed");
         }
     }
 }

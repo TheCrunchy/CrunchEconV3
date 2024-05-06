@@ -97,6 +97,7 @@
     <Compile Include="Contracts\CrunchGasContractImplementation.cs" />
     <Compile Include="Contracts\CrunchMiningContractImplementation.cs" />
     <Compile Include="Contracts\CrunchPeopleHaulingContractImplementation.cs" />
+    <Compile Include="Contracts\CrunchMESSpawnerContractImplementation.cs" />
     <Compile Include="Contracts\SearchContractImplementation.cs" />
     <Compile Include="Contracts\testing.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
