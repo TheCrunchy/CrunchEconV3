@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
@@ -21,18 +22,58 @@ using Torch;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
+using VRage.ModAPI;
 using VRage.ObjectBuilder;
 using VRage.Utils;
 using VRageMath;
 
-namespace CrunchEconContractModels.Contracts
+namespace CrunchEconContractModels.Contracts.MES
 {
     public class CrunchMESSpawnerContractImplementation : ICrunchContract
     {
 
         public long ContractId { get; set; }
         public string ContractType { get; set; }
+        private bool HasPower(VRage.Game.ModAPI.IMyCubeGrid grid)
+        {
+            var blocks = new List<IMySlimBlock>();
+            grid.GetBlocks(blocks);
 
+            foreach (var block in blocks)
+            {
+                var terminalBlock = block.FatBlock as IMyTerminalBlock;
+                if (terminalBlock != null)
+                {
+                    MyResourceSourceComponent powerProducer;
+                    if (terminalBlock.Components.TryGet(out powerProducer) && powerProducer.CurrentOutput > 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+        private bool HasActiveThrusters(IMyCubeGrid grid)
+        {
+            var blocks = new List<IMySlimBlock>();
+            grid.GetBlocks(blocks);
+
+            foreach (var block in blocks)
+            {
+                var terminalBlock = block.FatBlock as IMyTerminalBlock;
+                if (terminalBlock != null && terminalBlock is IMyThrust)
+                {
+                    var thrust = terminalBlock as IMyThrust;
+                    if (thrust.IsWorking)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
         public MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
         {
             string definition = this.DefinitionId;
@@ -140,17 +181,88 @@ namespace CrunchEconContractModels.Contracts
         public string CommandToExecute { get; set; }
         public int DistanceBeforeSpawnAtGPSInKM { get; set; }
 
+        private void OnEntityAdd(IMyEntity entity)
+        {
+            if (entity is IMyCubeGrid grid)
+            {
+                var distance = Vector3.Distance(grid.PositionComp.GetPosition(), this.DeliverLocation);
+                if (distance <= this.DistanceBeforeSpawnAtGPSInKM + 10000)
+                {
+                    var gridOwner = FacUtils.GetFactionTag(FacUtils.GetOwner(grid as MyCubeGrid));
+                    if (string.IsNullOrEmpty(gridOwner) || gridOwner == null)
+                    {
+                        return;
+                    }
+                    var payForThis = GridsToDestroy.FirstOrDefault(x => x.GridToDestroy == grid.DisplayName && gridOwner == x.FacTagToOwnThisGrid);
+                    if (payForThis != null)
+                    {
+                        var cube = grid as MyCubeGrid;
+                        MappedGrids.Add(grid.EntityId, grid as MyCubeGrid);
+                        GridIdsToPay.Add(grid.EntityId, payForThis.Payment);
+                        StartingBlockCounts.Add(grid.EntityId, cube.BlocksCount);
+                    }
+
+                }
+            }
+        }
+
         public bool Update100(Vector3 PlayersCurrentPosition)
         {
             if (DateTime.Now > ExpireAt)
             {
-                CrunchEconV3.Core.SendMessage("Contracts",
-                    DateTime.Now > ExpireAt ? $"{this.Name}, Time Expired." : $"{this.Name}", Color.Green,
-                    this.AssignedPlayerSteamId);
+                TryCompleteContract(this.AssignedPlayerSteamId, PlayersCurrentPosition);
                 return true;
             }
 
-            if (HasStarted) return false;
+            if (HasStarted)
+            {
+                var temp = new List<long>();
+                foreach (var item in GridIdsToPay)
+                {
+                    if (MappedGrids.TryGetValue(item.Key, out var grid))
+                    {
+                        if (grid.Closed || grid.MarkedForClose)
+                        {
+                            UncollectedPay += item.Value;
+                            temp.Add(item.Key);
+                            Core.SendMessage($"{this.Name}", $"{grid.DisplayName} destroyed.", Color.LightGreen, this.AssignedPlayerSteamId);
+                        }
+                        else
+                        {
+                            if (!HasPower(grid) || !HasActiveThrusters(grid) || grid.BlocksCount <= StartingBlockCounts[grid.EntityId] / 2)
+                            {
+                                UncollectedPay += item.Value;
+                                temp.Add(item.Key);
+                                grid.SwitchPower();
+                                Core.SendMessage($"{this.Name}", $"{grid.DisplayName} destroyed.", Color.LightGreen, this.AssignedPlayerSteamId);
+                                //      Core.Log.Info("grid has no power");
+                            }
+                            else
+                            {
+                                //       Core.Log.Info("grid has power");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            if (MyAPIGateway.Entities.TryGetEntityById(item.Key, out var foundGrid))
+                            {
+                                MappedGrids.Add(item.Key, foundGrid as MyCubeGrid);
+                            }
+
+                        }
+                        catch (Exception e)
+                        {
+                        }
+                    }
+                }
+                //dead grids should no longer be tracked
+                GridIdsToPay = GridIdsToPay.Where(x => temp.All(z => z != x.Key)).ToDictionary(x => x.Key, x => x.Value);
+                MappedGrids = MappedGrids.Where(x => temp.All(z => z != x.Key)).ToDictionary(x => x.Key, x => x.Value);
+                return false;
+            }
 
             var distance = Vector3.Distance(PlayersCurrentPosition, DeliverLocation);
             if (distance <= DistanceBeforeSpawnAtGPSInKM)
@@ -161,6 +273,8 @@ namespace CrunchEconContractModels.Contracts
                     Core.MesAPI.ChatCommand(CommandToExecute, player.Character.WorldMatrix, AssignedPlayerIdentityId,
                         AssignedPlayerSteamId);
                     HasStarted = true;
+
+                    MyAPIGateway.Entities.OnEntityAdd += OnEntityAdd;
                 }
             }
 
@@ -169,11 +283,42 @@ namespace CrunchEconContractModels.Contracts
 
         public bool TryCompleteContract(ulong steamId, Vector3D? currentPosition)
         {
+            if (DateTime.Now >= this.ExpireAt)
+            {
+                MyAPIGateway.Entities.OnEntityAdd -= OnEntityAdd;
+                if (this.UncollectedPay >= this.RewardMoney)
+                {
+                    CrunchEconV3.Core.SendMessage("Contracts",
+                        DateTime.Now > ExpireAt ? $"{this.Name}, Contract completed." : $"{this.Name}", Color.Green,
+                        this.AssignedPlayerSteamId);
+                }
+                else
+                {
+                    CrunchEconV3.Core.SendMessage("Contracts",
+                        DateTime.Now > ExpireAt ? $"{this.Name}, Contract time expired." : $"{this.Name}", Color.Green,
+                        this.AssignedPlayerSteamId);
+                }
+                EconUtils.addMoney(this.AssignedPlayerIdentityId, this.UncollectedPay);
+                return true;
+            }
+
+            MyAPIGateway.Entities.OnEntityAdd -= OnEntityAdd;
+            if (this.UncollectedPay >= 0)
+            {
+                CrunchEconV3.Core.SendMessage("Contracts",
+                    DateTime.Now > ExpireAt ? $"{this.Name}, Time Expired." : $"{this.Name}", Color.Green,
+                    this.AssignedPlayerSteamId);
+
+                EconUtils.addMoney(this.AssignedPlayerIdentityId, this.UncollectedPay);
+                return true;
+            }
+
             return false;
         }
 
         public void FailContract()
         {
+            MyAPIGateway.Entities.OnEntityAdd -= OnEntityAdd;
             this.DeleteDeliveryGPS();
             if (this.ReputationLossOnAbandon != 0)
             {
@@ -230,13 +375,26 @@ namespace CrunchEconContractModels.Contracts
         public bool ReadyToDeliver { get; set; }
         public long CollateralToTake { get; set; }
         public long DeliveryFactionId { get; set; }
+        public List<GridDestruction> GridsToDestroy = new List<GridDestruction>();
+        public long UncollectedPay = 0;
+
+        public Dictionary<long, long> GridIdsToPay = new Dictionary<long, long>();
+        private Dictionary<long, MyCubeGrid> MappedGrids = new Dictionary<long, MyCubeGrid>();
+        public Dictionary<long, int> StartingBlockCounts = new Dictionary<long, int>();
     }
 
+    public class GridDestruction
+    {
+        public string FacTagToOwnThisGrid = "SPRT";
+        public string GridToDestroy = "pirate";
+        public long Payment = 50000;
+    }
     public class CrunchMESSpawnerConfig : IContractConfig
     {
         public void Setup()
         {
             DeliveryGPSes = new List<string>() { "Put a gps here" };
+            GridsToDestroy = new List<GridDestruction>() { new GridDestruction() };
         }
 
         public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation,
@@ -269,7 +427,7 @@ namespace CrunchEconContractModels.Contracts
             contract.DeliverLocation = result.Item1;
             contract.DeliveryFactionId = result.Item2;
             contract.DistanceBeforeSpawnAtGPSInKM = this.PlayerDistanceToGpsBeforeSpawn;
-
+            contract.GridsToDestroy = this.GridsToDestroy;
             if (contract.DeliverLocation == null || contract.DeliverLocation.Equals(Vector3.Zero))
             {
                 return null;
@@ -286,7 +444,7 @@ namespace CrunchEconContractModels.Contracts
             return contract;
         }
 
-     
+
 
         public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
             long idUsedForDictionary)
@@ -337,5 +495,6 @@ namespace CrunchEconContractModels.Contracts
 
         public string CommandToRun = "Put a command here";
         public int ExpectedReward { get; set; } = 0;
+        public List<GridDestruction> GridsToDestroy = new List<GridDestruction>();
     }
 }
