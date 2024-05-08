@@ -216,6 +216,10 @@ namespace CrunchEconContractModels.Contracts.MES
 
             if (HasStarted)
             {
+                if (this.UncollectedPay >= this.RewardMoney)
+                {
+                    return TryCompleteContract(this.AssignedPlayerSteamId, PlayersCurrentPosition);
+                }
                 var temp = new List<long>();
                 foreach (var item in GridIdsToPay)
                 {

@@ -199,6 +199,7 @@ namespace CrunchEconV3.Patches
             if (needsRefresh)
             {
                 MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
+                
                 foreach (var con in __result)
                 {
                     component.RemoveContract(con.Id);
