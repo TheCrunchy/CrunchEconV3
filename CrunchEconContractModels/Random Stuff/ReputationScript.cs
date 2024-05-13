@@ -51,7 +51,7 @@ namespace CrunchEconContractModels.Random_Stuff
                     MySession.Static.Factions.SetReputationBetweenFactions(faction.FactionId, found.FactionId, item.Value);
                     foreach (var member in faction.Members.Values.Select(x => x.PlayerId).Distinct())
                     {
-                        MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(member, found.FactionId, item.Value);
+                        MySession.Static.Factions.SetReputationBetweenPlayerAndFaction(member, found.FactionId, item.Value, ReputationChangeReason.Admin);
                     }
                 }
             }

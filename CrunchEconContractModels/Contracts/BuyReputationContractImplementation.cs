@@ -9,6 +9,7 @@ using CrunchEconV3.Utils;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
 using VRage.Game;
+using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRage.ObjectBuilder;
 using VRage.Utils;
@@ -87,7 +88,7 @@ namespace CrunchEconContractModels.Contracts
                 if (faction != null)
                 {
                     MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
-                        faction.FactionId, this.ReputationGainOnComplete, true);
+                        faction.FactionId, this.ReputationGainOnComplete, ReputationChangeReason.Contract, true);
                 }
             }
         }

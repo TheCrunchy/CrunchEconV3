@@ -341,7 +341,7 @@ namespace CrunchEconContractModels.Contracts
                 EconUtils.addMoney(this.AssignedPlayerIdentityId, this.RewardMoney);
                 if (this.ReputationLossOnAbandon != 0)
                 {
-                    MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1);
+                    MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1,ReputationChangeReason.Contract);
                 }
                 Core.SendMessage("Contracts", $"{this.Name} completed, passengers have died. You have been docked pay.", Color.Green, this.AssignedPlayerSteamId);
                 return true;
@@ -352,7 +352,7 @@ namespace CrunchEconContractModels.Contracts
                 if (this.ReputationGainOnComplete != 0)
                 {
                     MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
-                        this.FactionId, this.ReputationGainOnComplete, true);
+                        this.FactionId, this.ReputationGainOnComplete, ReputationChangeReason.Contract, true);
                 }
                 Core.SendMessage("Contracts", $"{this.Name} completed.", Color.Green, this.AssignedPlayerSteamId);
             }
@@ -364,7 +364,7 @@ namespace CrunchEconContractModels.Contracts
         {
             if (this.ReputationLossOnAbandon != 0)
             {
-                MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1);
+                MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1, ReputationChangeReason.Contract);
             }
 
             if (this.PassengerCount <= 0)

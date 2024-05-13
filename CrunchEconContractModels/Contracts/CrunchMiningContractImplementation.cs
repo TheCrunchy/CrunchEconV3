@@ -130,7 +130,7 @@ namespace CrunchEconContractModels.Contracts
         {
             if (this.ReputationLossOnAbandon != 0)
             {
-                MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1);
+                MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1, ReputationChangeReason.Contract);
             }
 
             CrunchEconV3.Core.SendMessage("Contracts", DateTime.Now > ExpireAt ? $"{this.Name} failed, time expired." : $"{this.Name} failed.", Color.Red,
@@ -208,7 +208,7 @@ namespace CrunchEconContractModels.Contracts
                 if (this.ReputationGainOnComplete != 0)
                 {
                     MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
-                        this.FactionId, this.ReputationGainOnComplete, true);
+                        this.FactionId, this.ReputationGainOnComplete, ReputationChangeReason.Contract, true);
                 }
                 inventories.Clear();
                 if (this.SpawnOreInStation)

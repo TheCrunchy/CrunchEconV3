@@ -14,6 +14,7 @@ using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using VRage.Game;
+using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRage.ObjectBuilder;
 using VRage.Utils;
@@ -242,7 +243,7 @@ namespace CrunchEconContractModels.Contracts
                 if (this.ReputationGainOnComplete != 0)
                 {
                     MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
-                        this.FactionId, this.ReputationGainOnComplete, true);
+                        this.FactionId, this.ReputationGainOnComplete, ReputationChangeReason.Contract, true);
                 }
                 return true;
             }
@@ -254,7 +255,7 @@ namespace CrunchEconContractModels.Contracts
             DeleteDeliveryGPS();
             if (this.ReputationLossOnAbandon != 0)
             {
-                MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1);
+                MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1, ReputationChangeReason.Contract);
             }
 
             Core.SendMessage("Contracts",

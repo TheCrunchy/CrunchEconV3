@@ -327,7 +327,7 @@ namespace CrunchEconContractModels.Contracts.MES
             if (this.ReputationLossOnAbandon != 0)
             {
                 MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId,
-                    ReputationLossOnAbandon *= -1);
+                    ReputationLossOnAbandon *= -1, ReputationChangeReason.Contract);
             }
 
             CrunchEconV3.Core.SendMessage("Contracts",
