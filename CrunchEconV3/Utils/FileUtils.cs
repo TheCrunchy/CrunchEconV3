@@ -50,11 +50,11 @@ namespace CrunchEconV3.Utils
             }
             catch (Exception e)
             {
-                Core.Log.Error($"Error reading file, moved to backups");
+             //   Core.Log.Error($"Error reading file, moved to backups");
                 Core.Log.Error($"Error reading file {filePath} {e}");
 
-                Directory.CreateDirectory($"{Core.path}/ErroredFileBackups/");
-                File.Move(filePath, $"{Core.path}/ErroredFileBackups/{Path.GetFileNameWithoutExtension(filePath)}-{DateTime.Now:HH-mm-ss-dd-MM-yyyy}.json");
+           //     Directory.CreateDirectory($"{Core.path}/ErroredFileBackups/");
+              //  File.Move(filePath, $"{Core.path}/ErroredFileBackups/{Path.GetFileNameWithoutExtension(filePath)}-{DateTime.Now:HH-mm-ss-dd-MM-yyyy}.json");
 
                 return new T();
             }

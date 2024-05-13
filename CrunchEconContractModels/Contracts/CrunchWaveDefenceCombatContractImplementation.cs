@@ -30,7 +30,7 @@ using VRage.ObjectBuilder;
 using VRage.Utils;
 using VRageMath;
 
-namespace CrunchEconContractModels.Contracts.GridDeath
+namespace CrunchEconContractModels.Contracts.WaveDefence
 {
     public class CrunchWaveDefenceCombatContractImplementation : ICrunchContract
     {
@@ -578,21 +578,21 @@ namespace CrunchEconContractModels.Contracts.GridDeath
                 new Type[]
                 {
                     typeof(float), typeof(MyStringHash), typeof(bool), typeof(MyHitInfo?), typeof(long), typeof(long),
-                    typeof(bool)
+                    typeof(bool), typeof(MyStringHash?)
                 }, null) ??
-            throw new Exception("Failed to find patch method");
+            throw new Exception("Failed to find patch method 1");
 
         internal static readonly MethodInfo patchSlimDamage =
             typeof(SlimBlockPatch).GetMethod(nameof(OnDamageRequest), BindingFlags.Static | BindingFlags.Public) ??
-            throw new Exception("Failed to find patch method");
+            throw new Exception("Failed to find patch method 2");
 
         internal static readonly MethodInfo destroyRequest =
             typeof(MyCubeBlock).GetMethod("OnDestroy", BindingFlags.Instance | BindingFlags.Public) ??
-            throw new Exception("Failed to find patch method");
+            throw new Exception("Failed to find patch method 3");
 
         internal static readonly MethodInfo patchDestroy =
             typeof(SlimBlockPatch).GetMethod(nameof(OnDestroy), BindingFlags.Static | BindingFlags.Public) ??
-            throw new Exception("Failed to find patch method");
+            throw new Exception("Failed to find patch method 4");
 
         public static void Patch(PatchContext ctx)
         {
@@ -654,7 +654,7 @@ namespace CrunchEconContractModels.Contracts.GridDeath
         MyStringHash damageType,
         bool sync,
         MyHitInfo? hitInfo,
-        long attackerId, long realHitEntityId = 0, bool shouldDetonateAmmo = true)
+        long attackerId, long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
         {
             if (__instance.FatBlock != null)
             {
