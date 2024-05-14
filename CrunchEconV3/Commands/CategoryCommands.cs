@@ -71,6 +71,10 @@ namespace CrunchEconV3.Commands
                 Context.Respond("Compile failed, files not reloaded.");
                 return;
             }
+            Core.StationStorage = new JsonStationStorageHandler(Core.path);
+            Core.PlayerStorage = new JsonPlayerStorageHandler(Core.path);
+            Core.Session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined -= Core.PlayerStorage.LoadLogin;
+            Core.Session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += Core.PlayerStorage.LoadLogin;
             StationHandler.BlocksContracts.Clear();
             StationHandler.ReadyForRefresh();
             StationHandler.MappedStations.Clear();
