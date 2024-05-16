@@ -93,7 +93,16 @@ namespace CrunchEconV3.Handlers
 
         public CrunchPlayerData LoadFile(string path)
         {
-            return FileUtils.ReadFromJsonFile<CrunchPlayerData>(path);
+            try
+            {
+                var file = FileUtils.ReadFromJsonFile<CrunchPlayerData>(path);
+
+                return file;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
         }
         public void Save(CrunchPlayerData PlayerData)
         {
