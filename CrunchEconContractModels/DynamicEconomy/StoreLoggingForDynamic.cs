@@ -163,7 +163,7 @@ namespace CrunchEconContractModels.DynamicEconomy
                     PossibleLogs.Add(id,
                         $"{player.Id.SteamId},bought,{amount},{storeItem.Item.Value.TypeIdString}," +
                         $"{storeItem.Item.Value.SubtypeName},{storeItem.PricePerUnit * (long)amount}," +
-                        $"{store.CubeGrid.EntityId},{store.GetOwnerFactionTag()},{store.CubeGrid.DisplayName}");
+                        $"{store.CubeGrid.EntityId},{store.GetOwnerFactionTag()},{store.CubeGrid.DisplayName},{store.DisplayNameText},{DateTime.Now}");
                 }
 
             }
@@ -194,7 +194,7 @@ namespace CrunchEconContractModels.DynamicEconomy
                     PossibleLogs.Add(id,
                         $"{player.Id.SteamId},sold,{amount},{myStoreItem.Item.Value.TypeIdString}," +
                         $"{myStoreItem.Item.Value.SubtypeName},{myStoreItem.PricePerUnit * (long)amount}," +
-                        $"{store.CubeGrid.EntityId},{store.GetOwnerFactionTag()},{store.CubeGrid.DisplayName}");
+                        $"{store.CubeGrid.EntityId},{store.GetOwnerFactionTag()},{store.CubeGrid.DisplayName},{store.DisplayNameText},{DateTime.Now}");
                 }
             }
 
