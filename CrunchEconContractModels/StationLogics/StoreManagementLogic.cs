@@ -331,23 +331,23 @@ namespace CrunchEconContractModels.StationLogics
             //   store.PlayerItems.Add(myStoreItem2);
 
             //  station.StoreItems.Add(myStoreItem);
-            if (item.IsGas)
-            {
-                long gasId = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-                MyStoreItem gasItem = null;
-                switch (item.GasSubType.ToLower())
-                {
-                    case "hydrogen":
-                        gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Order, ItemTypes.Hydrogen);
-                        break;
-                    case "oxygen":
-                        gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Order, ItemTypes.Oxygen);
-                        break;
-                }
-                gasItem.IsCustomStoreItem = true;
-                store.PlayerItems.Add(gasItem);
-                return;
-            }
+            //if (item.IsGas)
+            //{
+            //    long gasId = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+            //    MyStoreItem gasItem = null;
+            //    switch (item.GasSubType.ToLower())
+            //    {
+            //        case "hydrogen":
+            //            gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Order, ItemTypes.Hydrogen);
+            //            break;
+            //        case "oxygen":
+            //            gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Order, ItemTypes.Oxygen);
+            //            break;
+            //    }
+            //    gasItem.IsCustomStoreItem = true;
+            //    store.PlayerItems.Add(gasItem);
+            //    return;
+            //}
             if (result != MyStoreInsertResults.Success)
             {
                 if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum)
