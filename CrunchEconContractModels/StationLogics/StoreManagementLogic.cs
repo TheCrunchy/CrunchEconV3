@@ -153,7 +153,6 @@ namespace CrunchEconContractModels.StationLogics
             MyEntity entity,
             long totalPrice)
         {
-            Core.Log.Info(safezoneId);
             if (safezoneId == 0l)
             {
                 if (Safezones.TryGetValue(__instance.EntityId, out var foundZone))
@@ -332,6 +331,23 @@ namespace CrunchEconContractModels.StationLogics
             //   store.PlayerItems.Add(myStoreItem2);
 
             //  station.StoreItems.Add(myStoreItem);
+            if (item.IsGas)
+            {
+                long gasId = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+                MyStoreItem gasItem = null;
+                switch (item.GasSubType.ToLower())
+                {
+                    case "hydrogen":
+                        gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Order, ItemTypes.Hydrogen);
+                        break;
+                    case "oxygen":
+                        gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Order, ItemTypes.Oxygen);
+                        break;
+                }
+                gasItem.IsCustomStoreItem = true;
+                store.PlayerItems.Add(gasItem);
+                return;
+            }
             if (result != MyStoreInsertResults.Success)
             {
                 if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum)
@@ -401,6 +417,23 @@ namespace CrunchEconContractModels.StationLogics
                 return;
             }
 
+            if (item.IsGas)
+            {
+                long gasId = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+                MyStoreItem gasItem = null;
+                switch (item.GasSubType.ToLower())
+                {
+                    case "hydrogen":
+                        gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Offer, ItemTypes.Hydrogen);
+                        break;
+                    case "oxygen":
+                        gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Offer, ItemTypes.Oxygen);
+                        break;
+                }
+                gasItem.IsCustomStoreItem = true;
+                store.PlayerItems.Add(gasItem);
+                return;
+            }
             if (!item.IsPrefab)
             {
                 MyStoreItemData itemInsert =
@@ -435,11 +468,6 @@ namespace CrunchEconContractModels.StationLogics
 
                 store.PlayerItems.Add(myStoreItem2);
             }
-
-
-            //long newid2 = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-            /// MyStoreItem myStoreItem3 = new MyStoreItem(newid2, amount, 50, StoreItemTypes.Offer, ItemTypes.Hydrogen);
-            //  myStoreItem3.IsCustomStoreItem = true;
             //        myStoreItem3.PrefabName = "TestDestroyer";
 
             //MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
@@ -463,6 +491,8 @@ namespace CrunchEconContractModels.StationLogics
     public class StoreEntryModel
     {
         public bool IsPrefab = false;
+        public bool IsGas = false;
+        public string GasSubType = "Hydrogen";
         public string PrefabSubType = "Subtypehere";
         public string Type { get; set; } = "MyObjectBuilder_Ingot";
         public string Subtype { get; set; } = "Iron";
