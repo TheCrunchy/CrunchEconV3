@@ -36,6 +36,9 @@
     <Reference Include="0Harmony">
       <HintPath>..\..\AlliancesPlugin\0Harmony.dll</HintPath>
     </Reference>
+    <Reference Include="CrunchGroupPlugin">
+      <HintPath>..\..\AlliancesPlugin\TerritoryPlugin\bin\Debug\CrunchGroupPlugin.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\Newtonsoft.Json.dll</HintPath>
@@ -103,6 +106,7 @@
     <Compile Include="Contracts\testing.cs" />
     <Compile Include="DynamicEconomy\StoreLoggingForDynamic.cs" />
     <Compile Include="DynamicEconomy\StoreLogReader.cs" />
+    <Compile Include="DynamicEconomy\TaxCollectionScript.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Random Stuff\BlockBuyingButton.cs" />
     <Compile Include="Random Stuff\ButtonOpenUrl.cs" />
