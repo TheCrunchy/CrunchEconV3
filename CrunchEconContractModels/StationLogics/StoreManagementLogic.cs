@@ -350,7 +350,7 @@ namespace CrunchEconContractModels.StationLogics
             //}
             if (result != MyStoreInsertResults.Success)
             {
-                if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum)
+                if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum || result == MyStoreInsertResults.Fail_StoreLimitReached)
                 {
                     long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
                     MyStoreItem myStoreItem = new MyStoreItem(newid, amount, price, StoreItemTypes.Order, ItemTypes.PhysicalItem);
@@ -445,7 +445,7 @@ namespace CrunchEconContractModels.StationLogics
                         out long notUsingThis);
                 if (result != MyStoreInsertResults.Success)
                 {
-                    if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum)
+                    if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum || result == MyStoreInsertResults.Fail_StoreLimitReached)
                     {
                         long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
                         MyStoreItem myStoreItem = new MyStoreItem(newid, amount, price, StoreItemTypes.Offer, ItemTypes.PhysicalItem);
