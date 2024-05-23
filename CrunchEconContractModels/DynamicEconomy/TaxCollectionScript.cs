@@ -58,13 +58,23 @@ namespace CrunchEconContractModels.DynamicEconomy
         {
             if (transactionDataDictionary.TryGetValue(id, out TransactionData data) && result == MyStoreBuyItemResults.Success)
             {
-                ApplyTax(data.Store, (long)(amount * price));
+                Core.Log.Info("2");
+                try
+                {
+                    ApplyTax(data.Store, (long)(amount * price));
+                }
+                catch (Exception e)
+                {
+                    Core.Log.Error(e);
+                }
             }
             transactionDataDictionary.Remove(id);
+
         }
 
         public static Boolean StorePatchMethod(long id, int amount, long targetEntityId, MyPlayer player, MyAccountInfo playerAccountInfo, MyStoreBlock __instance)
         {
+            Core.Log.Info("0");
             if (__instance is MyStoreBlock store)
             {
                 MyStoreItem storeItem = store.PlayerItems.FirstOrDefault(item => item.Id == id);
@@ -79,7 +89,7 @@ namespace CrunchEconContractModels.DynamicEconomy
                     PlayerAccountInfo = playerAccountInfo,
                     Store = store
                 };
-
+                Core.Log.Info("1");
                 // Store the transaction data in the dictionary
                 transactionDataDictionary[id] = transactionData;
             }
@@ -92,6 +102,7 @@ namespace CrunchEconContractModels.DynamicEconomy
             var territory = GetTerritoryInside(store.CubeGrid.PositionComp.GetPosition());
             if (territory == null)
             {
+                Core.Log.Info("Not in territory");
                 //not taxable 
                 return;
             }
@@ -108,20 +119,29 @@ namespace CrunchEconContractModels.DynamicEconomy
             switch (owner.GetOwner())
             {
                 case IMyFaction faction:
-                {
-                    EconUtils.addMoney(faction.FactionId, (long)afterTax);
-                    break;
-                }
+                    {
+                        EconUtils.addMoney(faction.FactionId, (long)afterTax);
+                        break;
+                    }
                 case Group group:
                 {
-                    EconUtils.addMoney(group.GroupLeader, (long)afterTax);
-                    break;
-                }
+                    var identity = 0l;
+
+                        if (MySession.Static.Players.TryGetPlayerBySteamId(owner, out var ownerId))
+                        {
+                            ownerIdentity = ownerId.Identity;
+                        }
+                        else
+                        {
+                            ownerIdentity = MySession.Static.Players.GetAllIdentities().FirstOrDefault(x => owner == MySession.Static.Players.TryGetSteamId(x.IdentityId));
+                        }
+                        var identity = MySession.Static.Players.TryGetIdentityId((ulong)group.GroupLeader, 0);
+                        EconUtils.addMoney(identity, (long)afterTax);
+                        break;
+                    }
 
             }
         }
-
-
 
         public static Territory GetTerritoryInside(Vector3 position)
         {
@@ -140,7 +160,7 @@ namespace CrunchEconContractModels.DynamicEconomy
         public static List<Territory> GetAllTerritories()
         {
             return CrunchGroup.Core.GetAllTerritories();
-          //  return GetTerritoriesMethod.Invoke(null, null) as List<Territory>;
+            //  return GetTerritoriesMethod.Invoke(null, null) as List<Territory>;
         }
 
         public class TransactionData

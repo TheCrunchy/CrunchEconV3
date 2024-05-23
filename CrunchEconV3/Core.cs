@@ -92,6 +92,29 @@ namespace CrunchEconV3
                 return;
             }
 
+            if (ticks == 0)
+            {
+                try
+                {
+                    Compiler.Compile($"{Core.path}/Scripts/");
+                }
+
+                catch (Exception e)
+                {
+                    Core.Log.Error($"compile error {e}");
+                }
+                if (!CompileFailed)
+                {
+                    StationStorage = new JsonStationStorageHandler(path);
+                    PlayerStorage = new JsonPlayerStorageHandler(path);
+                    Session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
+                }
+                else
+                {
+                    Core.Log.Error("Compile failed, station and player data not loaded");
+                }
+
+            }
             try
             {
                 ticks++;
@@ -291,26 +314,7 @@ namespace CrunchEconV3
             if (newState is TorchSessionState.Loaded)
             {
 
-                try
-                {
-                    Compiler.Compile($"{Core.path}/Scripts/");
-                }
-
-                catch (Exception e)
-                {
-                    Core.Log.Error($"compile error {e}");
-                }
-                if (!CompileFailed)
-                {
-                    StationStorage = new JsonStationStorageHandler(path);
-                    PlayerStorage = new JsonPlayerStorageHandler(path);
-                    session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
-                }
-                else
-                {
-                    Core.Log.Error("Compile failed, station and player data not loaded");
-                }
-
+                Session = session;
             }
         }
 

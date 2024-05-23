@@ -161,7 +161,6 @@ namespace CrunchEconV3.Patches
                     {
                         component.RemoveContract(con.Id);
                     }
-
                     __result = __result.Where(x => x.SubtypeName.Replace("MyObjectBuilder_ContractTypeDefinition/", "") != "Deliver").ToList();
                 }
                 var contracts = StationHandler.GenerateNewContracts(stationId);

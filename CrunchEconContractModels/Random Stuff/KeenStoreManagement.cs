@@ -57,7 +57,6 @@ namespace CrunchEconContractModels.Random_Stuff
                     MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, price, StoreItemTypes.Offer, ItemTypes.Grid);
                     myStoreItem2.IsCustomStoreItem = true;
                     myStoreItem2.PrefabName = "L531StarterShip";
-
                     station.StoreItems.Add(myStoreItem2);
 
                 }
