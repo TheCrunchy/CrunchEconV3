@@ -54,14 +54,32 @@ namespace CrunchEconContractModels.DynamicEconomy
 
         private static Dictionary<long, TransactionData> transactionDataDictionary = new Dictionary<long, TransactionData>();
 
+        public static HashSet<long> MappedStores = new HashSet<long>();
+        public static HashSet<long> NotEconStores = new HashSet<long>();
+
         public static void StorePatchMethodBuy(long id, string name, long price, int amount, MyStoreBuyItemResults result, EndpointId targetEndpoint)
         {
             if (transactionDataDictionary.TryGetValue(id, out TransactionData data) && result == MyStoreBuyItemResults.Success)
             {
-                Core.Log.Info("2");
                 try
                 {
-                    ApplyTax(data.Store, (long)(amount * price));
+                    if (MappedStores.Contains(data.Store.EntityId))
+                    {
+                        ApplyTax(data.Store, (long)(amount * price));
+                    }
+                    else
+                    {
+                        if (Core.StationStorage.GetAll().Any(x =>
+                                x.GetGrid() != null && x.GetGrid().EntityId == data.Store.CubeGrid.EntityId))
+                        {
+                            MappedStores.Add(data.Store.EntityId);
+                        }
+                        else
+                        {
+                            NotEconStores.Add(data.Store.EntityId);
+                        }
+                    }
+                 
                 }
                 catch (Exception e)
                 {
@@ -72,13 +90,16 @@ namespace CrunchEconContractModels.DynamicEconomy
 
         }
 
-        public static Boolean StorePatchMethod(long id, int amount, long targetEntityId, MyPlayer player, MyAccountInfo playerAccountInfo, MyStoreBlock __instance)
+        public static void StorePatchMethod(long id, int amount, long targetEntityId, MyPlayer player, MyAccountInfo playerAccountInfo, MyStoreBlock __instance)
         {
-            Core.Log.Info("0");
             if (__instance is MyStoreBlock store)
             {
+                if (NotEconStores.Contains(__instance.EntityId))
+                {
+                    return;
+                }
                 MyStoreItem storeItem = store.PlayerItems.FirstOrDefault(item => item.Id == id);
-                if (storeItem == null || storeItem.IsCustomStoreItem) return true;
+                if (storeItem == null || storeItem.IsCustomStoreItem) return;
 
                 var transactionData = new TransactionData
                 {
@@ -89,11 +110,10 @@ namespace CrunchEconContractModels.DynamicEconomy
                     PlayerAccountInfo = playerAccountInfo,
                     Store = store
                 };
-                Core.Log.Info("1");
                 // Store the transaction data in the dictionary
                 transactionDataDictionary[id] = transactionData;
             }
-            return true;
+            return;
         }
 
         //add the rest of the shit thats used for stores
@@ -102,7 +122,6 @@ namespace CrunchEconContractModels.DynamicEconomy
             var territory = GetTerritoryInside(store.CubeGrid.PositionComp.GetPosition());
             if (territory == null)
             {
-                Core.Log.Info("Not in territory");
                 //not taxable 
                 return;
             }
@@ -124,18 +143,16 @@ namespace CrunchEconContractModels.DynamicEconomy
                         break;
                     }
                 case Group group:
-                {
-                    var identity = 0l;
-
-                        if (MySession.Static.Players.TryGetPlayerBySteamId(owner, out var ownerId))
+                    {
+                        var identity = 0l;
+                        if (MySession.Static.Players.TryGetPlayerBySteamId((ulong)group.GroupLeader, out var ownerId))
                         {
-                            ownerIdentity = ownerId.Identity;
+                            identity = ownerId.Identity.IdentityId;
                         }
                         else
                         {
-                            ownerIdentity = MySession.Static.Players.GetAllIdentities().FirstOrDefault(x => owner == MySession.Static.Players.TryGetSteamId(x.IdentityId));
+                            identity = MySession.Static.Players.GetAllIdentities().FirstOrDefault(x => (ulong)group.GroupLeader == MySession.Static.Players.TryGetSteamId(x.IdentityId)).IdentityId;
                         }
-                        var identity = MySession.Static.Players.TryGetIdentityId((ulong)group.GroupLeader, 0);
                         EconUtils.addMoney(identity, (long)afterTax);
                         break;
                     }
