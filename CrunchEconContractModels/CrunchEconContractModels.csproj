@@ -104,6 +104,7 @@
     <Compile Include="Contracts\CrunchMESSpawnerContractImplementation.cs" />
     <Compile Include="Contracts\SearchContractImplementation.cs" />
     <Compile Include="Contracts\testing.cs" />
+    <Compile Include="DynamicEconomy\DamageBlockerScriptThingy.cs" />
     <Compile Include="DynamicEconomy\StoreLoggingForDynamic.cs" />
     <Compile Include="DynamicEconomy\StoreLogReader.cs" />
     <Compile Include="DynamicEconomy\TaxCollectionScript.cs" />
