@@ -1,26 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using CrunchEconV3;
-using NLog.LayoutRenderers;
-using Sandbox.Definitions;
 using Sandbox.Game.Contracts;
 using Sandbox.Game.Entities;
-using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
-using Sandbox.Game.World.Generator;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game.ModAPI;
-using VRage.Game;
-using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Utils;
 using VRageMath;
 
-namespace CrunchEconContractModels.PlugAndPlay
+namespace CrunchEconContractModels.PlugAndPlay.Prefabs
 {
     public class PrefabsTestCommands : CommandModule
     {

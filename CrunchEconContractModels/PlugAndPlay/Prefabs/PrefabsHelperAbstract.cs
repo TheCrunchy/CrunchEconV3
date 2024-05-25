@@ -5,7 +5,7 @@ using System.Reflection;
 using Sandbox.Definitions;
 using VRage.Utils;
 
-namespace CrunchEconContractModels.PlugAndPlay
+namespace CrunchEconContractModels.PlugAndPlay.Prefabs
 {
     public abstract class PrefabsHelperAbstract
     {

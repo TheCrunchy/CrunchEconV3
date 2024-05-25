@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using CrunchEconContractModels.PlugAndPlay.Prefabs.Helpers;
-using HarmonyLib;
-using Sandbox.Game.Contracts;
+﻿using CrunchEconContractModels.PlugAndPlay.Prefabs.Helpers;
 using Torch.Managers.PatchManager;
-using VRage.Utils;
 
-namespace CrunchEconContractModels.PlugAndPlay
+namespace CrunchEconContractModels.PlugAndPlay.Prefabs
 {
     public static class PrefabHelper
     {
