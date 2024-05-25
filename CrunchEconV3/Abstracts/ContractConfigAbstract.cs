@@ -28,6 +28,7 @@ namespace CrunchEconV3.Abstracts
             var contract = Generate(__instance, keenstation, idUsedForDictionary);
             var delivery = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
             contract.DeliverLocation = delivery.Item1;
+            contract.FactionId = delivery.Item2;
             return contract;
         }
 
