@@ -21,18 +21,36 @@ namespace CrunchEconV3.Abstracts
         public virtual void Setup()
         {
             //this contract has no setup requirements, but say if you had a list of prefabs, you would populate with default values here
+            DeliveryGPSes = new List<string>() { "Optional, not required, but put a gps here if you want" };
         }
 
         public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {
-            var contract = Generate(__instance, keenstation, idUsedForDictionary);
+            var contract = GenerateTheRest(__instance, keenstation, idUsedForDictionary);
             var delivery = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
             contract.DeliverLocation = delivery.Item1;
-            contract.FactionId = delivery.Item2;
+            contract.DeliveryFactionId = delivery.Item2;
+            if (this.ChanceToAppear < 1)
+            {
+                var random = CrunchEconV3.Core.random.NextDouble();
+                if (random > this.ChanceToAppear)
+                {
+                    return null;
+                }
+            }
+
+            contract.BlockId = idUsedForDictionary;
+            contract.ReputationGainOnComplete = Core.random.Next(this.ReputationGainOnCompleteMin, this.ReputationGainOnCompleteMax);
+            contract.ReputationLossOnAbandon = this.ReputationLossOnAbandon;
+            contract.SecondsToComplete = this.SecondsToComplete;
+            contract.ReputationRequired = this.ReputationRequired;
+        
+            contract.CollateralToTake = (Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));
+
             return contract;
         }
 
-        public abstract ICrunchContract Generate(MyContractBlock __instance, MyStation keenstation,
+        public abstract ICrunchContract GenerateTheRest(MyContractBlock __instance, MyStation keenstation,
             long idUsedForDictionary);
 
         public virtual Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
