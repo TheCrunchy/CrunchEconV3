@@ -57,8 +57,8 @@ namespace CrunchEconV3.Abstracts
             return contract;
         }
 
-        public abstract ICrunchContract GenerateTheRest(MyContractBlock __instance, MyStation keenstation,
-            long idUsedForDictionary);
+        public abstract ICrunchContract GenerateTheRest(ICrunchContract Contract, MyContractBlock MyContractBlock,
+            MyStation Keenstation, long IdUsedForDictionary);
 
         public virtual Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {
