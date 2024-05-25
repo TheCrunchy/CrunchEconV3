@@ -108,6 +108,7 @@
     <Compile Include="DynamicEconomy\StoreLoggingForDynamic.cs" />
     <Compile Include="DynamicEconomy\StoreLogReader.cs" />
     <Compile Include="DynamicEconomy\TaxCollectionScript.cs" />
+    <Compile Include="PlugAndPlay\PrefabsTestCommands.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Random Stuff\BlockBuyingButton.cs" />
     <Compile Include="Random Stuff\ButtonOpenUrl.cs" />

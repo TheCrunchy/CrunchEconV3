@@ -7,30 +7,31 @@ using System.Threading.Tasks;
 using CrunchEconV3;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
+using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
 using VRage.Game.ModAPI;
 using VRage.Game.ModAPI.Ingame;
+using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Utils;
 using IMyCubeGrid = VRage.Game.ModAPI.IMyCubeGrid;
 using IMySlimBlock = VRage.Game.ModAPI.IMySlimBlock;
 
 namespace CrunchEconContractModels.DynamicEconomy
 {
-
     public class ShipClassConfig
     {
 
         public string ClassName = DamageBlockerScriptThingy.DefaultClassName;
         public Dictionary<string, BlockModifier> Modifiers = new Dictionary<string, BlockModifier>();
-        public float DefaultChargeDeducation = 100;
+        public float DefaultChargeDeducationModifier = 0.5f;
 
         public class BlockModifier
         {
             public bool TakesDamage { get; set; }
-            public float DamageModifier { get; set; } = 1.05f;
+            public float DamageModifier { get; set; } = 1f;
             public bool DeductsCharge { get; set; }
-            public float ChargeDeducated { get; set; } = 100f;
+            public float ChargeModifier { get; set; } = 0.5f;
         }
     }
     public class GridClass
@@ -49,7 +50,7 @@ namespace CrunchEconContractModels.DynamicEconomy
         public ShipClassConfig.BlockModifier Modifier = new ShipClassConfig.BlockModifier()
         {
             DeductsCharge = true,
-            ChargeDeducated = 500,
+            ChargeModifier = 0.5f,
             DamageModifier = 1,
             TakesDamage = true
         };
@@ -61,7 +62,7 @@ namespace CrunchEconContractModels.DynamicEconomy
     }
 
     [PatchShim]
-    public class DamageBlockerScriptThingy
+    public static class DamageBlockerScriptThingy
     {
 
         public const string DefaultClassName = "Default";
@@ -80,16 +81,24 @@ namespace CrunchEconContractModels.DynamicEconomy
                 modifiers.Add($"{easyAdd.TypeId}-{item}", easyAdd.Modifier);
             }
 
+            modifiers.Add($"CubeBlock", new ShipClassConfig.BlockModifier()
+            {
+                DeductsCharge = true,
+                ChargeModifier = 0.5f,
+                DamageModifier = 1,
+                TakesDamage = false
+            });
+
             Configs.Add(DefaultClassName, new ShipClassConfig()
             {
                 ClassName = DefaultClassName,
-                DefaultChargeDeducation = 100,
+                DefaultChargeDeducationModifier = 100,
                 Modifiers = modifiers
             });
 
             try
             {
-                ctx.GetPattern(DamageRequest).Suffixes.Add(patchSlimDamage);
+                ctx.GetPattern(DamageRequest).Prefixes.Add(patchSlimDamage);
             }
             catch (Exception e)
             {
@@ -126,7 +135,7 @@ namespace CrunchEconContractModels.DynamicEconomy
                         {
                             continue;
                         }
-
+                        
                         grid.Value.BatteryBlock = battery;
                     }
 
@@ -144,7 +153,7 @@ namespace CrunchEconContractModels.DynamicEconomy
 
                     if (charge <= 50)
                     {
-
+                  
                     }
 
                     if (charge <= 75)
@@ -160,52 +169,82 @@ namespace CrunchEconContractModels.DynamicEconomy
             }
         }
 
-        public static void OnDamageRequest(MySlimBlock __instance, ref float damage,
+        public static bool OnDamageRequest(MySlimBlock __instance, ref float damage,
             MyStringHash damageType,
             bool sync,
             MyHitInfo? hitInfo,
             long attackerId, long realHitEntityId = 0, bool shouldDetonateAmmo = true, MyStringHash? extraInfo = null)
         {
-            if (__instance.FatBlock == null) return;
-            if (!GridsWithShields.TryGetValue(__instance.CubeGrid.EntityId, out var gridsClass)) return;
-            if (gridsClass.BatteryBlock == null) return;
-            if (!Configs.TryGetValue(gridsClass.MappedClass, out var itsClass)) return;
+            Core.Log.Info($"{damageType}");
+            Core.Log.Info("1");
+            if (!GridsWithShields.TryGetValue(__instance.CubeGrid.EntityId, out var gridsClass)) return true;
+            Core.Log.Info("2");
+            if (gridsClass.BatteryBlock == null) return true;
+            Core.Log.Info("3");
+            if (!Configs.TryGetValue(gridsClass.MappedClass, out var itsClass)) return true;
+            Core.Log.Info("4");
             if (__instance.BlockDefinition != null)
             {
-                if (itsClass.Modifiers.TryGetValue($"{__instance.BlockDefinition.Id.TypeId}", out var blockModifier))
+                var charge = gridsClass.BatteryBlock.CurrentStoredPower / gridsClass.BatteryBlock.MaxStoredPower * 100;
+                if (charge <= 5)
                 {
-                    if (blockModifier.TakesDamage)
-                    {
-                        damage *= (float)blockModifier.DamageModifier;
-                    }
+                    return true;
+                }
+                Core.Log.Info("5");
+                if (itsClass.Modifiers.TryGetValue($"{__instance.BlockDefinition.Id.TypeId.ToString().Replace("MyObjectBuilder_", "")}", out var blockModifier))
+                {
 
                     if (blockModifier.DeductsCharge)
                     {
-                        gridsClass.BatteryBlock.CurrentStoredPower -= blockModifier.ChargeDeducated;
+                        gridsClass.BatteryBlock.CurrentStoredPower -= (damage * blockModifier.ChargeModifier);
                     }
 
-                    return;
+                    Core.Log.Info("6");
+                    if (blockModifier.TakesDamage)
+                    {
+                        Core.Log.Info("Modifying damage");
+                        damage *= (float)blockModifier.DamageModifier;
+                    }
+                    else
+                    {
+                        Core.Log.Info("Denying damage");
+                        damage = 0.0f;
+                        return false;
+                    }
+
+
+
+                    return true;
                 }
 
                 if (itsClass.Modifiers.TryGetValue(
-                        $"{__instance.BlockDefinition.Id.TypeId}-{__instance.BlockDefinition.Id.SubtypeId}",
+                        $"{__instance.BlockDefinition.Id.TypeId.ToString().Replace("MyObjectBuilder_", "")}-{__instance.BlockDefinition.Id.SubtypeId}",
                         out var modifier))
                 {
-                    if (modifier.TakesDamage)
-                    {
-                        damage *= (float)modifier.DamageModifier;
-                    }
-
                     if (modifier.DeductsCharge)
                     {
-                        gridsClass.BatteryBlock.CurrentStoredPower -= modifier.ChargeDeducated;
+                        gridsClass.BatteryBlock.CurrentStoredPower -= (damage * modifier.ChargeModifier);
                     }
+                    Core.Log.Info("7");
+                    if (modifier.TakesDamage)
+                    {
+                        Core.Log.Info("Modifying damage");
+                        damage *= (float)modifier.DamageModifier;
+                    }
+                    else
+                    {
+                        Core.Log.Info("Denying damage");
+                        damage = 0.0f;
+                        return false;
+                    }
+                  
 
-                    return;
+                    return true;
                 }
             }
-
-            gridsClass.BatteryBlock.CurrentStoredPower -= itsClass.DefaultChargeDeducation;
+            Core.Log.Info("deduct battery power");
+            gridsClass.BatteryBlock.CurrentStoredPower -= (damage * itsClass.DefaultChargeDeducationModifier);
+            return true;
         }
 
         private static void OnEntityAdd(IMyEntity entity)
