@@ -71,32 +71,35 @@ namespace CrunchEconV3.Abstracts
                 }
             }
 
-            //if its a keen station, get another keen station
-            if (keenstation != null)
-            {
-                var random = MySession.Static.Factions.GetNpcFactions()
-                    .Where(x => x.Stations.Any()).SelectMany(x => x.Stations)
-                    .Where(x => x.StationEntityId != keenstation.StationEntityId).ToList().GetRandomItemFromList();
-                return Tuple.Create(random.Position, random.FactionId);
+            List<Tuple<Vector3D, long>> availablePositions = new List<Tuple<Vector3D, long>>();
 
-            }
-
-            //if its not a custom station, get a random keen one
+            // If it's not a custom station, get random keen ones
             var thisStation = StationHandler.GetStationNameForBlock(idUsedForDictionary);
-            if (thisStation == null)
+            if (thisStation != null)
             {
-                var random = MySession.Static.Factions.GetNpcFactions()
-                    .Where(x => x.Stations.Any()).SelectMany(x => x.Stations)
-                    .Where(x => x.StationEntityId != keenstation.StationEntityId).ToList().GetRandomItemFromList();
-                return Tuple.Create(random.Position, random.FactionId);
+                var stations = Core.StationStorage.GetAll()
+                    .Where(x => x.UseAsDeliveryLocation && !string.Equals(x.FileName, thisStation))
+                    .ToList();
+
+                foreach (var station in stations)
+                {
+                    var foundFaction = MySession.Static.Factions.TryGetFactionByTag(station.FactionTag);
+                    var GPS = GPSHelper.ScanChat(station.LocationGPS);
+                    availablePositions.Add(Tuple.Create(GPS.Coords, foundFaction.FactionId));
+                }
             }
             else
             {
-                var station = Core.StationStorage.GetAll().Where(x => x.UseAsDeliveryLocation && !string.Equals(x.FileName, thisStation)).ToList().GetRandomItemFromList();
-                var foundFaction = MySession.Static.Factions.TryGetFactionByTag(station.FactionTag);
-                var GPS = GPSHelper.ScanChat(station.LocationGPS);
-                return Tuple.Create(GPS.Coords, foundFaction.FactionId);
+                var positions = MySession.Static.Factions.GetNpcFactions()
+                    .Where(x => x.Stations.Any())
+                    .SelectMany(x => x.Stations)
+                    .Where(x => x.StationEntityId != keenstation.StationEntityId)
+                    .Select(x => Tuple.Create(x.Position, x.FactionId))
+                    .ToList();
+                availablePositions.AddRange(positions);
             }
+
+            return availablePositions.GetRandomItemFromList();
         }
 
         public int AmountOfContractsToGenerate { get; set; }
