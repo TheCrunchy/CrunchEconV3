@@ -14,7 +14,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Prefabs.Helpers
             Type definitionType = definition.GetType();
 
             // Check if the type name matches the internal class name
-            ReflectPrefabs(definitionType, definition, "Sandbox.Definitions.MyContractTypeEscortDefinition", "PrefabsEscortDrones");
+            ReflectPrefabs(definitionType, definition, "Sandbox.Definitions.MyContractTypeEscortDefinition", "PrefabsAttackDrones");
         }
     }
 }

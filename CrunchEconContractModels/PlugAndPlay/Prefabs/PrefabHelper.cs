@@ -5,7 +5,6 @@ namespace CrunchEconContractModels.PlugAndPlay.Prefabs
 {
     public static class PrefabHelper
     {
-
         public static PrefabsHelperAbstract Repairs = new RepairPrefabHelper();
         public static PrefabsHelperAbstract CombatAttack = new AttackPrefabHelper();
         public static PrefabsHelperAbstract CombatEscort = new EscortPrefabHelper();
