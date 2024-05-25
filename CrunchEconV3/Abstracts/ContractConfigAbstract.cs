@@ -49,7 +49,7 @@ namespace CrunchEconV3.Abstracts
             contract.ReputationLossOnAbandon = this.ReputationLossOnAbandon;
             contract.SecondsToComplete = this.SecondsToComplete;
             contract.ReputationRequired = this.ReputationRequired;
-        
+
             contract.CollateralToTake = (Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));
 
             return contract;
@@ -74,35 +74,21 @@ namespace CrunchEconV3.Abstracts
             //if its a keen station, get another keen station
             if (keenstation != null)
             {
-                for (int i = 0; i < 10; i++)
-                {
-                    //this will only pick stations from the same faction
-                    //var found = StationHandler.KeenStations.Where(x => x.FactionId == keenstation.FactionId).ToList().GetRandomItemFromList();
-                    var found = StationHandler.KeenStations.GetRandomItemFromList();
-                    var foundFaction = MySession.Static.Factions.TryGetFactionById(found.FactionId);
-                    if (foundFaction == null)
-                    {
-                        i++;
-                        continue;
-                    }
+                var random = MySession.Static.Factions.GetNpcFactions()
+                    .Where(x => x.Stations.Any()).SelectMany(x => x.Stations)
+                    .Where(x => x.StationEntityId != keenstation.StationEntityId).ToList().GetRandomItemFromList();
+                return Tuple.Create(random.Position, random.FactionId);
 
-                    return Tuple.Create(found.Position, foundFaction.FactionId);
-                }
             }
 
             //if its not a custom station, get a random keen one
             var thisStation = StationHandler.GetStationNameForBlock(idUsedForDictionary);
             if (thisStation == null)
             {
-                var keenEndResult = StationHandler.KeenStations.GetRandomItemFromList();
-                if (keenEndResult != null)
-                {
-                    var foundFaction = MySession.Static.Factions.TryGetFactionById(keenEndResult.FactionId);
-                    if (foundFaction != null)
-                    {
-                        return Tuple.Create(keenEndResult.Position, foundFaction.FactionId);
-                    }
-                }
+                var random = MySession.Static.Factions.GetNpcFactions()
+                    .Where(x => x.Stations.Any()).SelectMany(x => x.Stations)
+                    .Where(x => x.StationEntityId != keenstation.StationEntityId).ToList().GetRandomItemFromList();
+                return Tuple.Create(random.Position, random.FactionId);
             }
             else
             {
@@ -111,8 +97,6 @@ namespace CrunchEconV3.Abstracts
                 var GPS = GPSHelper.ScanChat(station.LocationGPS);
                 return Tuple.Create(GPS.Coords, foundFaction.FactionId);
             }
-
-            return Tuple.Create(Vector3D.Zero, 0l);
         }
 
         public int AmountOfContractsToGenerate { get; set; }
