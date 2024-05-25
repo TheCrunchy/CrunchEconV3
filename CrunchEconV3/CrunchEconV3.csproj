@@ -241,6 +241,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Abstracts\ContractConfigAbstract.cs" />
     <Compile Include="APIs\MESApi.cs" />
     <Compile Include="APIs\RemoteBotAPI.cs" />
     <Compile Include="APIs\Weaponcore\CoreSystemsApiBase.cs" />
