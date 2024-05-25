@@ -5,8 +5,10 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
+using NLog.LayoutRenderers;
 using Sandbox.Definitions;
 using Sandbox.Game.Contracts;
+using Sandbox.Game.Entities;
 using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
 using Sandbox.Game.World.Generator;
@@ -22,6 +24,10 @@ namespace CrunchEconContractModels.PlugAndPlay
 {
     public class PrefabsTestCommands : CommandModule
     {
+        public static void HasSpawned()
+        {
+
+        }
         [Command("testprefab2", "try spawn a prefab")]
         [Permission(MyPromoteLevel.Admin)]
         public void ExportStore()
@@ -42,8 +48,16 @@ namespace CrunchEconContractModels.PlugAndPlay
                     var prefabNames = prefabNamesField.GetValue(definition) as List<string>;
                     if (prefabNames != null)
                     {
-                        Context.Respond(string.Join(",", prefabNames));
-                        MyPrefabManager.Static.SpawnPrefab(prefabNames.GetRandomItemFromList(), Context.Player.Character.PositionComp.GetPosition(), Vector3.Forward, Vector3.Up, ownerId:Context.Player.IdentityId);
+                      //  Context.Respond(string.Join(",", prefabNames));
+                        var resultList = new List<MyCubeGrid>();
+                        Stack<Action> Callbacks = new Stack<Action>();
+                        Callbacks.Push(() =>
+                        {
+                            Context.Respond($"{resultList.Count}");
+                            Context.Respond("Callback");
+                        });
+                        MyPrefabManager.Static.SpawnPrefab(resultList,prefabNames.GetRandomItemFromList(), Context.Player.Character.PositionComp.GetPosition(), Vector3.Forward, Vector3.Up, ownerId:Context.Player.IdentityId, callbacks:Callbacks);
+
                     }
                     else
                     {
