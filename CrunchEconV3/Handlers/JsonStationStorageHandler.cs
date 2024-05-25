@@ -10,6 +10,7 @@ using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Models.Config;
 using CrunchEconV3.Utils;
+using Sandbox.Game.World;
 
 namespace CrunchEconV3.Handlers
 {
@@ -27,6 +28,7 @@ namespace CrunchEconV3.Handlers
             Directory.CreateDirectory(this.BasePath);
             GenerateExample();
             LoadAll();
+            StationHandler.KeenStations = MySession.Static.Factions.Select(x => x.Value).SelectMany(x => x.Stations).ToList();
         }
 
         public List<StationConfig> GetAll()
