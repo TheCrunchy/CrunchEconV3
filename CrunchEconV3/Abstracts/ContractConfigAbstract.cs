@@ -8,7 +8,9 @@ using CrunchEconV3.Interfaces;
 using CrunchEconV3.Utils;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.GameSystems;
+using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
+using Sandbox.ModAPI;
 using Sandbox.ModAPI.Ingame;
 using SpaceEngineers.Game.Entities.Blocks;
 using VRage.Utils;
@@ -90,16 +92,19 @@ namespace CrunchEconV3.Abstracts
             }
             else
             {
-                var positions = MySession.Static.Factions.GetNpcFactions()
-                    .Where(x => x.Stations.Any())
-                    .SelectMany(x => x.Stations)
-                    .Where(x => x.StationEntityId != keenstation.StationEntityId)
-                    .Select(x => Tuple.Create(x.Position, x.FactionId))
-                    .ToList();
-                availablePositions.AddRange(positions);
+                if (MySession.Static.Settings.EnableEconomy)
+                {
+                    var positions = MySession.Static.Factions.GetNpcFactions()
+                        .Where(x => x.Stations.Any())
+                        .SelectMany(x => x.Stations)
+                        .Where(x => x.StationEntityId != keenstation.StationEntityId)
+                        .Select(x => Tuple.Create(x.Position, x.FactionId))
+                        .ToList();
+                    availablePositions.AddRange(positions);
+                }
             }
 
-            return availablePositions.GetRandomItemFromList();
+            return availablePositions.GetRandomItemFromList() ?? Tuple.Create(Vector3D.Zero, 0l);
         }
 
         public int AmountOfContractsToGenerate { get; set; }
