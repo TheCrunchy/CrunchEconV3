@@ -108,8 +108,10 @@
     <Compile Include="DynamicEconomy\StoreLoggingForDynamic.cs" />
     <Compile Include="DynamicEconomy\StoreLogReader.cs" />
     <Compile Include="DynamicEconomy\TaxCollectionScript.cs" />
+    <Compile Include="PlugAndPlay\Contracts\Configs\GasContractConfig.cs" />
     <Compile Include="PlugAndPlay\Contracts\Configs\MiningContractConfig.cs" />
     <Compile Include="PlugAndPlay\Contracts\Configs\RepairContractConfig.cs" />
+    <Compile Include="PlugAndPlay\Contracts\GasContractImplementation.cs" />
     <Compile Include="PlugAndPlay\Contracts\MiningContractImplementation.cs" />
     <Compile Include="PlugAndPlay\Contracts\RepairContractImplementation.cs" />
     <Compile Include="PlugAndPlay\Prefabs\Helpers\EscortPrefabHelper.cs" />

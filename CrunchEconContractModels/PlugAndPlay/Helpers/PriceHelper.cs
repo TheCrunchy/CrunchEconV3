@@ -11,6 +11,7 @@ using Sandbox.Game.World;
 using Sandbox.Game.World.Generator;
 using Torch.Managers.PatchManager;
 using VRage.Game;
+using VRage.Game.ObjectBuilders.Definitions;
 using VRage.ObjectBuilders;
 using VRage.Utils;
 
@@ -28,10 +29,40 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
             {
                 _prices = reader.ReadFromJsonFile<Dictionary<string, PriceModel>>(path);
             }
-
+            var oxy = $"MyObjectBuilder_GasProperties/Oxygen";
+            if (!_prices.TryGetValue(oxy, out var oxymodel))
+            {
+                oxymodel = new PriceModel();
+                oxymodel.MinPrice = 100;
+                oxymodel.Id = oxy;
+                _prices[oxymodel.Id] = oxymodel;
+            }
+            var hydro = $"MyObjectBuilder_GasProperties/Hydrogen";
+            if (!_prices.TryGetValue(hydro, out var hyromodel))
+            {
+                hyromodel = new PriceModel();
+                hyromodel.MinPrice = 150;
+                hyromodel.Id = hydro;
+                _prices[hyromodel.Id] = hyromodel;
+            }
             var defs = MyDefinitionManager.Static.GetAllDefinitions();
             foreach (MyDefinitionBase def in defs)
             {
+                if (def as MyFactionTypeDefinition != null)
+                {
+                    Core.Log.Info("Faction definition");
+                    var fac = def as MyFactionTypeDefinition;
+                    if (fac.CanSellOxygen)
+                    {
+                      
+                    }
+
+                    if (fac.CanSellHydrogen)
+                    {
+                  
+                    }
+                }
+
                 if ((def as MyComponentDefinition) != null)
                 {
                     if (!_prices.TryGetValue(def.Id.ToString(), out var model))
@@ -39,7 +70,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
                         model = new PriceModel();
                         model.MinPrice = CalculatePrice(def);
                         model.Id = def.Id.ToString();
-                        _prices[def.Id.ToString()] = model;
+                        _prices[model.Id] = model;
                     }
                 }
 
@@ -49,7 +80,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
                     model = new PriceModel();
                     model.MinPrice = CalculatePrice(def);
                     model.Id = def.Id.ToString();
-                    _prices[def.Id.ToString()] = model;
+                    _prices[model.Id] = model;
                 }
             }
             reader.WriteToJsonFile(path, _prices);
