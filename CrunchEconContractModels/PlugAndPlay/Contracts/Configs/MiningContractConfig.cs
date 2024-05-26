@@ -22,7 +22,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts.Configs
         //https://discord.gg/cQFJeKvVAA
         public override void Setup()
         {
-            DeliveryGPSes = new List<string>() { "Put a gps here" };
+            DeliveryGPSes = new List<string>() { "Not used for this contract type" };
             OresToPickFrom = new List<string>() { "Iron", "Nickel", "Gold", "Silver" };
         }
         public override ICrunchContract GenerateTheRest(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
@@ -50,17 +50,10 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts.Configs
             contract.ContractType = contract.GetType().Name;
             contract.BlockId = idUsedForDictionary;
 
-            contract.ReputationGainOnComplete =
-                Core.random.Next(this.ReputationGainOnCompleteMin, this.ReputationGainOnCompleteMax);
-            contract.ReputationLossOnAbandon = this.ReputationLossOnAbandon;
-            contract.SecondsToComplete = this.SecondsToComplete;
             contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/ObtainAndDeliver";
             contract.Name = $"{contract.OreSubTypeName} Mining Contract";
-            contract.ReputationRequired = this.ReputationRequired;
-            contract.CollateralToTake = (Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));
             contract.SpawnOreInStation = this.SpawnOreInStation;
-            description.AppendLine(
-                $"You must go mine {contract.AmountToMine:##,###} {contract.OreSubTypeName} using a ship drill, then return here.");
+            description.AppendLine($"You must go mine {contract.AmountToMine:##,###} {contract.OreSubTypeName} using a ship drill, then return here.");
             if (this.ReputationRequired != 0)
             {
                 description.AppendLine(

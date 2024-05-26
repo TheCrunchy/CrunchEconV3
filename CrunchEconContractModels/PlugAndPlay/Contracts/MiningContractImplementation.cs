@@ -301,7 +301,8 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts
                 Core.Log.Info("player data null");
                 return;
             }
-            if (data != null && data.PlayersContracts.All(x => !x.Value.ContractType.Equals(nameof(MiningContractImplementation).GetType().Name)))
+            var name = "MiningContractImplementation";
+            if (data != null && data.PlayersContracts.All(x => !x.Value.ContractType.Equals(name)))
             {
                 return;
             }
@@ -350,7 +351,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts
 
             foreach (var mined in MinedAmount)
             {
-                var contracts = data.PlayersContracts.Where(x => x.Value != null && x.Value.ContractType == "CrunchMining");
+                var contracts = data.PlayersContracts.Where(x => x.Value != null && x.Value.ContractType == name);
                 foreach (var contract in contracts)
                 {
                     var mining = contract.Value as MiningContractImplementation;
