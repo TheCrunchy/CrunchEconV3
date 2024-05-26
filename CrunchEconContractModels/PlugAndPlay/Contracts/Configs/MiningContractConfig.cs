@@ -72,7 +72,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts.Configs
             return contract;
         }
 
-        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
+        public override Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
             long idUsedForDictionary)
         {
             if (keenstation != null)
@@ -90,18 +90,9 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts.Configs
             return Tuple.Create(__instance.PositionComp.GetPosition(), faction.FactionId);
         }
 
-        public int AmountOfContractsToGenerate { get; set; } = 3;
-        public float ChanceToAppear { get; set; } = 0.5f;
-        public long CollateralMin { get; set; } = 1;
-        public long CollateralMax { get; set; } = 1;
-        public List<string> DeliveryGPSes { get; set; }
+       
         public int AmountToMineThenDeliverMin { get; set; } = 1;
         public int AmountToMineThenDeliverMax { get; set; } = 10;
-        public long SecondsToComplete { get; set; } = 1200;
-        public int ReputationRequired { get; set; } = 0;
-        public int ReputationGainOnCompleteMin { get; set; } = 1;
-        public int ReputationGainOnCompleteMax { get; set; } = 5;
-        public int ReputationLossOnAbandon { get; set; } = 10;
         public List<String> OresToPickFrom { get; set; }
         public bool SpawnOreInStation { get; set; }
     }
