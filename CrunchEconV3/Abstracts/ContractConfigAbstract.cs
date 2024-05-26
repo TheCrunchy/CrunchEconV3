@@ -54,11 +54,14 @@ namespace CrunchEconV3.Abstracts
 
             contract.CollateralToTake = (Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));
 
+            if (contract.DeliverLocation == null || contract.DeliverLocation.Equals(Vector3.Zero))
+            {
+                return null;
+            }
             return contract;
         }
 
-        public abstract ICrunchContract GenerateTheRest(MyContractBlock MyContractBlock,
-            MyStation Keenstation, long IdUsedForDictionary);
+        public abstract ICrunchContract GenerateTheRest(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary);
 
         public virtual Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {

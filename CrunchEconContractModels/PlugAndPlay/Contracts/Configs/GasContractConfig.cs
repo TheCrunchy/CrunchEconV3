@@ -44,7 +44,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts.Configs
             contract.ReputationRequired = this.ReputationRequired;
             contract.ReadyToDeliver = true;
 
-            description.AppendLine($"You must deliver {contract.GasAmount:##,###}L {contract.GasName} in none stockpile tanks.");
+            description.AppendLine($"You must deliver {contract.GasAmount:##,###}L {contract.GasName} in none stockpile tanks, gas required to start contract.");
             if (this.ReputationRequired != 0)
             {
                 description.AppendLine($" ||| Reputation with owner required: {this.ReputationRequired}");

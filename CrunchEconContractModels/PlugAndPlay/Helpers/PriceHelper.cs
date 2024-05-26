@@ -93,7 +93,10 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
             {
                 return model;
             }
-            return null;
+            return new PriceModel()
+            {
+                MinPrice = 1000000000
+            };
         }
         public static bool TryGetPriceModel(string id, out PriceModel model)
         {
