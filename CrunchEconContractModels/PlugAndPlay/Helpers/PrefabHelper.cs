@@ -1,7 +1,8 @@
-﻿using CrunchEconContractModels.PlugAndPlay.Prefabs.Helpers;
+﻿using CrunchEconContractModels.PlugAndPlay.Prefabs;
+using CrunchEconContractModels.PlugAndPlay.Prefabs.Helpers;
 using Torch.Managers.PatchManager;
 
-namespace CrunchEconContractModels.PlugAndPlay.Prefabs
+namespace CrunchEconContractModels.PlugAndPlay.Helpers
 {
     public static class PrefabHelper
     {
