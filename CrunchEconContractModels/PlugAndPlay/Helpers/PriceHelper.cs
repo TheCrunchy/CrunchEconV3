@@ -2,19 +2,22 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using CrunchEconV3;
 using CrunchEconV3.Utils;
 using Sandbox.Definitions;
+using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
+using Sandbox.Game.World.Generator;
 using Torch.Managers.PatchManager;
 using VRage.Game;
+using VRage.ObjectBuilders;
 
 namespace CrunchEconContractModels.PlugAndPlay.Helpers
 {
     public static class PriceHelper
     {
         private static Dictionary<string, PriceModel> _prices = new Dictionary<string, PriceModel>();
-
         public static void Patch(PatchContext ctx)
         {
             var reader = new FileUtils();
@@ -25,13 +28,14 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
                 _prices = reader.ReadFromJsonFile<Dictionary<string, PriceModel>>(path);
             }
 
-            foreach (var def in MyDefinitionManager.Static.GetAllDefinitions().SelectMany(item => MyDefinitionManager.Static.GetAllDefinitions()))
+            var defs = MyDefinitionManager.Static.GetAllDefinitions();
+            foreach (MyDefinitionBase def in defs)
             {
                 if ((def as MyComponentDefinition) != null)
                 {
                     if (!_prices.TryGetValue(def.Id.ToString(), out var model))
                     {
-                        model = new PriceModel(); 
+                        model = new PriceModel();
                         model.MinPrice = CalculatePrice(def);
                         model.Id = def.Id.ToString();
                         _prices[def.Id.ToString()] = model;
@@ -47,9 +51,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
                     _prices[def.Id.ToString()] = model;
                 }
             }
-
             reader.WriteToJsonFile(path, _prices);
-            Core.Log.Info($"{string.Join(",", _prices.Values.ToList().Take(10))}");
         }
 
         // Access Methods
@@ -74,10 +76,10 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
         {
             MyBlueprintDefinitionBase bpDef = MyDefinitionManager.Static.TryGetBlueprintDefinitionByResultId(component.Id);
             int p = 0;
-            float price = 0;
+            long price = 0;
             //calculate by the minimal price per unit for modded components, vanilla is aids
             var min = 0;
-        
+
             switch (component)
             {
                 case MyComponentDefinition comp:
@@ -93,49 +95,48 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
             {
                 Int64 amn = Math.Abs(min);
                 price += amn;
+                return price;
             }
             //calculate by what makes up the component / ingot 
-            else
-            {
-                if (bpDef == null)
-                {
-                    return minPriceIfNotDefined;
-                }
-          
-                if (!bpDef.Prerequisites.Any())
-                {
-                    return minPriceIfNotDefined;
-                }
-                for (p = 0; p < bpDef.Prerequisites.Length; p++)
-                {
-    
-                    if (bpDef.Prerequisites[p].Id != null)
-                    {
-            
-                        MyDefinitionBase oreDef = MyDefinitionManager.Static.GetDefinition(bpDef.Prerequisites[p].Id);
-                        if (oreDef != null)
-                        {
-                         
-                            MyPhysicalItemDefinition ore = oreDef as MyPhysicalItemDefinition;
-                          
-                            if (ore != null)
-                            {
-                                float amn = Math.Abs(ore.MinimalPricePerUnit);
-                             
-                                float count = (float)bpDef.Prerequisites[p].Amount;
-                         
-                                amn = (float)Math.Round(amn * count * 3);
-                           
-                                price = price + amn;
-                            }
 
-                    
+            if (bpDef == null)
+            {
+                return minPriceIfNotDefined;
+            }
+
+            if (!bpDef.Prerequisites.Any())
+            {
+                return minPriceIfNotDefined;
+            }
+            for (p = 0; p < bpDef.Prerequisites.Length; p++)
+            {
+
+                if (bpDef.Prerequisites[p].Id != null)
+                {
+
+                    MyDefinitionBase oreDef = MyDefinitionManager.Static.GetDefinition(bpDef.Prerequisites[p].Id);
+                    if (oreDef != null)
+                    {
+
+                        MyPhysicalItemDefinition ore = oreDef as MyPhysicalItemDefinition;
+
+                        if (ore != null)
+                        {
+                            long amn = Math.Abs(ore.MinimalPricePerUnit);
+
+                            float count = (float)bpDef.Prerequisites[p].Amount;
+
+                            amn = (long)Math.Round(amn * count * 3);
+
+                            price += amn;
                         }
+
+
                     }
                 }
             }
 
-            return price == 0 ? minPriceIfNotDefined : Convert.ToInt64(price);
+            return price == 0 ? minPriceIfNotDefined : Convert.ToInt64(price * 10);
         }
     }
 
@@ -145,7 +146,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
         public long MinPrice { get; set; }
         //Min price has a + or - 10% 
         public float RangeModifier = 0.1f;
-        
+
         //sell price is 30% lower than buy price
         public float SellPriceModifier = 0.7f;
 
