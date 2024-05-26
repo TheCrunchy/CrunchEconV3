@@ -22,9 +22,9 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts.Configs
         public int MinSpawnRangeInKM { get; set; } = 50;
         public int MaxSpawnRangeInKM { get; set; } = 75;
 
-        public override ICrunchContract GenerateTheRest(ICrunchContract cont,MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public override ICrunchContract GenerateTheRest(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {
-            var contract = cont as RepairContractImplementation;
+            var contract = new RepairContractImplementation();
             var description = new StringBuilder();
             contract.RewardMoney = CrunchEconV3.Core.random.Next((int)this.RewardMin, (int)this.RewardMax);
             contract.BlockId = idUsedForDictionary;

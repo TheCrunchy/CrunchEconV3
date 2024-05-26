@@ -15,8 +15,11 @@ using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
+using VRage.Library.Collections;
+using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
@@ -38,6 +41,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts
             return BuildUnassignedContract(contractDescription);
         }
 
+        private bool SetupFailCondition = false;
         public override bool Update100(Vector3 PlayersCurrentPosition)
         {
             if (this.brokeBlocks)
@@ -47,16 +51,30 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts
 
             if (HasSpawnedGrid && GetGrid() != null)
             {
-                foreach (var block in GetGrid().GetFatBlocks().Where(x => !x.IsFunctional))
+                if (Grid.Closed)
                 {
-                    block.SlimBlock.IncreaseMountLevel(100, block.OwnerId);
+                    FailContract();
+                    return true;
+                }
+       
+                if (GridEntityId == 0)
+                {
+                    GridEntityId = GetGrid().EntityId;
                 }
 
-                BlocksToRepair = GetGrid().GetFatBlocks().Count(x => !x.IsFunctional);
+                if (!SetupFailCondition)
+                {
+                    Grid.OnClosing += MarkClose;
+                    Grid.OnBlockRemoved += BlockRemoved;
+                    SetupFailCondition = true;
+                }
+                var repair = GetGrid().CubeBlocks.Count(cubeBlock => !cubeBlock.ComponentStack.IsFunctional);
+
+                BlocksToRepair = repair;
             }
+
             if (GetGrid() != null && !HasSpawnedGrid)
             {
-                GetGrid().OnBlockRemoved += BlockRemoved;
                 HasSpawnedGrid = true;
                 return false;
             }
@@ -103,29 +121,49 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts
                 return false;
             }
 
-           var spawnPos = MyAPIGateway.Entities.FindFreePlace(PlayersCurrentPosition, 10000);
-           if (!spawnPos.HasValue)
-           {
-               Core.Log.Info($"Unable to find a free place for prefab spawning for {this.Name} {this.AssignedPlayerSteamId}");
+            var prefab = PrefabHelper.Repairs.GetRandomPrefab();
+            Core.Log.Info($"{prefab}");
+
+
+            var spawnPos = MyAPIGateway.Entities.FindFreePlace(this.DeliverLocation, 2000);
+            if (!spawnPos.HasValue)
+            {
+                Core.Log.Info(
+                    $"Unable to find a free place for prefab spawning for {this.Name} {this.AssignedPlayerSteamId}");
                 return false;
-           }
+            }
+
             var resultList = new List<MyCubeGrid>();
             Stack<Action> Callbacks = new Stack<Action>();
             Callbacks.Push(() =>
             {
                 if (!resultList.Any())
                 {
-                    Core.Log.Info($"Could not load grid for prefab spawning {this.Name} {this.AssignedPlayerSteamId}");
+                    Core.Log.Info(
+                        $"Could not load grid for prefab spawning {this.Name} {this.AssignedPlayerSteamId}");
                 }
                 else
                 {
                     var main = resultList.OrderByDescending(x => x.BlocksCount).FirstOrDefault();
                     Grid = main;
-                    GridEntityId = Grid.EntityId;
+                    GridEntityId = main.EntityId;
+                    HasSpawnedGrid = true;
+                    this.DeliverLocation = main.PositionComp.GetPosition();
+                    this.DeleteDeliveryGPS();
+                    this.SendDeliveryGPS();
+                    var data = Core.PlayerStorage.GetData(this.AssignedPlayerSteamId);
+                    Task.Run(async () =>
+                    {
+                        CrunchEconV3.Core.PlayerStorage.Save(data);
+                    });
                 }
             });
-            var shouldOwnThis = MySession.Static.Factions.GetNpcFactions().Where(x => x.Stations.Any()).ToList().GetRandomItemFromList();
-            MyPrefabManager.Static.SpawnPrefab(resultList, PrefabHelper.Repairs.GetRandomPrefab(), spawnPos.Value, Vector3.Forward, Vector3.Up, ownerId: shouldOwnThis.FounderId, callbacks: Callbacks);
+
+            var shouldOwnThis = MySession.Static.Factions.GetNpcFactions().Where(x => x.Stations.Any()).ToList()
+            .GetRandomItemFromList();
+
+            MyPrefabManager.Static.SpawnPrefab(resultList, prefab, spawnPos.Value,
+                   Vector3.Forward, Vector3.Up, ownerId: shouldOwnThis.FounderId, callbacks: Callbacks);
 
             return false;
         }
@@ -146,8 +184,10 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts
 
                 if (this.DeleteGridOnComplete && GetGrid() != null)
                 {
+        
                     GetGrid().Close();
                 }
+
                 CrunchEconV3.Core.SendMessage("Contracts", $"{this.Name} completed, you have been paid.", Color.Green, this.AssignedPlayerSteamId);
                 return true;
             }
@@ -169,7 +209,11 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts
             Grid = (MyCubeGrid)found;
             return Grid;
         }
-
+        private void MarkClose(MyEntity obj)
+        {
+            Grid.OnBlockRemoved -= BlockRemoved;
+            Grid.OnClosing -= MarkClose;
+        }
         private void BlockRemoved(MySlimBlock obj)
         {
             if (obj.FatBlock is IMyDoor) return;

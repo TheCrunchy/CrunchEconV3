@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Torch.API.Managers;
 using Torch.Commands;
+using Torch.Managers;
 using Torch.Managers.PatchManager;
 using Torch.Utils;
 
@@ -33,9 +34,11 @@ namespace CrunchEconV3.Utils
                 if (!assembly.IsDynamic && assembly.Location != null & string.Empty != assembly.Location)
                     metadataReferenceList.Add((MetadataReference)MetadataReference.CreateFromFile(assembly.Location));
             }
-            var folder = Core.basePath.Replace(@"\Instance", "");
 
-            var plugins = new List<String> { $"{folder}/plugins/CrunchEconV3.zip", $"{folder}/plugins/ad7fcfad-0ce0-4e1c-867d-4fe6edf533de.zip" };
+           var pluginManager = Core.Session.Managers.GetManager<PluginManager>();
+           var folder = pluginManager.PluginDir;
+
+            var plugins = new List<String> { $"{folder}/CrunchEconV3.zip", $"{folder}/ad7fcfad-0ce0-4e1c-867d-4fe6edf533de.zip" };
             foreach (var plugin in plugins)
             {
                 try

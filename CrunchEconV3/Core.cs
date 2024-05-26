@@ -143,7 +143,7 @@ namespace CrunchEconV3
                         Core.Log.Error($"Station logic loop error {e}");
                     }
 
-                    foreach (var player in MySession.Static.Players.GetOnlinePlayers())
+                    foreach (var player in MySession.Static.Players.GetOnlinePlayers().Where(x => x.Character != null))
                     {
                         List<ICrunchContract> deleteThese = new List<ICrunchContract>();
                         var data = PlayerStorage.GetData(player.Id.SteamId);
@@ -151,7 +151,7 @@ namespace CrunchEconV3
                         {
                             try
                             {
-                                if (contract.Value.Update100(player.GetPosition()))
+                                if (contract.Value.Update100((Vector3)player.Character.PositionComp.GetPosition()))
                                 {
                                     deleteThese.Add(contract.Value);
                                 }
