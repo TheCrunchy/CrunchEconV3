@@ -56,7 +56,5 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts.Configs
         public string GasSubType { get; set; } = "Hydrogen";
         public long AmountInLitresMin { get; set; } = 200 * 1000;
         public long AmountInLitresMax { get; set; } = 480 * 1000;
-        public long PricePerLitreMin { get; set; } = 50;
-        public long PricePerLitreMax { get; set; } = 75;
     }
 }
