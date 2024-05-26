@@ -96,7 +96,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts
                 Core.SendMessage("Contracts", $"{this.BlocksToRepair} blocks left to repair.", Color.Yellow,
                     AssignedPlayerSteamId);
             }
-            if (this.BlocksToRepair <= 0 && HasSpawnedGrid)
+            if (this.BlocksToRepair <= 0 && HasSpawnedGrid && GetGrid() != null)
             {
                 return TryCompleteContract(this.AssignedPlayerSteamId, PlayersCurrentPosition);
             }
