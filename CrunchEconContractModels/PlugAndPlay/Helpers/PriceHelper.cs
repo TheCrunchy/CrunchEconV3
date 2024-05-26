@@ -12,6 +12,7 @@ using Sandbox.Game.World.Generator;
 using Torch.Managers.PatchManager;
 using VRage.Game;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 
 namespace CrunchEconContractModels.PlugAndPlay.Helpers
 {
@@ -75,68 +76,74 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
         private static long CalculatePrice(MyDefinitionBase component)
         {
             MyBlueprintDefinitionBase bpDef = MyDefinitionManager.Static.TryGetBlueprintDefinitionByResultId(component.Id);
-            int p = 0;
-            long price = 0;
-            //calculate by the minimal price per unit for modded components, vanilla is aids
-            var min = 0;
-
-            switch (component)
-            {
-                case MyComponentDefinition comp:
-                    min = comp.MinimalPricePerUnit;
-                    break;
-                case MyPhysicalItemDefinition item:
-                    min = item.MinimalPricePerUnit;
-                    break;
-            }
-
             var minPriceIfNotDefined = 1000000000;
-            if (min > 1)
-            {
-                Int64 amn = Math.Abs(min);
-                price += amn;
-                return price;
-            }
-            //calculate by what makes up the component / ingot 
+            long price = 0;
 
-            if (bpDef == null)
-            {
-                return minPriceIfNotDefined;
-            }
+            //calculate by the minimal price per unit for modded components, vanilla is aids
+            int minimalPrice = 0;
+            CalculateItemMinimalPrice(component.Id, 1f, ref minimalPrice);
+            price += minimalPrice;
+            return price == 0 ? minPriceIfNotDefined : Convert.ToInt64(price);
+        }
 
-            if (!bpDef.Prerequisites.Any())
+        private static void CalculateItemMinimalPrice(
+      MyDefinitionId itemId,
+      float baseCostProductionSpeedMultiplier,
+      ref int minimalPrice)
+        {
+          
+            MyPhysicalItemDefinition definition1 = (MyPhysicalItemDefinition)null;
+            if (MyDefinitionManager.Static.TryGetDefinition<MyPhysicalItemDefinition>(itemId, out definition1) && definition1.MinimalPricePerUnit != -1)
             {
-                return minPriceIfNotDefined;
+                minimalPrice += definition1.MinimalPricePerUnit;
             }
-            for (p = 0; p < bpDef.Prerequisites.Length; p++)
+            else
             {
+ 
+                MyBlueprintDefinitionBase definition2 = (MyBlueprintDefinitionBase)null;
+                if (!MyDefinitionManager.Static.TryGetBlueprintDefinitionByResultId(itemId, out definition2))
+                    return;
+  
+                
+                float num1 = definition1.IsIngot ? 1f : MySession.Static.AssemblerEfficiencyMultiplier;
+                int num2 = 0;
 
-                if (bpDef.Prerequisites[p].Id != null)
+
+                foreach (MyBlueprintDefinitionBase.Item prerequisite in definition2.Prerequisites)
                 {
-
-                    MyDefinitionBase oreDef = MyDefinitionManager.Static.GetDefinition(bpDef.Prerequisites[p].Id);
-                    if (oreDef != null)
+                    if (itemId == prerequisite.Id)
                     {
-
-                        MyPhysicalItemDefinition ore = oreDef as MyPhysicalItemDefinition;
-
-                        if (ore != null)
+                        minimalPrice = 1000000000;
+                        return;
+                    }
+                    int minimalPrice1 = 0;
+                    CalculateItemMinimalPrice(prerequisite.Id, baseCostProductionSpeedMultiplier, ref minimalPrice1);
+                    float num3 = (float)prerequisite.Amount / num1;
+                    num2 += (int)((double)minimalPrice1 * (double)num3);
+                }
+     
+                float num4 = definition1.IsIngot ? MySession.Static.RefinerySpeedMultiplier : MySession.Static.AssemblerSpeedMultiplier;
+                for (int index = 0; index < definition2.Results.Length; ++index)
+                {
+          
+                    MyBlueprintDefinitionBase.Item result = definition2.Results[index];
+                    if (result.Id == itemId)
+                    {
+                
+                        float amount = (float)result.Amount;
+                        if ((double)amount == 0.0)
                         {
-                            long amn = Math.Abs(ore.MinimalPricePerUnit);
-
-                            float count = (float)bpDef.Prerequisites[p].Amount;
-
-                            amn = (long)Math.Round(amn * count * 3);
-
-                            price += amn;
+                            MyLog.Default.WriteToLogAndAssert("Amount is 0 for - " + (object)result.Id);
                         }
-
-
+                        else
+                        {
+                            float num3 = (float)(1.0 + Math.Log((double)definition2.BaseProductionTimeInSeconds + 1.0) * (double)baseCostProductionSpeedMultiplier / (double)num4);
+                            minimalPrice += (int)((double)num2 * (1.0 / (double)amount) * (double)num3);
+                            break;
+                        }
                     }
                 }
             }
-
-            return price == 0 ? minPriceIfNotDefined : Convert.ToInt64(price * 10);
         }
     }
 
