@@ -61,7 +61,8 @@ namespace CrunchEconV3
         public const string PluginName = "CrunchEconV3";
         public static Logger Log = LogManager.GetLogger(PluginName);
         public static ITorchPlugin PluginInstance;
-
+        public static bool NexusInstalled = false;
+        public static NexusAPI Nexus;
         public static bool CompileFailed = false;
         public static Action UpdateCycle;
         public override void Init(ITorchBase torch)
@@ -85,6 +86,28 @@ namespace CrunchEconV3
 
         public DateTime NextContractGps = DateTime.Now;
         public DateTime NextKeenMap = DateTime.Now;
+
+        public void InitNexus()
+        {
+            var Plugins = Session.Managers.GetManager<PluginManager>();
+            if (Plugins.Plugins.TryGetValue(new Guid("28a12184-0422-43ba-a6e6-2e228611cca5"), out ITorchPlugin torchPlugin))
+            {
+                Type type = torchPlugin.GetType();
+                Type type2 = ((type != null) ? type.Assembly.GetType("Nexus.API.PluginAPISync") : null);
+                if (type2 != null)
+                {
+                    type2.GetMethod("ApplyPatching", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[]
+                    {
+                        typeof(NexusAPI),
+                        $"{PluginName}"
+                    });
+                    Nexus = new NexusAPI(4326);
+
+                    NexusInstalled = true;
+                }
+            }
+        }
+
         public override void Update()
         {
             if (Paused)
@@ -97,6 +120,7 @@ namespace CrunchEconV3
                 try
                 {
                     Compiler.Compile($"{Core.path}/Scripts/");
+                    InitNexus();
                 }
 
                 catch (Exception e)

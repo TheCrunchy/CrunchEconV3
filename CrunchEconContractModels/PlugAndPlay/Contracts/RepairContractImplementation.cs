@@ -48,7 +48,17 @@ namespace CrunchEconContractModels.PlugAndPlay.Contracts
             {
                 return true;
             }
+            if (Core.NexusInstalled)
+            {
+                var thisSector = NexusAPI.GetThisServer();
 
+                var sector = NexusAPI.GetServerIDFromPosition(DeliverLocation);
+
+                if (sector != thisSector.ServerID)
+                {
+                    return false;
+                }
+            }
             if (HasSpawnedGrid && GetGrid() != null)
             {
                 if (Grid.Closed)
