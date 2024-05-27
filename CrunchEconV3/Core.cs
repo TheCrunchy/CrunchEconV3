@@ -489,7 +489,7 @@ namespace CrunchEconV3
                 ReputationLossOnAbandon = 10,
                 ReputationGainOnCompleteMax = 5,
                 ReputationGainOnCompleteMin = 1,
-                AmountOfContractsToGenerate = 3,
+                AmountOfContractsToGenerate = 5,
                 ChanceToAppear = 0.7f,
                 SecondsToComplete = 4800,
                 ItemsAvailable = new List<ItemHaul>()
@@ -543,6 +543,27 @@ namespace CrunchEconV3
                         TypeId = "MyObjectBuilder_Component",
                         SubTypeId = "SmallTube"
                     }
+                }
+            });
+
+            StationHandler.DefaultAvailables.Add(new ItemHaulingConfig()
+            {
+                ReputationLossOnAbandon = 10,
+                ReputationGainOnCompleteMax = 5,
+                ReputationGainOnCompleteMin = 1,
+                AmountOfContractsToGenerate = 2,
+                ChanceToAppear = 0.25f,
+                SecondsToComplete = 4800,
+                ItemsAvailable = new List<ItemHaul>()
+                {
+                    new ItemHaul()
+                    {
+                        AmountMax = 100000,
+                        AmountMin = 10000,
+                        TypeId = "MyObjectBuilder_Ore",
+                        SubTypeId = "Ice"
+                    },
+
                 }
             });
         }
