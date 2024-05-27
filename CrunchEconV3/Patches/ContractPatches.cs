@@ -152,7 +152,7 @@ namespace CrunchEconV3.Patches
                     }
                 }
 
-                if (Core.config.RemoveHauling)
+                if (Core.NexusInstalled)
                 {
                     foreach (var item in __result.Where(x => x is MyObjectBuilder_ContractDeliver))
                     {

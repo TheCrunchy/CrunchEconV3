@@ -1,33 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using CrunchEconV3;
 using CrunchEconV3.Utils;
 using Sandbox.Definitions;
-using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
-using Sandbox.Game.World.Generator;
 using Torch.Managers.PatchManager;
 using VRage.Game;
-using VRage.Game.ObjectBuilders.Definitions;
-using VRage.ObjectBuilders;
 using VRage.Utils;
 
-namespace CrunchEconContractModels.PlugAndPlay.Helpers
+namespace CrunchEconV3.PlugAndPlay.Helpers
 {
     public static class PriceHelper
     {
         private static Dictionary<string, PriceModel> _prices = new Dictionary<string, PriceModel>();
+        private static FileSystemWatcher _fileSystemWatcher;
+        private static FileUtils Reader = new FileUtils();
         public static void Patch(PatchContext ctx)
         {
-            var reader = new FileUtils();
+            
             var path = $"{Core.path}/Prices.json";
 
             if (File.Exists(path))
             {
-                _prices = reader.ReadFromJsonFile<Dictionary<string, PriceModel>>(path);
+                _prices = Reader.ReadFromJsonFile<Dictionary<string, PriceModel>>(path);
             }
             var oxy = $"MyObjectBuilder_GasProperties/Oxygen";
             if (!_prices.TryGetValue(oxy, out var oxymodel))
@@ -83,7 +78,25 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
                     _prices[model.Id] = model;
                 }
             }
-            reader.WriteToJsonFile(path, _prices);
+            Reader.WriteToJsonFile(path, _prices);
+            _fileSystemWatcher = new FileSystemWatcher
+            {
+                Path = Path.GetDirectoryName(path),
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size
+            };
+            _fileSystemWatcher.Changed += OnChanged;
+        }
+        private static void OnChanged(object sender, FileSystemEventArgs e)
+        {
+            if (e.ChangeType == WatcherChangeTypes.Changed)
+            {
+                Console.WriteLine($"File changed: {e.FullPath}");
+                // Add your file handling logic here, e.g., reloading the file
+                if (File.Exists(e.FullPath))
+                {
+                    _prices = Reader.ReadFromJsonFile<Dictionary<string, PriceModel>>(e.FullPath);
+                }
+            }
         }
 
         // Access Methods

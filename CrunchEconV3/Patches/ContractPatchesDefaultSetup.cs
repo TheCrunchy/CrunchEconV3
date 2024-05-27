@@ -8,6 +8,7 @@ using CrunchEconContractModels.PlugAndPlay.Helpers;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
+using CrunchEconV3.PlugAndPlay.Helpers;
 using CrunchEconV3.Utils;
 using EmptyKeys.UserInterface.Generated.PlayerTradeView_Bindings;
 using Microsoft.CodeAnalysis.CSharp;
@@ -121,7 +122,7 @@ namespace CrunchEconV3.Patches
 
         {
 
-            if (Core.config.RemoveHauling)
+            if (Core.NexusInstalled)
             {
                 MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
 
@@ -133,8 +134,7 @@ namespace CrunchEconV3.Patches
                 __result = __result.Where(x => x is not MyObjectBuilder_ContractDeliver).ToList();
             }
 
-            var needsRefresh = true;
-        //    var needsRefresh = StationHandler.NPCNeedsRefresh(stationId);
+            var needsRefresh = StationHandler.NPCNeedsRefresh(stationId);
             if (needsRefresh)
             {
       

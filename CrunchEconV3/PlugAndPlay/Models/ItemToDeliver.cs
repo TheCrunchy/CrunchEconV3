@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconContractModels.PlugAndPlay.Helpers;
+using CrunchEconV3.PlugAndPlay.Helpers;
 
 namespace CrunchEconV3.PlugAndPlay.Models
 {

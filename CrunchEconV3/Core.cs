@@ -32,6 +32,7 @@ using CrunchEconV3.APIs;
 using CrunchEconV3.Patches;
 using CrunchEconV3.PlugAndPlay;
 using CrunchEconV3.PlugAndPlay.Contracts.Configs;
+using CrunchEconV3.PlugAndPlay.Helpers;
 using CrunchEconV3.PlugAndPlay.Models;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
@@ -510,8 +511,8 @@ namespace CrunchEconV3
                     },
                     new ItemHaul()
                     {
-                        AmountMax = 10000,
-                        AmountMin = 1000,
+                        AmountMax = 500,
+                        AmountMin = 100,
                         TypeId = "MyObjectBuilder_Component",
                         SubTypeId = "MetalGrid"
                     },
@@ -528,20 +529,6 @@ namespace CrunchEconV3
                         AmountMin = 1000,
                         TypeId = "MyObjectBuilder_Component",
                         SubTypeId = "SteelPlate"
-                    },
-                    new ItemHaul()
-                    {
-                        AmountMax = 10000,
-                        AmountMin = 1000,
-                        TypeId = "MyObjectBuilder_Component",
-                        SubTypeId = "LargeTube"
-                    },
-                    new ItemHaul()
-                    {
-                        AmountMax = 10000,
-                        AmountMin = 1000,
-                        TypeId = "MyObjectBuilder_Component",
-                        SubTypeId = "SmallTube"
                     }
                 }
             });
