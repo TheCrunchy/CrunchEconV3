@@ -29,6 +29,10 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             var description = new StringBuilder();
 
             contract.ItemToDeliver = (ItemToDeliver)this.ItemsAvailable.GetRandomItemFromList();
+            if (contract.ItemToDeliver == null)
+            {
+                return null;
+            }
             contract.RewardMoney = contract.ItemToDeliver.Pay;
             contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver";
             contract.Name = this.ContractName;

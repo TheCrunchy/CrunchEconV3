@@ -39,6 +39,10 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             contract.OreSubTypeName = this.OresToPickFrom.GetRandomItemFromList();
             var minPrice = PriceHelper.GetPriceModel($"MyObjectBuilder_Ore/{contract.OreSubTypeName}");
             var pricing = minPrice.GetSellMinAndMaxPrice(true);
+            if (minPrice.NotFound)
+            {
+                return null;
+            }
             contract.RewardMoney = contract.AmountToMine * (Core.random.Next((int)pricing.Item1, (int)pricing.Item2));
 
             var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);

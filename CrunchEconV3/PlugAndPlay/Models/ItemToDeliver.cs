@@ -20,6 +20,10 @@ namespace CrunchEconV3.PlugAndPlay.Models
             var amount = Core.random.Next(v.AmountMin, v.AmountMax);
             var price = PriceHelper.GetPriceModel($"{v.TypeId}/{v.SubTypeId}");
             var pricing = price.GetSellMinAndMaxPrice(true);
+            if (price.NotFound)
+            {
+                return null;
+            }
             return new ItemToDeliver()
             {
                 AmountToDeliver = amount,

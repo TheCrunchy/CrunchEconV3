@@ -27,6 +27,10 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             var contract = new GasContractImplementation();
             var price = PriceHelper.GetPriceModel($"MyObjectBuilder_GasProperties/{this.GasSubType}");
             var pricing = price.GetSellMinAndMaxPrice();
+            if (price.NotFound)
+            {
+                return null;
+            }
             contract.GasAmount = CrunchEconV3.Core.random.Next((int)this.AmountInLitresMin, (int)this.AmountInLitresMax);
             contract.RewardMoney = contract.GasAmount * (Core.random.Next((int)pricing.Item1, (int)pricing.Item2));
             contract.GasName = this.GasSubType;
