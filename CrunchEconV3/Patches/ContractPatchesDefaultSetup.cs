@@ -127,7 +127,7 @@ namespace CrunchEconV3.Patches
                 MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
 
 
-                var removeThese = new string[] { "Deliver" };
+                var removeThese = new string[] { "Deliver", "Repair"};
 
                 foreach (var con in __result.Where(x => removeThese.Contains(x.SubtypeName)))
                 {

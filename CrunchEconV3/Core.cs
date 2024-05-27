@@ -350,6 +350,7 @@ namespace CrunchEconV3
                         PriceHelper.Patch(patchContext);
                         PrefabHelper.Patch(patchContext);
                         Core.Log.Error("Patching defaults");
+                        GenerateDefaults();
                         break;
                     default:
                         Core.Log.Error("Patching regular");
@@ -372,22 +373,78 @@ namespace CrunchEconV3
             }
             else
             {
-                StationHandler.DefaultAvailables.Add(new MiningContractConfig(){OresToPickFrom = new List<string>() {"Iron", "Nickel", "Silicon", "Ice"},
+                StationHandler.DefaultAvailables.Add(new MiningContractConfig()
+                {
+                    OresToPickFrom = new List<string>() {"Iron", "Nickel", "Silicon", "Ice"},
                     ReputationLossOnAbandon = 15, 
                     ReputationGainOnCompleteMax = 10, 
-                    ReputationGainOnCompleteMin = 5});
-                StationHandler.DefaultAvailables.Add(new MiningContractConfig(){OresToPickFrom = new List<string>() {"Silver", "Gold", "Cobalt"}, 
+                    ReputationGainOnCompleteMin = 5,
+                    AmountToMineThenDeliverMin = 10000,
+                    AmountToMineThenDeliverMax = 15000,
+                    AmountOfContractsToGenerate = 5,
+                    ChanceToAppear = 0.5f,
+                    SecondsToComplete = 4800,
+                });
+                StationHandler.DefaultAvailables.Add(new MiningContractConfig()
+                {
+                    OresToPickFrom = new List<string>() { "Ice" },
+                    ReputationLossOnAbandon = 15,
+                    ReputationGainOnCompleteMax = 10,
+                    ReputationGainOnCompleteMin = 5,
+                    AmountToMineThenDeliverMin = 100000,
+                    AmountToMineThenDeliverMax = 150000,
+                    AmountOfContractsToGenerate = 5,
+                    ChanceToAppear = 0.05f,
+                    SecondsToComplete = 4800,
+                });
+                StationHandler.DefaultAvailables.Add(new MiningContractConfig()
+                {
+                    OresToPickFrom = new List<string>() { "Iron", "Nickel", "Silicon", "Ice" },
+                    ReputationRequired = 1000,
+                    ReputationLossOnAbandon = 15,
+                    ReputationGainOnCompleteMax = 10,
+                    ReputationGainOnCompleteMin = 5,
+                    AmountToMineThenDeliverMin = 25000,
+                    AmountToMineThenDeliverMax = 30000,
+                    AmountOfContractsToGenerate = 2,
+                    ChanceToAppear = 0.3f,
+                    SecondsToComplete = 4800,
+                });
+                StationHandler.DefaultAvailables.Add(new MiningContractConfig()
+                {
+                    OresToPickFrom = new List<string>() { "Silver", "Gold", "Cobalt", "Magnesium" },
+                    ReputationLossOnAbandon = 20,
+                    ReputationGainOnCompleteMax = 5,
+                    ReputationGainOnCompleteMin = 3,
+                    AmountToMineThenDeliverMin = 1000,
+                    AmountToMineThenDeliverMax = 1500,
+                    AmountOfContractsToGenerate = 5,
+                    ChanceToAppear = 0.5f,
+                    SecondsToComplete = 4800,
+                });
+                StationHandler.DefaultAvailables.Add(new MiningContractConfig(){OresToPickFrom = new List<string>() {"Silver", "Gold", "Cobalt", "Magnesium" }, 
                     ReputationRequired = 250,
                     ReputationLossOnAbandon = 20,
                     ReputationGainOnCompleteMax = 10,
-                    ReputationGainOnCompleteMin = 5 });
+                    ReputationGainOnCompleteMin = 5,
+                    AmountToMineThenDeliverMin = 10000,
+                    AmountToMineThenDeliverMax = 15000,
+                    AmountOfContractsToGenerate = 3,
+                    ChanceToAppear = 0.3f,
+                    SecondsToComplete = 4800,
+                });
                 StationHandler.DefaultAvailables.Add(new MiningContractConfig()
                 {
                     OresToPickFrom = new List<string>() { "Uranium", "Platinum" },
                     ReputationRequired = 750,
                     ReputationLossOnAbandon = 30,
                     ReputationGainOnCompleteMax = 15,
-                    ReputationGainOnCompleteMin = 10
+                    ReputationGainOnCompleteMin = 10,
+                    AmountToMineThenDeliverMin = 10000,
+                    AmountToMineThenDeliverMax = 15000,
+                    AmountOfContractsToGenerate = 3,
+                    ChanceToAppear = 0.3f,
+                    SecondsToComplete = 4800,
                 });
             }
         }

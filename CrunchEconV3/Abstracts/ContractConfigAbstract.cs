@@ -29,6 +29,10 @@ namespace CrunchEconV3.Abstracts
         public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {
             var contract = GenerateTheRest(__instance, keenstation, idUsedForDictionary);
+            if (contract == null)
+            {
+                return null;
+            }
             var delivery = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
             if (keenstation != null)
             {

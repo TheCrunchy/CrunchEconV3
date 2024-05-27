@@ -228,24 +228,31 @@ namespace CrunchEconV3.Handlers
                 {
                     foreach (var contract in DefaultAvailables)
                     {
-                        var i = 0;
-
-                        while (i < contract.AmountOfContractsToGenerate)
+                        try
                         {
-                            if (contract.ChanceToAppear < 1)
-                            {
-                                var random = Core.random.NextDouble();
-                                if (random > contract.ChanceToAppear)
-                                {
-                                    i++;
-                                    continue;
-                                }
-                            }
+                            var i = 0;
 
-                            var generated = contract.GenerateFromConfig(null, station, station.Id);
-                            if (generated == null) continue;
-                            NewContracts.Add(generated);
-                            i++;
+                            while (i < contract.AmountOfContractsToGenerate)
+                            {
+                                if (contract.ChanceToAppear < 1)
+                                {
+                                    var random = Core.random.NextDouble();
+                                    if (random > contract.ChanceToAppear)
+                                    {
+                                        i++;
+                                        continue;
+                                    }
+                                }
+
+                                var generated = contract.GenerateFromConfig(null, station, station.Id);
+                                if (generated == null) continue;
+                                NewContracts.Add(generated);
+                                i++;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Core.Log.Error(e);
                         }
                     }
 
