@@ -127,32 +127,31 @@ namespace CrunchEconV3.Patches
                 MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
 
 
-                var removeThese = new string[] { "Deliver", "Repair"};
+                var removeThese = new string[] { "Deliver", };
 
-                foreach (var con in __result.Where(x => removeThese.Contains(x.SubtypeName)))
+                if (Core.config.RemoveHauling)
                 {
-                    component.RemoveContract(con.Id);
+                    foreach (var item in __result.Where(x => x is MyObjectBuilder_ContractDeliver))
+                    {
+                        component.RemoveContract(item.Id);
+                    }
+
+                    __result = __result.Where(x => x is not MyObjectBuilder_ContractDeliver).ToList();
                 }
 
                 foreach (var item in __result.Where(x => x is MyObjectBuilder_ContractObtainAndDeliver))
                 {
                     var condition = item.ContractCondition as MyObjectBuilder_ContractConditionDeliverItems;
-               //     var contract = new MyContractObtainAndDeliver();
-                //    contract.Init(item);
-                   
                     var priceKey = $"{condition.ItemType.ToString()}";
-                   // Core.Log.Info(priceKey);
+
                     var newPrice = PriceHelper.GetPriceModel(priceKey);
                     if (!newPrice.NotFound)
                     {
                         var sellPrice = newPrice.GetSellMinAndMaxPrice(true);
                         var between = Core.random.Next((int)sellPrice.Item1, (int)sellPrice.Item2);
-                  //      Core.Log.Info($"Price before {item.RewardMoney} price after {between}");
                         item.RewardMoney = between * condition.ItemAmount;
                     }
-            
                 }
-                __result = __result.Where(x => !removeThese.Contains(x.SubtypeName)).ToList();
 
                 var contracts = StationHandler.GenerateNewContracts(stationId);
                 var built = BuildContracts(contracts);

@@ -154,13 +154,12 @@ namespace CrunchEconV3.Patches
 
                 if (Core.config.RemoveHauling)
                 {
-                    var toRemove = __result.Where(x =>
-                        x.SubtypeName.Replace("MyObjectBuilder_ContractTypeDefinition/", "") == "Deliver").ToList();
-                    foreach (var con in toRemove)
+                    foreach (var item in __result.Where(x => x is MyObjectBuilder_ContractDeliver))
                     {
-                        component.RemoveContract(con.Id);
+                        component.RemoveContract(item.Id);
                     }
-                    __result = __result.Where(x => x.SubtypeName.Replace("MyObjectBuilder_ContractTypeDefinition/", "") != "Deliver").ToList();
+
+                    __result = __result.Where(x => x is not MyObjectBuilder_ContractDeliver).ToList();
                 }
                 var contracts = StationHandler.GenerateNewContracts(stationId);
                 var built = BuildContracts(contracts);
