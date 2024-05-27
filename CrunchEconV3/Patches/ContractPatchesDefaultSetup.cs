@@ -139,6 +139,11 @@ namespace CrunchEconV3.Patches
                     __result = __result.Where(x => x is not MyObjectBuilder_ContractDeliver).ToList();
                 }
 
+                foreach (var item in __result.Where(x => x is MyObjectBuilder_ContractEscort))
+                {
+                    item.RewardMoney *= 3;
+                }
+
                 foreach (var item in __result.Where(x => x is MyObjectBuilder_ContractObtainAndDeliver))
                 {
                     var condition = item.ContractCondition as MyObjectBuilder_ContractConditionDeliverItems;
