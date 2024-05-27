@@ -366,7 +366,7 @@ namespace CrunchEconV3
             }
         }
 
-        public void GenerateDefaults()
+        public static void GenerateDefaults()
         {
             var fileUtils = new FileUtils();
             var path = $"{Core.path}/DefaultContracts.json";

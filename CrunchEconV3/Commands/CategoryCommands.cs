@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
+using CrunchEconV3.PlugAndPlay;
 using CrunchEconV3.Utils;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -71,6 +72,8 @@ namespace CrunchEconV3.Commands
                 Context.Respond("Compile failed, files not reloaded.");
                 return;
             }
+            Core.GenerateDefaults();
+            KeenStoreManagement.Update();
             Core.StationStorage = new JsonStationStorageHandler(Core.path);
             Core.PlayerStorage = new JsonPlayerStorageHandler(Core.path);
             Core.Session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined -= Core.PlayerStorage.LoadLogin;
