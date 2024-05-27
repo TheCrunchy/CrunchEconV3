@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CrunchEconV3.Utils;
 using Sandbox.Definitions;
+using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
+using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
 using VRage.Game;
+using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Utils;
 
 namespace CrunchEconV3.PlugAndPlay.Helpers
@@ -40,23 +44,22 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
                 hyromodel.Id = hydro;
                 _prices[hyromodel.Id] = hyromodel;
             }
+          //  var test = MyDefinitionManager.Static.GetAllSessionPreloadObjectBuilders();
+       //     Core.Log.Info($"{test.Count}");
+     //       Core.Log.Info($"{test.Any(x => x.Item1.Definitions.Any(z => z is MyObjectBuilder_FactionTypeDefinition))}");
             var defs = MyDefinitionManager.Static.GetAllDefinitions();
+      //      var test = MyDefinitionManager.Static.GetDefinitionsOfType<MyFactionTypeDefinition>();
+         //   Core.Log.Error($"{test.Any()}");
             foreach (MyDefinitionBase def in defs)
             {
+
                 if (def as MyFactionTypeDefinition != null)
                 {
                     Core.Log.Info("Faction definition");
                     var fac = def as MyFactionTypeDefinition;
-                    if (fac.CanSellOxygen)
-                    {
-                      
-                    }
-
-                    if (fac.CanSellHydrogen)
-                    {
-                  
-                    }
                 }
+
+                
 
                 if ((def as MyComponentDefinition) != null)
                 {

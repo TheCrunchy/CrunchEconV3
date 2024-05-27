@@ -35,6 +35,7 @@ namespace CrunchEconV3.PlugAndPlay
                 foreach (MyStation station in faction.Value.Stations)
                 {
                     StationHandler.SetNPCNeedsRefresh(station.StationEntityId, DateTime.Now.AddSeconds(MyAPIGateway.Session.SessionSettings.EconomyTickInSeconds));
+                    
                     //long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
                     //MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, price, StoreItemTypes.Offer, ItemTypes.Grid);
                     //myStoreItem2.IsCustomStoreItem = true;
