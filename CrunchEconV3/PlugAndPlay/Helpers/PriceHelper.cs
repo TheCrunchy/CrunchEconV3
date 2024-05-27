@@ -33,7 +33,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
             if (!_prices.TryGetValue(oxy, out var oxymodel))
             {
                 oxymodel = new PriceModel();
-                oxymodel.MinPrice = 100;
+                oxymodel.MinPrice = 1;
                 oxymodel.Id = oxy;
                 _prices[oxymodel.Id] = oxymodel;
             }
@@ -41,7 +41,7 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
             if (!_prices.TryGetValue(hydro, out var hyromodel))
             {
                 hyromodel = new PriceModel();
-                hyromodel.MinPrice = 150;
+                hyromodel.MinPrice = 2;
                 hyromodel.Id = hydro;
                 _prices[hyromodel.Id] = hyromodel;
             }

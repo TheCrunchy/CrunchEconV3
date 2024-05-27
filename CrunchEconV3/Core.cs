@@ -456,10 +456,10 @@ namespace CrunchEconV3
                     ReputationGainOnCompleteMax = 5,
                     ReputationGainOnCompleteMin = 1,
                     AmountOfContractsToGenerate = 3,
-                    ChanceToAppear = 0.3f,
+                    ChanceToAppear = 0.7f,
                     SecondsToComplete = 4800,
-                    AmountInLitresMax = 20000,
-                    AmountInLitresMin = 10000,
+                    AmountInLitresMax = 2000000,
+                    AmountInLitresMin = 1000000,
                 });
                 StationHandler.DefaultAvailables.Add(new GasContractConfig()
                 {
@@ -468,10 +468,10 @@ namespace CrunchEconV3
                     ReputationGainOnCompleteMax = 5,
                     ReputationGainOnCompleteMin = 1,
                     AmountOfContractsToGenerate = 3,
-                    ChanceToAppear = 0.3f,
+                    ChanceToAppear = 0.7f,
                     SecondsToComplete = 4800,
-                    AmountInLitresMax = 20000,
-                    AmountInLitresMin = 10000,
+                    AmountInLitresMax = 2000000,
+                    AmountInLitresMin = 1000000,
                 });
             }
 
