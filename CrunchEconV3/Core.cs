@@ -30,6 +30,7 @@ using CoreSystems.Api;
 using CrunchEconContractModels.PlugAndPlay.Helpers;
 using CrunchEconV3.APIs;
 using CrunchEconV3.Patches;
+using CrunchEconV3.PlugAndPlay.Contracts.Configs;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Screens.Helpers;
@@ -371,7 +372,23 @@ namespace CrunchEconV3
             }
             else
             {
-
+                StationHandler.DefaultAvailables.Add(new MiningContractConfig(){OresToPickFrom = new List<string>() {"Iron", "Nickel", "Silicon", "Ice"},
+                    ReputationLossOnAbandon = 15, 
+                    ReputationGainOnCompleteMax = 10, 
+                    ReputationGainOnCompleteMin = 5});
+                StationHandler.DefaultAvailables.Add(new MiningContractConfig(){OresToPickFrom = new List<string>() {"Silver", "Gold", "Cobalt"}, 
+                    ReputationRequired = 250,
+                    ReputationLossOnAbandon = 20,
+                    ReputationGainOnCompleteMax = 10,
+                    ReputationGainOnCompleteMin = 5 });
+                StationHandler.DefaultAvailables.Add(new MiningContractConfig()
+                {
+                    OresToPickFrom = new List<string>() { "Uranium", "Platinum" },
+                    ReputationRequired = 750,
+                    ReputationLossOnAbandon = 30,
+                    ReputationGainOnCompleteMax = 15,
+                    ReputationGainOnCompleteMin = 10
+                });
             }
         }
 
