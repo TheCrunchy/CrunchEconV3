@@ -162,7 +162,11 @@ namespace CrunchEconV3.Handlers
         public static string GetStationNameForBlock(long blockId)
         {
             if (MappedContractBlocks.TryGetValue(blockId, out var stationName)) return stationName;
-            var location = MyAPIGateway.Entities.GetEntityById(blockId) as MyContractBlock;
+            MyContractBlock location = (MyContractBlock)MyAPIGateway.Entities.GetEntityById(blockId);
+            if (location == null)
+            {
+                return null;
+            }
             foreach (var station in Core.StationStorage.GetAll())
             {
                 if (station.GetGrid() != null && station.GetGrid().EntityId == location.CubeGrid.GetBiggestGridInGroup().EntityId)

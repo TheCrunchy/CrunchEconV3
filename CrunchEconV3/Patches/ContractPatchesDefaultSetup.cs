@@ -133,7 +133,8 @@ namespace CrunchEconV3.Patches
                 __result = __result.Where(x => x is not MyObjectBuilder_ContractDeliver).ToList();
             }
 
-            var needsRefresh = StationHandler.NPCNeedsRefresh(stationId);
+            var needsRefresh = true;
+        //    var needsRefresh = StationHandler.NPCNeedsRefresh(stationId);
             if (needsRefresh)
             {
       

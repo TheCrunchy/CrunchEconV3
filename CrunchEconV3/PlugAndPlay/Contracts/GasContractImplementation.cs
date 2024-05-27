@@ -21,7 +21,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
     {
         public override MyObjectBuilder_Contract BuildAssignedContract()
         {
-            var contractDescription = $"You must deliver {this.GasAmount:##,###}L {this.GasName} in none stockpile tanks.";
+            var contractDescription = $"You must obtain and deliver {this.GasAmount:##,###}L {this.GasName} in none stockpile tanks.";
             return BuildUnassignedContract(contractDescription);
         }
 
@@ -89,11 +89,11 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
                 tanks.AddRange(gridInGroup.GetFatBlocks<IMyGasTank>());
             }
 
-            var playerTanks = TankHelper.MakeTankGroup(tanks, identityId, __instance.OwnerId, this.GasName);
-            if (playerTanks.GasInTanks < this.GasAmount)
-            {
-                return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_InsufficientSpace);
-            }
+            //var playerTanks = TankHelper.MakeTankGroup(tanks, identityId, __instance.OwnerId, this.GasName);
+            //if (playerTanks.GasInTanks < this.GasAmount)
+            //{
+            //    return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_InsufficientSpace);
+            //}
 
             if (this.CollateralToTake > 0)
             {
