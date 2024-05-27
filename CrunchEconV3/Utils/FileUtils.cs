@@ -98,8 +98,26 @@ namespace CrunchEconV3.Utils
     {
         public override Type BindToType(string assemblyName, string typeName)
         {
-            var t = Core.myAssemblies.Select(x => x)
-                .SelectMany(x => x.GetTypes()).FirstOrDefault(x => x.FullName == typeName);
+
+            // Check if the type is already loaded in the current AppDomain
+            Type existingType = Type.GetType(typeName);
+
+            if (existingType != null)
+            {
+                // Type is already loaded, return it
+                ///   Core.Log.Info($"Type '{typeName}' is already loaded in the current project.");
+                return existingType;
+            }
+
+            // Type is not loaded, try to load it from specified assemblies
+            var t = Core.myAssemblies
+                .SelectMany(x => x.GetTypes())
+                .FirstOrDefault(x => x.FullName == typeName);
+
+            if (t == null)
+            {
+                Core.Log.Info($"Cannot resolve type {typeName}");
+            }
 
             return t;
         }

@@ -3,6 +3,7 @@ using System.Text;
 using CrunchEconContractModels.PlugAndPlay.Helpers;
 using CrunchEconV3.Abstracts;
 using CrunchEconV3.Interfaces;
+using CrunchEconV3.PlugAndPlay.Models;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
 using VRage.Utils;
@@ -22,10 +23,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
                 {
                     return null;
                 }
-
-                this.CargoNames = new List<string>() { "Cargo1", "Cargo2" };
             }
-
             var contract = new ItemHaulingContractImplementation();
 
             var description = new StringBuilder();
@@ -36,20 +34,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             contract.Name = this.ContractName;
             contract.CargoNames = this.CargoNames;
             contract.PlaceItemsInTargetStation = this.PlaceItemsInTargetStation;
-         
-
-            if (this.BonusPerKMDistance != 0)
-            {
-                var distance = Vector3.Distance(contract.DeliverLocation,
-                    __instance != null ? __instance.PositionComp.GetPosition() : keenstation.Position);
-                var division = distance / 1000;
-                var distanceBonus = (long)(division * this.BonusPerKMDistance);
-                if (distanceBonus > 0)
-                {
-                    contract.DistanceReward += distanceBonus;
-                }
-            }
-
+            contract.ReadyToDeliver = true;
             description.AppendLine(
                 $"Deliver {contract.ItemToDeliver.AmountToDeliver} {contract.ItemToDeliver.TypeId.Replace("MyObjectBuilder_", "")} {contract.ItemToDeliver.SubTypeId}");
 
@@ -77,42 +62,14 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
                     AmountMin = 25000
                 }
             };
+            CargoNames = new List<string>() { "Cargo1", "Cargo2" };
         }
-
-        public long BonusPerKMDistance { get; set; } = 1;
         public string ContractName { get; set; } = "Item Delivery";
         public List<ItemHaul> ItemsAvailable { get; set; }
         public bool PlaceItemsInTargetStation { get; set; }
         public List<string> CargoNames = new List<string>();
     }
 
-    public class ItemHaul
-    {
-        public string TypeId { get; set; }
-        public string SubTypeId { get; set; }
-        public int AmountMin { get; set; }
-        public int AmountMax { get; set; }
-    }
+  
 
-    public class ItemToDeliver
-    {
-        public string TypeId { get; set; }
-        public string SubTypeId { get; set; }
-        public int AmountToDeliver { get; set; }
-        public long Pay { get; set; }
-
-        public static explicit operator ItemToDeliver(ItemHaul v)
-        {
-            var amount = Core.random.Next(v.AmountMin, v.AmountMax);
-            var price = PriceHelper.GetPriceModel($"{v.TypeId}/{v.SubTypeId}");
-            var pricing = price.GetSellMinAndMaxPrice(true);
-            return new ItemToDeliver()
-            {
-                AmountToDeliver = amount,
-                Pay = Core.random.Next((int)pricing.Item1, (int)pricing.Item2) * amount,
-                SubTypeId = v.SubTypeId,
-                TypeId = v.TypeId,
-            };
-        }
-    }
 }

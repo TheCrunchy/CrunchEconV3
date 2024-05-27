@@ -32,6 +32,7 @@ using CrunchEconV3.APIs;
 using CrunchEconV3.Patches;
 using CrunchEconV3.PlugAndPlay;
 using CrunchEconV3.PlugAndPlay.Contracts.Configs;
+using CrunchEconV3.PlugAndPlay.Models;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Screens.Helpers;
@@ -344,7 +345,7 @@ namespace CrunchEconV3
                 Session = session;
                 var patchManager = session.Managers.GetManager<PatchManager>();
                 var patchContext = patchManager.AcquireContext();
-             
+
                 switch (config.UseDefaultSetup)
                 {
                     case true:
@@ -353,14 +354,14 @@ namespace CrunchEconV3
                         PrefabHelper.Patch(patchContext);
                         KeenStoreManagement.Patch(patchContext);
                         Core.Log.Error("Patching defaults");
-                      
+
                         break;
                     default:
                         Core.Log.Error("Patching regular");
                         ContractPatches.Patch(patchContext);
                         break;
                 }
-                 
+
                 patchManager.Commit();
             }
         }
@@ -376,167 +377,174 @@ namespace CrunchEconV3
             }
             else
             {
-                StationHandler.DefaultAvailables.Add(new MiningContractConfig()
-                {
-                    OresToPickFrom = new List<string>() {"Iron", "Nickel", "Silicon", "Ice"},
-                    ReputationLossOnAbandon = 15, 
-                    ReputationGainOnCompleteMax = 10, 
-                    ReputationGainOnCompleteMin = 5,
-                    AmountToMineThenDeliverMin = 10000,
-                    AmountToMineThenDeliverMax = 15000,
-                    AmountOfContractsToGenerate = 5,
-                    ChanceToAppear = 0.5f,
-                    SecondsToComplete = 4800,
-                });
-                StationHandler.DefaultAvailables.Add(new MiningContractConfig()
-                {
-                    OresToPickFrom = new List<string>() { "Ice" },
-                    ReputationLossOnAbandon = 15,
-                    ReputationGainOnCompleteMax = 10,
-                    ReputationGainOnCompleteMin = 5,
-                    AmountToMineThenDeliverMin = 100000,
-                    AmountToMineThenDeliverMax = 150000,
-                    AmountOfContractsToGenerate = 5,
-                    ChanceToAppear = 0.05f,
-                    SecondsToComplete = 4800,
-                });
-                StationHandler.DefaultAvailables.Add(new MiningContractConfig()
-                {
-                    OresToPickFrom = new List<string>() { "Iron", "Nickel", "Silicon", "Ice" },
-                    ReputationRequired = 1000,
-                    ReputationLossOnAbandon = 15,
-                    ReputationGainOnCompleteMax = 10,
-                    ReputationGainOnCompleteMin = 5,
-                    AmountToMineThenDeliverMin = 25000,
-                    AmountToMineThenDeliverMax = 30000,
-                    AmountOfContractsToGenerate = 2,
-                    ChanceToAppear = 0.3f,
-                    SecondsToComplete = 4800,
-                });
-                StationHandler.DefaultAvailables.Add(new MiningContractConfig()
-                {
-                    OresToPickFrom = new List<string>() { "Silver", "Gold", "Cobalt", "Magnesium" },
-                    ReputationLossOnAbandon = 20,
-                    ReputationGainOnCompleteMax = 5,
-                    ReputationGainOnCompleteMin = 3,
-                    AmountToMineThenDeliverMin = 1000,
-                    AmountToMineThenDeliverMax = 1500,
-                    AmountOfContractsToGenerate = 5,
-                    ChanceToAppear = 0.5f,
-                    SecondsToComplete = 4800,
-                });
-                StationHandler.DefaultAvailables.Add(new MiningContractConfig(){OresToPickFrom = new List<string>() {"Silver", "Gold", "Cobalt", "Magnesium" }, 
-                    ReputationRequired = 250,
-                    ReputationLossOnAbandon = 20,
-                    ReputationGainOnCompleteMax = 10,
-                    ReputationGainOnCompleteMin = 5,
-                    AmountToMineThenDeliverMin = 10000,
-                    AmountToMineThenDeliverMax = 15000,
-                    AmountOfContractsToGenerate = 3,
-                    ChanceToAppear = 0.3f,
-                    SecondsToComplete = 4800,
-                });
-                StationHandler.DefaultAvailables.Add(new MiningContractConfig()
-                {
-                    OresToPickFrom = new List<string>() { "Uranium", "Platinum" },
-                    ReputationRequired = 750,
-                    ReputationLossOnAbandon = 30,
-                    ReputationGainOnCompleteMax = 15,
-                    ReputationGainOnCompleteMin = 10,
-                    AmountToMineThenDeliverMin = 10000,
-                    AmountToMineThenDeliverMax = 15000,
-                    AmountOfContractsToGenerate = 3,
-                    ChanceToAppear = 0.3f,
-                    SecondsToComplete = 4800,
-                });
-                StationHandler.DefaultAvailables.Add(new GasContractConfig()
-                {
-                    GasSubType = "Hydrogen",
-                    ReputationLossOnAbandon = 10,
-                    ReputationGainOnCompleteMax = 5,
-                    ReputationGainOnCompleteMin = 1,
-                    AmountOfContractsToGenerate = 3,
-                    ChanceToAppear = 0.7f,
-                    SecondsToComplete = 4800,
-                    AmountInLitresMax = 2000000,
-                    AmountInLitresMin = 1000000,
-                });
-                StationHandler.DefaultAvailables.Add(new GasContractConfig()
-                {
-                    GasSubType = "Oxygen",
-                    ReputationLossOnAbandon = 10,
-                    ReputationGainOnCompleteMax = 5,
-                    ReputationGainOnCompleteMin = 1,
-                    AmountOfContractsToGenerate = 3,
-                    ChanceToAppear = 0.7f,
-                    SecondsToComplete = 4800,
-                    AmountInLitresMax = 2000000,
-                    AmountInLitresMin = 1000000,
-                });
-                StationHandler.DefaultAvailables.Add(new ItemHaulingConfig()
-                {
-                    ReputationLossOnAbandon = 10,
-                    ReputationGainOnCompleteMax = 5,
-                    ReputationGainOnCompleteMin = 1,
-                    AmountOfContractsToGenerate = 3,
-                    ChanceToAppear = 0.7f,
-                    SecondsToComplete = 4800,
-                    ItemsAvailable = new List<ItemHaul>()
-                    {
-                        new ItemHaul()
-                        {
-                            AmountMax = 10000,
-                            AmountMin = 1000,
-                            TypeId = "MyObjectBuilder_Component",
-                            SubTypeId = "Girder"
-                        },
-                        new ItemHaul()
-                        {
-                            AmountMax = 10000,
-                            AmountMin = 1000,
-                            TypeId = "MyObjectBuilder_Component",
-                            SubTypeId = "Construction"
-                        },
-                        new ItemHaul()
-                        {
-                            AmountMax = 10000,
-                            AmountMin = 1000,
-                            TypeId = "MyObjectBuilder_Component",
-                            SubTypeId = "MetalGrid"
-                        },
-                        new ItemHaul()
-                        {
-                            AmountMax = 10000,
-                            AmountMin = 1000,
-                            TypeId = "MyObjectBuilder_Component",
-                            SubTypeId = "InteriorPlate"
-                        },
-                        new ItemHaul()
-                        {
-                            AmountMax = 10000,
-                            AmountMin = 1000,
-                            TypeId = "MyObjectBuilder_Component",
-                            SubTypeId = "SteelPlate"
-                        },
-                        new ItemHaul()
-                        {
-                            AmountMax = 10000,
-                            AmountMin = 1000,
-                            TypeId = "MyObjectBuilder_Component",
-                            SubTypeId = "LargeTube"
-                        },
-                        new ItemHaul()
-                        {
-                            AmountMax = 10000,
-                            AmountMin = 1000,
-                            TypeId = "MyObjectBuilder_Component",
-                            SubTypeId = "SmallTube"
-                        }
-                    }
-                });
+                SetupDefaults();
             }
 
-         //   fileUtils.WriteToJsonFile(path, StationHandler.DefaultAvailables);
+            fileUtils.WriteToJsonFile(path, StationHandler.DefaultAvailables);
+        }
+
+        private static void SetupDefaults()
+        {
+            StationHandler.DefaultAvailables.Add(new MiningContractConfig()
+            {
+                OresToPickFrom = new List<string>() { "Iron", "Nickel", "Silicon", "Ice" },
+                ReputationLossOnAbandon = 15,
+                ReputationGainOnCompleteMax = 10,
+                ReputationGainOnCompleteMin = 5,
+                AmountToMineThenDeliverMin = 10000,
+                AmountToMineThenDeliverMax = 15000,
+                AmountOfContractsToGenerate = 5,
+                ChanceToAppear = 0.5f,
+                SecondsToComplete = 4800,
+            });
+            StationHandler.DefaultAvailables.Add(new MiningContractConfig()
+            {
+                OresToPickFrom = new List<string>() { "Ice" },
+                ReputationLossOnAbandon = 15,
+                ReputationGainOnCompleteMax = 10,
+                ReputationGainOnCompleteMin = 5,
+                AmountToMineThenDeliverMin = 100000,
+                AmountToMineThenDeliverMax = 150000,
+                AmountOfContractsToGenerate = 5,
+                ChanceToAppear = 0.05f,
+                SecondsToComplete = 4800,
+            });
+            StationHandler.DefaultAvailables.Add(new MiningContractConfig()
+            {
+                OresToPickFrom = new List<string>() { "Iron", "Nickel", "Silicon", "Ice" },
+                ReputationRequired = 1000,
+                ReputationLossOnAbandon = 15,
+                ReputationGainOnCompleteMax = 10,
+                ReputationGainOnCompleteMin = 5,
+                AmountToMineThenDeliverMin = 25000,
+                AmountToMineThenDeliverMax = 30000,
+                AmountOfContractsToGenerate = 2,
+                ChanceToAppear = 0.3f,
+                SecondsToComplete = 4800,
+            });
+            StationHandler.DefaultAvailables.Add(new MiningContractConfig()
+            {
+                OresToPickFrom = new List<string>() { "Silver", "Gold", "Cobalt", "Magnesium" },
+                ReputationLossOnAbandon = 20,
+                ReputationGainOnCompleteMax = 5,
+                ReputationGainOnCompleteMin = 3,
+                AmountToMineThenDeliverMin = 1000,
+                AmountToMineThenDeliverMax = 1500,
+                AmountOfContractsToGenerate = 5,
+                ChanceToAppear = 0.5f,
+                SecondsToComplete = 4800,
+            });
+            StationHandler.DefaultAvailables.Add(new MiningContractConfig()
+            {
+                OresToPickFrom = new List<string>() { "Silver", "Gold", "Cobalt", "Magnesium" },
+                ReputationRequired = 250,
+                ReputationLossOnAbandon = 20,
+                ReputationGainOnCompleteMax = 10,
+                ReputationGainOnCompleteMin = 5,
+                AmountToMineThenDeliverMin = 10000,
+                AmountToMineThenDeliverMax = 15000,
+                AmountOfContractsToGenerate = 3,
+                ChanceToAppear = 0.3f,
+                SecondsToComplete = 4800,
+            });
+            StationHandler.DefaultAvailables.Add(new MiningContractConfig()
+            {
+                OresToPickFrom = new List<string>() { "Uranium", "Platinum" },
+                ReputationRequired = 750,
+                ReputationLossOnAbandon = 30,
+                ReputationGainOnCompleteMax = 15,
+                ReputationGainOnCompleteMin = 10,
+                AmountToMineThenDeliverMin = 10000,
+                AmountToMineThenDeliverMax = 15000,
+                AmountOfContractsToGenerate = 3,
+                ChanceToAppear = 0.3f,
+                SecondsToComplete = 4800,
+            });
+            StationHandler.DefaultAvailables.Add(new GasContractConfig()
+            {
+                GasSubType = "Hydrogen",
+                ReputationLossOnAbandon = 10,
+                ReputationGainOnCompleteMax = 5,
+                ReputationGainOnCompleteMin = 1,
+                AmountOfContractsToGenerate = 3,
+                ChanceToAppear = 0.7f,
+                SecondsToComplete = 4800,
+                AmountInLitresMax = 2000000,
+                AmountInLitresMin = 1000000,
+            });
+            StationHandler.DefaultAvailables.Add(new GasContractConfig()
+            {
+                GasSubType = "Oxygen",
+                ReputationLossOnAbandon = 10,
+                ReputationGainOnCompleteMax = 5,
+                ReputationGainOnCompleteMin = 1,
+                AmountOfContractsToGenerate = 3,
+                ChanceToAppear = 0.7f,
+                SecondsToComplete = 4800,
+                AmountInLitresMax = 2000000,
+                AmountInLitresMin = 1000000,
+            });
+            StationHandler.DefaultAvailables.Add(new ItemHaulingConfig()
+            {
+                ReputationLossOnAbandon = 10,
+                ReputationGainOnCompleteMax = 5,
+                ReputationGainOnCompleteMin = 1,
+                AmountOfContractsToGenerate = 3,
+                ChanceToAppear = 0.7f,
+                SecondsToComplete = 4800,
+                ItemsAvailable = new List<ItemHaul>()
+                {
+                    new ItemHaul()
+                    {
+                        AmountMax = 10000,
+                        AmountMin = 1000,
+                        TypeId = "MyObjectBuilder_Component",
+                        SubTypeId = "Girder"
+                    },
+                    new ItemHaul()
+                    {
+                        AmountMax = 10000,
+                        AmountMin = 1000,
+                        TypeId = "MyObjectBuilder_Component",
+                        SubTypeId = "Construction"
+                    },
+                    new ItemHaul()
+                    {
+                        AmountMax = 10000,
+                        AmountMin = 1000,
+                        TypeId = "MyObjectBuilder_Component",
+                        SubTypeId = "MetalGrid"
+                    },
+                    new ItemHaul()
+                    {
+                        AmountMax = 10000,
+                        AmountMin = 1000,
+                        TypeId = "MyObjectBuilder_Component",
+                        SubTypeId = "InteriorPlate"
+                    },
+                    new ItemHaul()
+                    {
+                        AmountMax = 10000,
+                        AmountMin = 1000,
+                        TypeId = "MyObjectBuilder_Component",
+                        SubTypeId = "SteelPlate"
+                    },
+                    new ItemHaul()
+                    {
+                        AmountMax = 10000,
+                        AmountMin = 1000,
+                        TypeId = "MyObjectBuilder_Component",
+                        SubTypeId = "LargeTube"
+                    },
+                    new ItemHaul()
+                    {
+                        AmountMax = 10000,
+                        AmountMin = 1000,
+                        TypeId = "MyObjectBuilder_Component",
+                        SubTypeId = "SmallTube"
+                    }
+                }
+            });
         }
 
         public static List<StationConfig> Fakes { get; set; } = new List<StationConfig>();

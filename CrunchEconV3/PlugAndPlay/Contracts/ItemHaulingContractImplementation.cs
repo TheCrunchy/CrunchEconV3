@@ -4,6 +4,7 @@ using System.Linq;
 using CrunchEconV3.Abstracts;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.PlugAndPlay.Contracts.Configs;
+using CrunchEconV3.PlugAndPlay.Models;
 using CrunchEconV3.Utils;
 using Sandbox.Game.Entities;
 using Sandbox.Game.World;
@@ -48,16 +49,17 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
 
         public override bool TryCompleteContract(ulong steamId, Vector3D? currentPosition)
         {
+
             if (!MySession.Static.Players.TryGetPlayerBySteamId((ulong)this.AssignedPlayerSteamId, out var player))
                 return false;
-
+       
             float distance = Vector3.Distance(this.DeliverLocation, (Vector3)currentPosition);
             if (!(distance <= 500)) return false;
-
+           
             var sphere = new BoundingSphereD(this.DeliverLocation, 1000 * 2);
             var playersGrids = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyCubeGrid>()
                 .Where(x => x.BlocksCount > 0 && FacUtils.IsOwnerOrFactionOwned(x, this.AssignedPlayerIdentityId, true)).ToList();
-
+        
 
             Dictionary<MyDefinitionId, int> itemsToRemove = new Dictionary<MyDefinitionId, int>();
             var parseThis = $"{ItemToDeliver.TypeId}/" + this.ItemToDeliver.SubTypeId;
@@ -65,15 +67,14 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
             {
                 itemsToRemove.Add(id, this.ItemToDeliver.AmountToDeliver);
             }
-
+         
             List<VRage.Game.ModAPI.IMyInventory> inventories = new List<IMyInventory>();
             foreach (var grid in playersGrids)
             {
                 inventories.AddRange(InventoriesHandler.GetInventoriesForContract(grid));
             }
-
+         
             if (!InventoriesHandler.ConsumeComponents(inventories, itemsToRemove, player.Id.SteamId)) return false;
-
 
             EconUtils.addMoney(this.AssignedPlayerIdentityId, this.RewardMoney + this.DistanceReward);
             if (this.ReputationGainOnComplete != 0)
