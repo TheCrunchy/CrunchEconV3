@@ -545,8 +545,8 @@ namespace CrunchEconV3
                 {
                     new ItemHaul()
                     {
-                        AmountMax = 100000,
-                        AmountMin = 10000,
+                        AmountMax = 10000,
+                        AmountMin = 3000,
                         TypeId = "MyObjectBuilder_Ore",
                         SubTypeId = "Ice"
                     },
