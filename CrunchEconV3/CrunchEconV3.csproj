@@ -274,6 +274,7 @@
     <Compile Include="PlugAndPlay\Contracts\RepairContractImplementation.cs" />
     <Compile Include="PlugAndPlay\Helpers\PrefabHelper.cs" />
     <Compile Include="PlugAndPlay\Helpers\PriceHelper.cs" />
+    <Compile Include="PlugAndPlay\KeenStoreManagement.cs" />
     <Compile Include="PlugAndPlay\Prefabs\Helpers\AttackPrefabHelper.cs" />
     <Compile Include="PlugAndPlay\Prefabs\Helpers\EscortPrefabHelper.cs" />
     <Compile Include="PlugAndPlay\Prefabs\Helpers\RepairPrefabHelper.cs" />

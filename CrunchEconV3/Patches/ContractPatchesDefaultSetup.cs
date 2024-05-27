@@ -120,24 +120,26 @@ namespace CrunchEconV3.Patches
             ref List<MyObjectBuilder_Contract> __result)
 
         {
-            Core.Log.Info($"Keen station");
-            var needsRefresh = true;
-            if (needsRefresh)
+
+            if (Core.config.RemoveHauling)
             {
                 MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
 
+                foreach (var item in __result.Where(x => x is MyObjectBuilder_ContractDeliver))
+                {
+                    component.RemoveContract(item.Id);
+                }
+
+                __result = __result.Where(x => x is not MyObjectBuilder_ContractDeliver).ToList();
+            }
+
+            var needsRefresh = StationHandler.NPCNeedsRefresh(stationId);
+            if (needsRefresh)
+            {
+      
 
                 var removeThese = new string[] { "Deliver", };
 
-                if (Core.config.RemoveHauling)
-                {
-                    foreach (var item in __result.Where(x => x is MyObjectBuilder_ContractDeliver))
-                    {
-                        component.RemoveContract(item.Id);
-                    }
-
-                    __result = __result.Where(x => x is not MyObjectBuilder_ContractDeliver).ToList();
-                }
 
                 foreach (var item in __result.Where(x => x is MyObjectBuilder_ContractEscort))
                 {

@@ -30,6 +30,7 @@ using CoreSystems.Api;
 using CrunchEconContractModels.PlugAndPlay.Helpers;
 using CrunchEconV3.APIs;
 using CrunchEconV3.Patches;
+using CrunchEconV3.PlugAndPlay;
 using CrunchEconV3.PlugAndPlay.Contracts.Configs;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
@@ -134,6 +135,7 @@ namespace CrunchEconV3
                     StationStorage = new JsonStationStorageHandler(path);
                     PlayerStorage = new JsonPlayerStorageHandler(path);
                     Session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
+                    GenerateDefaults();
                 }
                 else
                 {
@@ -349,8 +351,9 @@ namespace CrunchEconV3
                         ContractPatchesDefaultSetup.Patch(patchContext);
                         PriceHelper.Patch(patchContext);
                         PrefabHelper.Patch(patchContext);
+                        KeenStoreManagement.Patch(patchContext);
                         Core.Log.Error("Patching defaults");
-                        GenerateDefaults();
+                      
                         break;
                     default:
                         Core.Log.Error("Patching regular");
@@ -446,7 +449,33 @@ namespace CrunchEconV3
                     ChanceToAppear = 0.3f,
                     SecondsToComplete = 4800,
                 });
+                StationHandler.DefaultAvailables.Add(new GasContractConfig()
+                {
+                    GasSubType = "Hydrogen",
+                    ReputationLossOnAbandon = 10,
+                    ReputationGainOnCompleteMax = 5,
+                    ReputationGainOnCompleteMin = 1,
+                    AmountOfContractsToGenerate = 3,
+                    ChanceToAppear = 0.3f,
+                    SecondsToComplete = 4800,
+                    AmountInLitresMax = 20000,
+                    AmountInLitresMin = 10000,
+                });
+                StationHandler.DefaultAvailables.Add(new GasContractConfig()
+                {
+                    GasSubType = "Oxygen",
+                    ReputationLossOnAbandon = 10,
+                    ReputationGainOnCompleteMax = 5,
+                    ReputationGainOnCompleteMin = 1,
+                    AmountOfContractsToGenerate = 3,
+                    ChanceToAppear = 0.3f,
+                    SecondsToComplete = 4800,
+                    AmountInLitresMax = 20000,
+                    AmountInLitresMin = 10000,
+                });
             }
+
+         //   fileUtils.WriteToJsonFile(path, StationHandler.DefaultAvailables);
         }
 
         public static List<StationConfig> Fakes { get; set; } = new List<StationConfig>();

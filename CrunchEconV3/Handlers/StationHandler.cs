@@ -110,6 +110,12 @@ namespace CrunchEconV3.Handlers
             }
         }
 
+        public static bool SetNPCNeedsRefresh(long blockId, DateTime time)
+        {
+            RefreshAt[blockId] = time;
+            return true;
+        }
+
         public static bool NPCNeedsRefresh(long blockId)
         {
 
