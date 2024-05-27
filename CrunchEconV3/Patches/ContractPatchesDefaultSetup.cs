@@ -4,12 +4,15 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using CrunchEconContractModels.PlugAndPlay.Helpers;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
 using EmptyKeys.UserInterface.Generated.PlayerTradeView_Bindings;
+using Microsoft.CodeAnalysis.CSharp;
 using Sandbox.Engine.Multiplayer;
+using Sandbox.Game.Contracts;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
@@ -27,7 +30,7 @@ using VRageMath;
 
 namespace CrunchEconV3.Patches
 {
-    public static class ContractPatches
+    public static class ContractPatchesDefaultSetup
     {
         public static void Patch(PatchContext ctx)
         {
@@ -37,25 +40,14 @@ namespace CrunchEconV3.Patches
             ctx.GetPattern(ActivateContract).Suffixes.Add(contractResultPatch);
             ctx.GetPattern(abandonContract).Suffixes.Add(abandonContractPatch);
             ctx.GetPattern(getContractsStation).Suffixes.Add(getContractForStationPatch);
-            ctx.GetPattern(minprices).Suffixes.Add(minPricesPatch);
         }
-   
-        
-        internal static readonly MethodInfo minprices =
-            typeof(MySessionComponentEconomy).GetMethod("GetMinimumItemPrice",
-                BindingFlags.Instance | BindingFlags.NonPublic )??
-            throw new Exception("Failed to find patch method contract");
-        internal static readonly MethodInfo minPricesPatch =
-            typeof(ContractPatches).GetMethod(nameof(GetMinimumItemPrice), BindingFlags.Static | BindingFlags.Public) ??
-            throw new Exception("Failed to find patch method");
-
 
         internal static readonly MethodInfo contract =
             typeof(MyContractBlock).GetMethod("AcceptContract",
                 BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(long), typeof(long) }, null) ??
             throw new Exception("Failed to find patch method contract");
         internal static readonly MethodInfo contractPatch =
-            typeof(ContractPatches).GetMethod(nameof(PatchContract), BindingFlags.Static | BindingFlags.Public) ??
+            typeof(ContractPatchesDefaultSetup).GetMethod(nameof(PatchContract), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
         internal static readonly MethodInfo abandonContract =
@@ -64,7 +56,7 @@ namespace CrunchEconV3.Patches
             throw new Exception("Failed to find patch method contract");
 
         internal static readonly MethodInfo abandonContractPatch =
-            typeof(ContractPatches).GetMethod(nameof(PatchAbandonContract), BindingFlags.Static | BindingFlags.Public) ??
+            typeof(ContractPatchesDefaultSetup).GetMethod(nameof(PatchAbandonContract), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
         internal static readonly MethodInfo getContracts =
@@ -83,15 +75,15 @@ namespace CrunchEconV3.Patches
             throw new Exception("Failed to find patch method contract");
 
         internal static readonly MethodInfo getContractPatch =
-            typeof(ContractPatches).GetMethod(nameof(PatchGetContract), BindingFlags.Static | BindingFlags.Public) ??
+            typeof(ContractPatchesDefaultSetup).GetMethod(nameof(PatchGetContract), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
         internal static readonly MethodInfo getContractForBlockPatch =
-            typeof(ContractPatches).GetMethod(nameof(PatchGetContractForBlock), BindingFlags.Static | BindingFlags.Public) ??
+            typeof(ContractPatchesDefaultSetup).GetMethod(nameof(PatchGetContractForBlock), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
         internal static readonly MethodInfo getContractForStationPatch =
-            typeof(ContractPatches).GetMethod(nameof(PatchGetContractForStation), BindingFlags.Static | BindingFlags.Public) ??
+            typeof(ContractPatchesDefaultSetup).GetMethod(nameof(PatchGetContractForStation), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
         internal static readonly MethodInfo ActivateContract =
@@ -100,7 +92,7 @@ namespace CrunchEconV3.Patches
             throw new Exception("Failed to find patch method contract");
 
         internal static readonly MethodInfo contractResultPatch =
-            typeof(ContractPatches).GetMethod(nameof(ActivateContractPatch), BindingFlags.Static | BindingFlags.Public) ??
+            typeof(ContractPatchesDefaultSetup).GetMethod(nameof(ActivateContractPatch), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
         public static void ActivateContractPatch(
@@ -123,45 +115,45 @@ namespace CrunchEconV3.Patches
             }
 
         }
-        public static void GetMinimumItemPrice(SerializableDefinitionId itemDefinitionId, ref int __result)
-        {
-            if (Core.config.SetMinPricesTo1)
-            {
-                __result = 1;
-            }
-        }
-
-      
 
         public static void PatchGetContractForStation(MySessionComponentContractSystem __instance, long stationId,
             ref List<MyObjectBuilder_Contract> __result)
 
         {
-            var needsRefresh = StationHandler.NPCNeedsRefresh(stationId);
+            Core.Log.Info($"Keen station");
+            var needsRefresh = true;
             if (needsRefresh)
             {
                 MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
-               
 
-                if (Core.config.RemoveKeenContractsOnStations)
+
+                var removeThese = new string[] { "Deliver" };
+
+                foreach (var con in __result.Where(x => removeThese.Contains(x.SubtypeName)))
                 {
-                    __result.Clear();
-                    foreach (var con in __result)
-                    {
-                        component.RemoveContract(con.Id);
-                    }
+                    component.RemoveContract(con.Id);
                 }
 
-                if (Core.config.RemoveHauling)
+                foreach (var item in __result.Where(x => x is MyObjectBuilder_ContractObtainAndDeliver))
                 {
-                    var toRemove = __result.Where(x =>
-                        x.SubtypeName.Replace("MyObjectBuilder_ContractTypeDefinition/", "") == "Deliver").ToList();
-                    foreach (var con in toRemove)
+                    var condition = item.ContractCondition as MyObjectBuilder_ContractConditionDeliverItems;
+               //     var contract = new MyContractObtainAndDeliver();
+                //    contract.Init(item);
+                   
+                    var priceKey = $"{condition.ItemType.ToString()}";
+                   // Core.Log.Info(priceKey);
+                    var newPrice = PriceHelper.GetPriceModel(priceKey);
+                    if (!newPrice.NotFound)
                     {
-                        component.RemoveContract(con.Id);
+                        var sellPrice = newPrice.GetSellMinAndMaxPrice(true);
+                        var between = Core.random.Next((int)sellPrice.Item1, (int)sellPrice.Item2);
+                  //      Core.Log.Info($"Price before {item.RewardMoney} price after {between}");
+                        item.RewardMoney = between * condition.ItemAmount;
                     }
-                    __result = __result.Where(x => x.SubtypeName.Replace("MyObjectBuilder_ContractTypeDefinition/", "") != "Deliver").ToList();
+            
                 }
+                __result = __result.Where(x => !removeThese.Contains(x.SubtypeName)).ToList();
+
                 var contracts = StationHandler.GenerateNewContracts(stationId);
                 var built = BuildContracts(contracts);
                 List<ICrunchContract> BlocksContracts = built.Item2;
@@ -197,7 +189,7 @@ namespace CrunchEconV3.Patches
             if (needsRefresh)
             {
                 MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
-                
+
                 foreach (var con in __result)
                 {
                     component.RemoveContract(con.Id);
@@ -340,21 +332,17 @@ namespace CrunchEconV3.Patches
         {
             var steamid = MySession.Static.Players.TryGetSteamId(identityId);
             var playerData = Core.PlayerStorage.GetData(steamid);
-            if (playerData != null)
+            if (playerData == null) return;
+            var contract = playerData.PlayersContracts.FirstOrDefault(x => x.Key == contractId).Value ?? null;
+            if (contract == null) return;
+            contract.FailContract();
+            contract.DeleteDeliveryGPS();
+            playerData.RemoveContract(contract);
+            Task.Run(async () =>
             {
-                var contract = playerData.PlayersContracts.FirstOrDefault(x => x.Key == contractId).Value ?? null;
-                if (contract != null)
-                {
-                    contract.FailContract();
-                    contract.DeleteDeliveryGPS();
-                    playerData.RemoveContract(contract);
-                    Task.Run(async () =>
-                    {
-                        Core.PlayerStorage.Save(playerData);
-                    });
-                    return;
-                }
-            }
+                Core.PlayerStorage.Save(playerData);
+            });
+            return;
         }
 
         public static bool PatchContract(MyContractBlock __instance, long identityId, long contractId)
@@ -382,9 +370,7 @@ namespace CrunchEconV3.Patches
                     var playerData = Core.PlayerStorage.GetData(steamid);
                     if (playerData != null)
                     {
-              
                         contract.FactionId = faction.FactionId;
-
                         var result = ContractAcceptor.TryAcceptContract(contract, playerData, identityId, __instance, keenstation, ID);
                         if (result.Item1)
                         {

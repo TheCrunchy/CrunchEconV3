@@ -23,6 +23,7 @@ namespace CrunchEconV3.Handlers
         public static Dictionary<long, MyStation> MappedStations = new Dictionary<long, MyStation>();
         public static List<MyStation> KeenStations = new List<MyStation>();
         public static Dictionary<long, List<ICrunchContract>> BlocksContracts = new Dictionary<long, List<ICrunchContract>>();
+        public static List<IContractConfig> DefaultAvailables = new List<IContractConfig>();
 
         public static void ReadyForRefresh()
         {
@@ -223,6 +224,33 @@ namespace CrunchEconV3.Handlers
             if (MappedStations.TryGetValue(blockId, out var station))
             {
                 //       Core.Log.Info(3.5);
+                if (Core.config.UseDefaultSetup)
+                {
+                    foreach (var contract in DefaultAvailables)
+                    {
+                        var i = 0;
+
+                        while (i < contract.AmountOfContractsToGenerate)
+                        {
+                            if (contract.ChanceToAppear < 1)
+                            {
+                                var random = Core.random.NextDouble();
+                                if (random > contract.ChanceToAppear)
+                                {
+                                    i++;
+                                    continue;
+                                }
+                            }
+
+                            var generated = contract.GenerateFromConfig(null, station, station.Id);
+                            if (generated == null) continue;
+                            NewContracts.Add(generated);
+                            i++;
+                        }
+                    }
+
+                    return NewContracts;
+                }
                 var faction = MySession.Static.Factions.TryGetFactionById(station.FactionId);
                 foreach (var contract in Core.StationStorage.GetForKeen(faction.Tag))
                 {

@@ -27,6 +27,7 @@ using Torch.Session;
 using VRageMath;
 using System.IO.Compression;
 using CoreSystems.Api;
+using CrunchEconContractModels.PlugAndPlay.Helpers;
 using CrunchEconV3.APIs;
 using CrunchEconV3.Patches;
 using Sandbox.Definitions;
@@ -337,8 +338,40 @@ namespace CrunchEconV3
 
             if (newState is TorchSessionState.Loaded)
             {
-
                 Session = session;
+                var patchManager = session.Managers.GetManager<PatchManager>();
+                var patchContext = patchManager.AcquireContext();
+             
+                switch (config.UseDefaultSetup)
+                {
+                    case true:
+                        ContractPatchesDefaultSetup.Patch(patchContext);
+                        PriceHelper.Patch(patchContext);
+                        PrefabHelper.Patch(patchContext);
+                        Core.Log.Error("Patching defaults");
+                        break;
+                    default:
+                        Core.Log.Error("Patching regular");
+                        ContractPatches.Patch(patchContext);
+                        break;
+                }
+                 
+                patchManager.Commit();
+            }
+        }
+
+        public void GenerateDefaults()
+        {
+            var fileUtils = new FileUtils();
+            var path = $"{Core.path}/DefaultContracts.json";
+            if (File.Exists(path))
+            {
+                var read = fileUtils.ReadFromJsonFile<List<IContractConfig>>(path);
+                StationHandler.DefaultAvailables = read;
+            }
+            else
+            {
+
             }
         }
 
