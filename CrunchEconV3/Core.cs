@@ -473,6 +473,67 @@ namespace CrunchEconV3
                     AmountInLitresMax = 2000000,
                     AmountInLitresMin = 1000000,
                 });
+                StationHandler.DefaultAvailables.Add(new ItemHaulingConfig()
+                {
+                    ReputationLossOnAbandon = 10,
+                    ReputationGainOnCompleteMax = 5,
+                    ReputationGainOnCompleteMin = 1,
+                    AmountOfContractsToGenerate = 3,
+                    ChanceToAppear = 0.7f,
+                    SecondsToComplete = 4800,
+                    ItemsAvailable = new List<ItemHaul>()
+                    {
+                        new ItemHaul()
+                        {
+                            AmountMax = 10000,
+                            AmountMin = 1000,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "Girder"
+                        },
+                        new ItemHaul()
+                        {
+                            AmountMax = 10000,
+                            AmountMin = 1000,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "Construction"
+                        },
+                        new ItemHaul()
+                        {
+                            AmountMax = 10000,
+                            AmountMin = 1000,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "MetalGrid"
+                        },
+                        new ItemHaul()
+                        {
+                            AmountMax = 10000,
+                            AmountMin = 1000,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "InteriorPlate"
+                        },
+                        new ItemHaul()
+                        {
+                            AmountMax = 10000,
+                            AmountMin = 1000,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "SteelPlate"
+                        },
+                        new ItemHaul()
+                        {
+                            AmountMax = 10000,
+                            AmountMin = 1000,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "LargeTube"
+                        },
+                        new ItemHaul()
+                        {
+                            AmountMax = 10000,
+                            AmountMin = 1000,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "SmallTube"
+                        }
+                    }
+                });
             }
 
          //   fileUtils.WriteToJsonFile(path, StationHandler.DefaultAvailables);
