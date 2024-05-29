@@ -113,6 +113,7 @@ namespace CrunchEconContractModels.Random_Stuff
                 {
                     if (playersRep < requirement.ReputationRequired)
                     {
+                        SendRequiredMessage(id, ref amount, player, requirement);
                         return false;
                     }
                 }
@@ -120,10 +121,10 @@ namespace CrunchEconContractModels.Random_Stuff
                 {
                     if (playersRep > requirement.ReputationRequired)
                     {
+                        SendRequiredMessage(id, ref amount, player, requirement);
                         return false;
                     }
                 }
-                SendRequiredMessage(id, ref amount, player, requirement);
 
             }
 
@@ -190,6 +191,7 @@ namespace CrunchEconContractModels.Random_Stuff
                         {
                             if (playersRep < requirement.ReputationRequired)
                             {
+                                SendRequiredMessage(id, ref amount, player, requirement);
                                 return false;
                             }
                         }
@@ -197,10 +199,11 @@ namespace CrunchEconContractModels.Random_Stuff
                         {
                             if (playersRep > requirement.ReputationRequired)
                             {
+                                SendRequiredMessage(id, ref amount, player, requirement);
                                 return false;
                             }
                         }
-                        SendRequiredMessage(id, ref amount, player, requirement);
+                    
 
                     }
                 }
