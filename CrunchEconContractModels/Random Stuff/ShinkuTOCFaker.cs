@@ -1,12 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using CrunchEconV3;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Screens.Helpers;
-
 using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
 using VRage.Game.ModAPI;
@@ -14,8 +15,10 @@ using VRage.ModAPI;
 
 namespace CrunchEconContractModels.Random_Stuff
 {
-    public static class StationFaker
+    public static class ShinkuTOCFaker
     {
+        public static HashSet<String> TOCFacTags = new HashSet<String>() { "TAG1", "TAG2", "ETC" };
+        public static List<string> BannedItems = new List<string>() { "Ingot/Banana", "Ore/Banana" };
         public static void Patch(PatchContext ctx)
         {
             MyAPIGateway.Entities.OnEntityAdd += OnEntityAdd;
@@ -30,6 +33,8 @@ namespace CrunchEconContractModels.Random_Stuff
                 }
                 return false;
             });
+
+            ctx.GetPattern(insert).Prefixes.Add(insertPatch);
         }
 
         private static void OnEntityAdd(IMyEntity entity)
@@ -47,37 +52,14 @@ namespace CrunchEconContractModels.Random_Stuff
 
                 var owner = FacUtils.GetOwner((Sandbox.Game.Entities.MyCubeGrid)grid);
                 var faction = FacUtils.GetPlayersFaction(owner);
-                if (faction != null && Core.config.KeenNPCContracts.Any(x => x.NPCFactionTags.Contains(faction.Tag)))
+                if (faction != null && TOCFacTags.Contains(faction.Tag))
                 {
                     if (grid.GetFatBlocks().OfType<MyContractBlock>().Any())
                     {
-                        var entry = Core.config.KeenNPCContracts.FirstOrDefault(x =>
-                            x.NPCFactionTags.Contains(faction.Tag));
+
                         var fake = new StationConfig();
-                        if (entry != null)
-                        {
-                            fake.ContractFiles = new List<string>();
-                            foreach (var item in entry.ContractFiles)
-                            {
-                                if (item.Contains("/Stations/"))
-                                {
-                                    fake.ContractFiles.Add(item.Replace("/Stations", ""));
-                                }
-                                else
-                                {
-                                    fake.ContractFiles.Add(item);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (Core.config.UseDefaultSetup)
-                            {
-                                fake.SetUsesDefault();
-                            }
-                        }
-                      
-                        
+                        fake.SetUsesDefault();
+
                         var gps = new MyGps();
                         fake.FactionTag = faction.Tag;
                         gps.Name = "Fake Station";
@@ -92,6 +74,41 @@ namespace CrunchEconContractModels.Random_Stuff
                 }
             }
         }
+        internal static readonly MethodInfo insert =
+       typeof(MyStoreBlock).GetMethod("InsertStoreItem", BindingFlags.Instance | BindingFlags.NonPublic) ??
+       throw new Exception("Failed to find patch method InsertStoreItem");
 
+        internal static readonly MethodInfo insertPatch =
+            typeof(ShinkuTOCFaker).GetMethod(nameof(StorePatchMethod), BindingFlags.Static | BindingFlags.Public) ??
+            throw new Exception("Failed to find patch method");
+
+        public static Boolean StorePatchMethod(MyStoreBlock __instance, IMyStoreItem item)
+        {
+            var owner = FacUtils.GetOwner(__instance.CubeGrid);
+            var owningFac = FacUtils.GetPlayersFaction(owner);
+            if (owningFac == null)
+            {
+                return true;
+            }
+
+            if (TOCFacTags.Contains(owningFac.Tag))
+            {
+                MyStoreItem storeItem = (MyStoreItem)null;
+                if (storeItem.IsCustomStoreItem)
+                {
+                    return true;
+                }
+                Core.Log.Info($"Checking if banned {storeItem.Item.Value.TypeIdString.Replace("MyObjectBuilder_", "")}{storeItem.Item.Value.SubtypeId}");
+                if (BannedItems.Contains($"{storeItem.Item.Value.TypeIdString.Replace("MyObjectBuilder_", "")}{storeItem.Item.Value.SubtypeId}"))
+                {
+                    Core.Log.Info("Not allowing item");
+                    return false;
+                }
+
+                return true;
+            }
+
+            return true;
+        }
     }
 }

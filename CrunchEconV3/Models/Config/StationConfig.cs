@@ -48,6 +48,17 @@ namespace CrunchEconV3.Models
         }
 
         private bool IsFakeStation { get; set; } = false;
+        private bool UsesDefault = false;
+
+        public bool GetUsesDefault()
+        {
+            return UsesDefault;
+        }
+
+        public void SetUsesDefault()
+        {
+            UsesDefault = true;
+        }
 
         public bool GetFake()
         {

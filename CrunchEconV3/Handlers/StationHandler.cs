@@ -305,6 +305,40 @@ namespace CrunchEconV3.Handlers
             var location = MyAPIGateway.Entities.GetEntityById(blockId) as MyContractBlock;
             if (foundStation == null) return null;
             //  Core.Log.Info(6);
+            if (foundStation.GetUsesDefault())
+            {
+                foreach (var contract in DefaultAvailables)
+                {
+                    try
+                    {
+                        var i = 0;
+
+                        while (i < contract.AmountOfContractsToGenerate)
+                        {
+                            if (contract.ChanceToAppear < 1)
+                            {
+                                var random = Core.random.NextDouble();
+                                if (random > contract.ChanceToAppear)
+                                {
+                                    i++;
+                                    continue;
+                                }
+                            }
+
+                            var generated = contract.GenerateFromConfig(location, null, blockId);
+                            if (generated == null) continue;
+                            NewContracts.Add(generated);
+                            i++;
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Core.Log.Error(e);
+                    }
+                }
+
+                return NewContracts;
+            }
             foreach (var contract in foundStation.GetConfigs())
             {
                 var i = 0;

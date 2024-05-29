@@ -227,6 +227,8 @@ namespace CrunchEconContractModels.StationLogics
             {
                 store.CancelStoreItem(item.Id);
             }
+
+            
         }
 
         public Task<bool> DoLogic(MyCubeGrid grid)
@@ -317,7 +319,8 @@ namespace CrunchEconContractModels.StationLogics
                 store.InsertOrder(itemInsert,
                     out long notUsingThis);
 
-
+         
+          
             //    long newid2 = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
             //   MyStoreItem myStoreItem3 = new MyStoreItem(newid2, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
             //    myStoreItem3.IsCustomStoreItem = true;

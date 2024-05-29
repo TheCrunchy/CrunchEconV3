@@ -141,7 +141,9 @@
     <Compile Include="Random Stuff\SpawnPatchSuit.cs" />
     <Compile Include="Random Stuff\SpawnPatchTwo.cs" />
     <Compile Include="Random Stuff\SphereGridTeleporter.cs" />
+    <Compile Include="Random Stuff\ShinkuTOCFaker.cs" />
     <Compile Include="Random Stuff\StationFaker.cs" />
+    <Compile Include="Random Stuff\StoreReputationRequirement.cs" />
     <Compile Include="Random Stuff\StorePurchaseLimit.cs" />
     <Compile Include="Random Stuff\PCULimits.cs" />
     <Compile Include="Random Stuff\Update.cs" />
