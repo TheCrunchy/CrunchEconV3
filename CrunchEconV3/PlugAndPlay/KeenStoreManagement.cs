@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Reflection;
 using CrunchEconV3.Handlers;
+using Sandbox.Definitions;
 using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
+using VRage.Game;
 
 namespace CrunchEconV3.PlugAndPlay
 {
@@ -34,6 +36,32 @@ namespace CrunchEconV3.PlugAndPlay
             {
                 foreach (MyStation station in faction.Value.Stations)
                 {
+                    //Type myStationGeneratorType = station.GetType().Assembly.GetType("Sandbox.Game.World.Generator.MyStationGenerator");
+                    //// Step 2: Get the method info for the method you want to invoke
+                    //MethodInfo getStationTypeDefinitionMethod = myStationGeneratorType.GetMethod(
+                    //    "GetStationTypeDefinition",
+                    //    BindingFlags.NonPublic | BindingFlags.Static
+                    //);
+                    //if (getStationTypeDefinitionMethod != null)
+                    //{
+                    //    // Step 4: Invoke the method
+                    //    object result = getStationTypeDefinitionMethod.Invoke(null, new object[] { station.Type });
+
+                    //    // Step 5: Cast the result to the appropriate type
+                    //    MyStationsListDefinition stationDefinition = result as MyStationsListDefinition;
+
+                    //    // Use the result (stationDefinition) as needed
+                    //    if (stationDefinition != null)
+                    //    {
+                    //        Console.WriteLine("Method invoked successfully and result obtained.");
+                    //        Core.Log.Info($"{result}");
+                      
+                    //    }
+                    //    else
+                    //    {
+                    //        Console.WriteLine("Method invocation failed or returned null.");
+                    //    }
+                    //}
                     StationHandler.SetNPCNeedsRefresh(station.StationEntityId, DateTime.Now.AddSeconds(MyAPIGateway.Session.SessionSettings.EconomyTickInSeconds));
                     
                     //long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);

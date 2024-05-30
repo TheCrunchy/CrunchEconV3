@@ -75,7 +75,7 @@ namespace CrunchEconContractModels.Random_Stuff
             }
         }
         internal static readonly MethodInfo insert =
-       typeof(MyStoreBlock).GetMethod("InsertStoreItem", BindingFlags.Instance | BindingFlags.NonPublic) ??
+       typeof(MyStoreBlock).GetMethod("InsertStoreItem", BindingFlags.Instance | BindingFlags.Public) ??
        throw new Exception("Failed to find patch method InsertStoreItem");
 
         internal static readonly MethodInfo insertPatch =
