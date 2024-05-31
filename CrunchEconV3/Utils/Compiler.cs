@@ -38,7 +38,7 @@ namespace CrunchEconV3.Utils
            var pluginManager = Core.Session.Managers.GetManager<PluginManager>();
            var folder = pluginManager.PluginDir;
 
-            var plugins = new List<String> { $"{folder}/CrunchEconV3.zip", $"{folder}/ad7fcfad-0ce0-4e1c-867d-4fe6edf533de.zip" };
+            var plugins = new List<String> { $"{folder}/CrunchEconV3.zip", $"{folder}/ad7fcfad-0ce0-4e1c-867d-4fe6edf533de.zip" , $"{folder}/CrunchGroupPlugin.zip" };
             foreach (var plugin in plugins)
             {
                 try
@@ -47,7 +47,7 @@ namespace CrunchEconV3.Utils
                     {
                         foreach (var entry in zipArchive.Entries)
                         {
-                            if (entry.Name.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase))
+                            if (entry.Name.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase) && entry.Name.Contains("Crunch"))
                             {
                                 using (var stream = entry.Open())
                                 {
