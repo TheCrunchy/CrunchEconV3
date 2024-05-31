@@ -256,6 +256,7 @@ namespace CrunchEconV3
         {
             FileUtils utils = new FileUtils();
             path = StoragePath + @$"\{PluginName}";
+     
             basePath = StoragePath;
             Directory.CreateDirectory(path);
             path += @"\Config.xml";
@@ -364,6 +365,7 @@ namespace CrunchEconV3
                 }
 
                 patchManager.Commit();
+                Core.Log.Info($"base {basePath}");
             }
         }
 
@@ -380,7 +382,7 @@ namespace CrunchEconV3
             {
                 SetupDefaults();
             }
-
+            
             fileUtils.WriteToJsonFile(path, StationHandler.DefaultAvailables);
         }
 

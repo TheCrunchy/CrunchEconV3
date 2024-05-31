@@ -55,13 +55,15 @@ namespace CrunchEconV3.PlugAndPlay
                     //    {
                     //        Console.WriteLine("Method invoked successfully and result obtained.");
                     //        Core.Log.Info($"{result}");
-                      
+
                     //    }
                     //    else
                     //    {
                     //        Console.WriteLine("Method invocation failed or returned null.");
                     //    }
                     //}
+                  //  var econComp = MySession.Static.GetComponent<MySessionComponentEconomy>();
+                   // econComp.ForceEconomyTick();
                     StationHandler.SetNPCNeedsRefresh(station.StationEntityId, DateTime.Now.AddSeconds(MyAPIGateway.Session.SessionSettings.EconomyTickInSeconds));
                     
                     //long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
