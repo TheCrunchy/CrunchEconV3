@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using CrunchEconV3.Handlers;
+using CrunchEconV3.PlugAndPlay.Extensions;
 using CrunchEconV3.Utils;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities.Blocks;
@@ -55,7 +56,7 @@ namespace CrunchEconV3.PlugAndPlay
         public static void Patch(PatchContext ctx)
         {
             Core.Log.Info("Adding keen patch");
-            ctx.GetPattern(updateMethod).Prefixes.Add(updatePatch);
+            ctx.GetPattern(updateMethod).Suffixes.Add(updatePatch);
         }
 
         private static FileUtils Utils = new FileUtils();
@@ -66,7 +67,7 @@ namespace CrunchEconV3.PlugAndPlay
         }
 
         public static Dictionary<string, List<MyStoreItem>> MappedFactions = new Dictionary<string, List<MyStoreItem>>();
-        public static bool Update()
+        public static void Update()
         {
             if (UpdatingStoreFiles)
             {
@@ -115,16 +116,16 @@ namespace CrunchEconV3.PlugAndPlay
               
             }
 
-            return true;
+            return;
         }
         public class StoreEntryModel
         {
             public bool IsPrefab = false;
             public bool IsGas = false;
-            public string GasSubType = "Hydrogen";
-            public string PrefabSubType = "Subtypehere";
-            public string Type { get; set; } = "MyObjectBuilder_Ingot";
-            public string Subtype { get; set; } = "Iron";
+            public string GasSubType = "";
+            public string PrefabSubType = "";
+            public string Type { get; set; } = "";
+            public string Subtype { get; set; } = "";
             public float ChanceToAppear = 1;
             public int AmountMin { get; set; } = 100;
             public int AmountMax { get; set; } = 150;
@@ -134,6 +135,8 @@ namespace CrunchEconV3.PlugAndPlay
         private static StoreEntryModel MapItem(MyStoreItem thing, StoreEntryModel stored)
         {
             stored.SaleType = thing.StoreItemType.ToString();
+            stored.AmountMax = (int)(thing.Amount * 1.2);
+            stored.AmountMin = (int)(thing.Amount * 0.8);
             if (thing.ItemType == ItemTypes.Oxygen)
             {
                 stored.IsGas = true;
@@ -149,19 +152,17 @@ namespace CrunchEconV3.PlugAndPlay
                 stored.IsPrefab = true;
                 stored.PrefabSubType = thing.PrefabName;
             }
-
+    
             if (thing.StoreItemType == StoreItemTypes.Offer && thing.ItemType == ItemTypes.PhysicalItem)
             {
-                stored.AmountMax = thing.Amount;
-                stored.AmountMin = thing.Amount;
+       
                 stored.Type = thing.Item?.TypeIdString;
                 stored.Subtype = thing.Item?.SubtypeId;
             }
 
             if (thing.StoreItemType == StoreItemTypes.Order && thing.ItemType == ItemTypes.PhysicalItem)
             {
-                stored.AmountMax = thing.Amount;
-                stored.AmountMin = thing.Amount;
+  
                 stored.Type = thing.Item?.TypeIdString;
                 stored.Subtype = thing.Item?.SubtypeId;
             }
@@ -180,7 +181,10 @@ namespace CrunchEconV3.PlugAndPlay
                 if (!items.Any(x =>
                         x.Item?.ToString() == item.Item?.ToString() && x.Item != null && x.StoreItemType == item.StoreItemType && x.ItemType == ItemTypes.PhysicalItem))
                 {
-                    items.Add(item);
+                    if (item.Amount != 0)
+                    {
+                        items.Add(item.Clone());
+                    }
                 }
             }
 
@@ -188,7 +192,7 @@ namespace CrunchEconV3.PlugAndPlay
             {
                 if (!items.Any(x => x.PrefabName == item.PrefabName && x.PrefabName != null))
                 {
-                    items.Add(item);
+                    items.Add(item.Clone());
                 }
             }
 
@@ -196,7 +200,7 @@ namespace CrunchEconV3.PlugAndPlay
             {
                 if (!items.Any(x => x.ItemType == ItemTypes.Hydrogen && x.StoreItemType == item.StoreItemType))
                 {
-                    items.Add(item);
+                    items.Add(item.Clone());
                 }
             }
 
@@ -204,7 +208,7 @@ namespace CrunchEconV3.PlugAndPlay
             {
                 if (!items.Any(x => x.ItemType == ItemTypes.Oxygen && x.StoreItemType == item.StoreItemType))
                 {
-                    items.Add(item);
+                    items.Add(item.Clone());
                 }
             }
         }
