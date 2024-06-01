@@ -124,6 +124,7 @@ namespace CrunchEconV3
             {
                 try
                 {
+                    Core.Log.Info("Running compiler");
                     Compiler.Compile($"{Core.path}/Scripts/");
                     InitNexus();
                 }
@@ -159,6 +160,10 @@ namespace CrunchEconV3
 
                 if (ticks % 100 == 0 && TorchState == TorchSessionState.Loaded)
                 {
+                    if (KeenStoreManagement.UpdatingStoreFiles)
+                    {
+                        KeenStoreManagement.ForceTick();
+                    }
                     if (CompileFailed)
                     {
                         Core.Log.Error("Compile failed, read the compile errors and fix them.");
