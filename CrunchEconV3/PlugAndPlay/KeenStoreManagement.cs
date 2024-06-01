@@ -70,7 +70,7 @@ namespace CrunchEconV3.PlugAndPlay
         {
             if (UpdatingStoreFiles)
             {
-                Directory.CreateDirectory($"{Core.path}/StoreConfigs/");
+                Directory.CreateDirectory($"{Core.path}/KeenStoreConfigs/");
             }
 
             foreach (KeyValuePair<long, MyFaction> faction in MySession.Static.Factions)
@@ -103,7 +103,12 @@ namespace CrunchEconV3.PlugAndPlay
 
                         foreach (var item in MappedFactions)
                         {
-                            Utils.WriteToJsonFile($"{Core.path}/StoreConfigs/{item.Key}_stores.json", item.Value);
+                            var remapped = new List<StoreEntryModel>();
+                            foreach (var storeEntry in item.Value)
+                            {
+                                remapped.Add(MapItem(storeEntry, new StoreEntryModel()));
+                            }
+                            Utils.WriteToJsonFile($"{Core.path}/KeenStoreConfigs/{item.Key}_stores.json", remapped);
                         }
                     });
                 }
@@ -111,6 +116,57 @@ namespace CrunchEconV3.PlugAndPlay
             }
 
             return true;
+        }
+        public class StoreEntryModel
+        {
+            public bool IsPrefab = false;
+            public bool IsGas = false;
+            public string GasSubType = "Hydrogen";
+            public string PrefabSubType = "Subtypehere";
+            public string Type { get; set; } = "MyObjectBuilder_Ingot";
+            public string Subtype { get; set; } = "Iron";
+            public float ChanceToAppear = 1;
+            public int AmountMin { get; set; } = 100;
+            public int AmountMax { get; set; } = 150;
+            public string SaleType { get; set; }
+        }
+
+        private static StoreEntryModel MapItem(MyStoreItem thing, StoreEntryModel stored)
+        {
+            stored.SaleType = thing.StoreItemType.ToString();
+            if (thing.ItemType == ItemTypes.Oxygen)
+            {
+                stored.IsGas = true;
+                stored.GasSubType = "Oxygen";
+            }
+            if (thing.ItemType == ItemTypes.Hydrogen)
+            {
+                stored.IsGas = true;
+                stored.GasSubType = "Hydrogen";
+            }
+            if (thing.ItemType == ItemTypes.Grid)
+            {
+                stored.IsPrefab = true;
+                stored.PrefabSubType = thing.PrefabName;
+            }
+
+            if (thing.StoreItemType == StoreItemTypes.Offer && thing.ItemType == ItemTypes.PhysicalItem)
+            {
+                stored.AmountMax = thing.Amount;
+                stored.AmountMin = thing.Amount;
+                stored.Type = thing.Item?.TypeIdString;
+                stored.Subtype = thing.Item?.SubtypeId;
+            }
+
+            if (thing.StoreItemType == StoreItemTypes.Order && thing.ItemType == ItemTypes.PhysicalItem)
+            {
+                stored.AmountMax = thing.Amount;
+                stored.AmountMin = thing.Amount;
+                stored.Type = thing.Item?.TypeIdString;
+                stored.Subtype = thing.Item?.SubtypeId;
+            }
+
+            return stored;
         }
 
         private static void MapItems(MyStation station, List<MyStoreItem> items)
