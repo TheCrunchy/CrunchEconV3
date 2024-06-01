@@ -11,4 +11,10 @@ namespace CrunchEconV3.Models
         public List<string> NPCFactionTags { get; set; }
         public List<string> ContractFiles { get; set; }
     }
+
+    public class KeenStoreFileEntry
+    {
+        public List<string> NPCFactionTags { get; set; }
+        public string StoreFileName { get; set; }
+    }
 }

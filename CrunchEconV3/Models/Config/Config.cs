@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace CrunchEconV3.Models.Config
 {
@@ -10,5 +11,7 @@ namespace CrunchEconV3.Models.Config
         public int KeenNPCSecondsBetweenRefresh { get; set; } = 300;
         public bool SetMinPricesTo1 = false;
         public bool RemoveKeenContractsOnStations = true;
+        public bool OverrideKeenStores = false;
+        public HashSet<KeenStoreFileEntry> KeenNPCStoresOverrides { get; set; } = new HashSet<KeenStoreFileEntry>();
     }
 }

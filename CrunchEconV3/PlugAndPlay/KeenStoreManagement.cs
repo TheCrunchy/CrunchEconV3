@@ -1,23 +1,25 @@
-﻿using System;
+﻿using CrunchEconV3.Handlers;
+using CrunchEconV3.PlugAndPlay.Extensions;
+using CrunchEconV3.PlugAndPlay.Helpers;
+using CrunchEconV3.Utils;
+using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.SessionComponents;
+using Sandbox.Game.World;
+using Sandbox.ModAPI;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using CrunchEconV3.Handlers;
-using CrunchEconV3.PlugAndPlay.Extensions;
-using CrunchEconV3.Utils;
-using Sandbox.Definitions;
-using Sandbox.Game.Entities.Blocks;
-using Sandbox.Game.SessionComponents;
-using Sandbox.Game.World;
-using Sandbox.ModAPI;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using Torch.Managers.PatchManager;
+using VRage;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Definitions;
+using VRage.ObjectBuilders;
 
 namespace CrunchEconV3.PlugAndPlay
 {
@@ -56,7 +58,19 @@ namespace CrunchEconV3.PlugAndPlay
         public static void Patch(PatchContext ctx)
         {
             Core.Log.Info("Adding keen patch");
-            ctx.GetPattern(updateMethod).Suffixes.Add(updatePatch);
+            ctx.GetPattern(updateMethod).Prefixes.Add(updatePatch);
+
+            Directory.CreateDirectory($"{Core.path}/KeenStoreConfigs/");
+            foreach (var file in Directory.GetFiles($"{Core.path}/KeenStoreConfigs/", "*",
+                         SearchOption.AllDirectories))
+            {
+                var parsed = Utils.ReadFromJsonFile<List<StoreEntryModel>>(file);
+                if (parsed != null)
+                {
+                    MappedStoreNames[Path.GetFileNameWithoutExtension(file)] = parsed;
+                }
+            }
+
         }
 
         private static FileUtils Utils = new FileUtils();
@@ -67,7 +81,11 @@ namespace CrunchEconV3.PlugAndPlay
         }
 
         public static Dictionary<string, List<MyStoreItem>> MappedFactions = new Dictionary<string, List<MyStoreItem>>();
-        public static void Update()
+
+        public static Dictionary<string, List<StoreEntryModel>> MappedStoreNames =
+            new Dictionary<string, List<StoreEntryModel>>();
+
+        public static bool Update()
         {
             if (UpdatingStoreFiles)
             {
@@ -78,25 +96,39 @@ namespace CrunchEconV3.PlugAndPlay
             {
                 foreach (MyStation station in faction.Value.Stations)
                 {
-                   
-                    if (UpdatingStoreFiles)
+                    if (station.StoreItems == null)
                     {
-                        if (MappedFactions.TryGetValue(faction.Value.FactionType.ToString(), out var items))
+                       Core.Log.Info("Well i fucked this");
+                       continue;
+                    }
+                    
+                
+                    DoItemMapping(faction, station);
+
+                    if (Core.config.OverrideKeenStores)
+                    {
+                        station.StoreItems.Clear();
+                        var useThis = Core.config.KeenNPCStoresOverrides.FirstOrDefault(x =>
+                            x.NPCFactionTags.Contains(faction.Value.Tag));
+                        var storesToUse = new List<StoreEntryModel>();
+                        if (useThis != null)
                         {
-                            MapItems(station, items);
+                            storesToUse = MappedStoreNames[useThis.StoreFileName];
                         }
                         else
                         {
-                            var newItems = new List<MyStoreItem>();
-                            MapItems(station, newItems);
-                            MappedFactions[faction.Value.FactionType.ToString()] = newItems;
+                            if (MappedStoreNames.TryGetValue($"{faction.Value.FactionType.ToString()}_stores", out var items))
+                            {
+                                storesToUse = items;
+                            }
                         }
+
+                        MapStores(storesToUse, station);
+
                     }
 
-                   
                     StationHandler.SetNPCNeedsRefresh(station.StationEntityId, DateTime.Now.AddSeconds(MyAPIGateway.Session.SessionSettings.EconomyTickInSeconds));
                 }
-
                 if (UpdatingStoreFiles)
                 {
                     Task.Run(() =>
@@ -111,13 +143,147 @@ namespace CrunchEconV3.PlugAndPlay
                             }
                             Utils.WriteToJsonFile($"{Core.path}/KeenStoreConfigs/{item.Key}_stores.json", remapped);
                         }
+                        PriceHelper.SavePrices();
                     });
+
                 }
-              
+
             }
 
-            return;
+            if (Core.config.OverrideKeenStores)
+            {
+                return false;
+            }
+
+            return true;
         }
+
+        private static void MapStores(List<StoreEntryModel> storesToUse, MyStation station)
+        {
+            station.StoreItems.Clear();
+            foreach (var item in storesToUse)
+            {
+                if (item.ChanceToAppear < 1)
+                {
+                    var random = CrunchEconV3.Core.random.NextDouble();
+                    if (random > item.ChanceToAppear)
+                    {
+                        continue;
+                    }
+                }
+                
+                if (item.AmountMin > item.AmountMax)
+                {
+                    (item.AmountMin, item.AmountMax) = (item.AmountMax, item.AmountMin);
+                }
+                var amount = Core.random.Next(item.AmountMin, item.AmountMax);
+                if (amount <= 0)
+                {
+                    amount = 1;
+                }
+                var insertThis = new MyStoreItem();
+               var newId = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+                if (item.IsGas)
+                {
+                    insertThis.ItemType = item.GasSubType switch
+                    {
+                        "Hydrogen" => ItemTypes.Hydrogen,
+                        "Oxygen" => ItemTypes.Oxygen,
+                        _ => insertThis.ItemType
+                    };
+
+                    var price = PriceHelper.GetPriceModel($"MyObjectBuilder_GasProperties/{item.GasSubType}");
+                    if (price.NotFound)
+                    {
+                        continue;
+                    }
+
+                    AssignPricing(item, insertThis, price);
+                    insertThis.IsCustomStoreItem = true;
+                }
+
+                if (item.IsPrefab)
+                {
+                    insertThis.ItemType = ItemTypes.Grid;
+                    insertThis.IsCustomStoreItem = true;
+                    insertThis.PrefabName = item.PrefabSubType;
+                    var price = PriceHelper.GetPriceModel(item.PrefabSubType);
+                    if (price.NotFound)
+                    {
+                        Core.Log.Info("Prefab price not found");
+                        continue;
+                    }
+                    AssignPricing(item, insertThis, price);
+                }
+
+                if (!item.IsPrefab && !item.IsGas)
+                {
+                    if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id)) return;
+                    insertThis.ItemType = ItemTypes.PhysicalItem;
+                    SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, id.SubtypeName);
+                    if (itemId.IsNull())
+                    {
+                        continue;
+                    }
+                    insertThis.Item = new SerializableDefinitionId?(itemId);
+                    var pricing = PriceHelper.GetPriceModel($"{item.Type}/{item.Subtype}");
+                    if (pricing.NotFound)
+                    {
+                        Core.Log.Info("Price not found");
+                        continue;
+                    }
+                    AssignPricing(item, insertThis, pricing);
+                }
+                var discountChance = CrunchEconV3.Core.random.NextDouble();
+                if (discountChance <= 0.10)
+                {
+                    insertThis.PricePerUnitDiscount = (float)((Core.random.NextDouble() * 0.15));
+                    continue;
+                }
+               
+                insertThis.Amount = amount;
+                station.StoreItems.Add(insertThis);
+            }
+        }
+
+        private static void AssignPricing(StoreEntryModel item, MyStoreItem insertThis, PriceModel model)
+        {
+            switch (item.SaleType.ToLower())
+            {
+                case "offer":
+                    {
+                        insertThis.StoreItemType = StoreItemTypes.Offer;
+                        var price = model.GetBuyMinAndMaxPrice();
+                        insertThis.PricePerUnit = Core.random.Next((int)price.Item1, (int)price.Item2);
+                    }
+                    break;
+                case "order":
+                    {
+                        insertThis.StoreItemType = StoreItemTypes.Order;
+                        var price = model.GetSellMinAndMaxPrice();
+                        insertThis.PricePerUnit = Core.random.Next((int)price.Item1, (int)price.Item2);
+                    }
+                    break;
+            }
+        }
+
+        private static void DoItemMapping(KeyValuePair<long, MyFaction> faction, MyStation station)
+        {
+            if (UpdatingStoreFiles)
+            {
+                if (MappedFactions.TryGetValue(faction.Value.FactionType.ToString(), out var items))
+                {
+                    MapItems(station, items);
+                }
+                else
+                {
+                    var newItems = new List<MyStoreItem>();
+                    MapItems(station, newItems);
+                    MappedFactions[faction.Value.FactionType.ToString()] = newItems;
+                }
+            }
+        }
+
         public class StoreEntryModel
         {
             public bool IsPrefab = false;
@@ -126,7 +292,7 @@ namespace CrunchEconV3.PlugAndPlay
             public string PrefabSubType = "";
             public string Type { get; set; } = "";
             public string Subtype { get; set; } = "";
-            public float ChanceToAppear = 1;
+            public float ChanceToAppear = 0.5f;
             public int AmountMin { get; set; } = 100;
             public int AmountMax { get; set; } = 150;
             public string SaleType { get; set; }
@@ -149,20 +315,21 @@ namespace CrunchEconV3.PlugAndPlay
             }
             if (thing.ItemType == ItemTypes.Grid)
             {
+                PriceHelper.InsertPrice(thing.PrefabName, thing.PricePerUnit);
                 stored.IsPrefab = true;
                 stored.PrefabSubType = thing.PrefabName;
             }
-    
+
             if (thing.StoreItemType == StoreItemTypes.Offer && thing.ItemType == ItemTypes.PhysicalItem)
             {
-       
+
                 stored.Type = thing.Item?.TypeIdString;
                 stored.Subtype = thing.Item?.SubtypeId;
             }
 
             if (thing.StoreItemType == StoreItemTypes.Order && thing.ItemType == ItemTypes.PhysicalItem)
             {
-  
+
                 stored.Type = thing.Item?.TypeIdString;
                 stored.Subtype = thing.Item?.SubtypeId;
             }

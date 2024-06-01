@@ -19,11 +19,9 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
         private static Dictionary<string, PriceModel> _prices = new Dictionary<string, PriceModel>();
         private static FileSystemWatcher _fileSystemWatcher;
         private static FileUtils Reader = new FileUtils();
+        private static string path = $"{Core.path}/Prices.json";
         public static void Patch(PatchContext ctx)
         {
-            
-            var path = $"{Core.path}/Prices.json";
-
             if (File.Exists(path))
             {
                 _prices = Reader.ReadFromJsonFile<Dictionary<string, PriceModel>>(path);
@@ -195,6 +193,25 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
                     }
                 }
             }
+        }
+
+        public static void InsertPrice(string thingPrefabName, int thingPricePerUnit)
+        {
+            if (!_prices.TryGetValue(thingPrefabName, out var price))
+            {
+                _prices[thingPrefabName] = new PriceModel()
+                {
+                    Id = thingPrefabName,
+                    MinPrice = thingPricePerUnit
+                };
+       
+            }
+
+        }
+
+        public static void SavePrices()
+        {
+            Reader.WriteToJsonFile(path, _prices);
         }
     }
 
