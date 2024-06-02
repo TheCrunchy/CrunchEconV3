@@ -72,6 +72,8 @@ namespace CrunchEconV3.Commands
                 Context.Respond("Compile failed, files not reloaded.");
                 return;
             }
+
+            KeenStoreManagement.LoadStores();
             Core.GenerateDefaults();
             KeenStoreManagement.Update();
             Core.StationStorage = new JsonStationStorageHandler(Core.path);

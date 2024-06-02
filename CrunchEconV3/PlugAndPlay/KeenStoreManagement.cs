@@ -60,16 +60,7 @@ namespace CrunchEconV3.PlugAndPlay
             Core.Log.Info("Adding keen patch");
             ctx.GetPattern(updateMethod).Prefixes.Add(updatePatch);
 
-            Directory.CreateDirectory($"{Core.path}/KeenStoreConfigs/");
-            foreach (var file in Directory.GetFiles($"{Core.path}/KeenStoreConfigs/", "*",
-                         SearchOption.AllDirectories))
-            {
-                var parsed = Utils.ReadFromJsonFile<List<StoreEntryModel>>(file);
-                if (parsed != null)
-                {
-                    MappedStoreNames[Path.GetFileNameWithoutExtension(file)] = parsed;
-                }
-            }
+            LoadStores();
 
         }
 
@@ -102,7 +93,6 @@ namespace CrunchEconV3.PlugAndPlay
                        continue;
                     }
                     
-                
                     DoItemMapping(faction, station);
 
                     if (Core.config.OverrideKeenStores)
@@ -117,7 +107,7 @@ namespace CrunchEconV3.PlugAndPlay
                         }
                         else
                         {
-                            if (MappedStoreNames.TryGetValue($"{faction.Value.FactionType.ToString()}_stores", out var items))
+                            if (MappedStoreNames.TryGetValue($"{faction.Value.FactionType.ToString()}_{station.Type.ToString()}_stores", out var items))
                             {
                                 storesToUse = items;
                             }
@@ -240,7 +230,8 @@ namespace CrunchEconV3.PlugAndPlay
                     insertThis.PricePerUnitDiscount = (float)((Core.random.NextDouble() * 0.15));
                     continue;
                 }
-               
+
+                insertThis.Id = newId;
                 insertThis.Amount = amount;
                 station.StoreItems.Add(insertThis);
             }
@@ -271,7 +262,7 @@ namespace CrunchEconV3.PlugAndPlay
         {
             if (UpdatingStoreFiles)
             {
-                if (MappedFactions.TryGetValue(faction.Value.FactionType.ToString(), out var items))
+                if (MappedFactions.TryGetValue($"{faction.Value.FactionType.ToString()}_{station.Type.ToString()}", out var items))
                 {
                     MapItems(station, items);
                 }
@@ -279,7 +270,7 @@ namespace CrunchEconV3.PlugAndPlay
                 {
                     var newItems = new List<MyStoreItem>();
                     MapItems(station, newItems);
-                    MappedFactions[faction.Value.FactionType.ToString()] = newItems;
+                    MappedFactions[$"{faction.Value.FactionType.ToString()}_{station.Type.ToString()}"] = newItems;
                 }
             }
         }
@@ -318,6 +309,7 @@ namespace CrunchEconV3.PlugAndPlay
                 PriceHelper.InsertPrice(thing.PrefabName, thing.PricePerUnit);
                 stored.IsPrefab = true;
                 stored.PrefabSubType = thing.PrefabName;
+                stored.ChanceToAppear = 0.2f;
             }
 
             if (thing.StoreItemType == StoreItemTypes.Offer && thing.ItemType == ItemTypes.PhysicalItem)
@@ -376,6 +368,20 @@ namespace CrunchEconV3.PlugAndPlay
                 if (!items.Any(x => x.ItemType == ItemTypes.Oxygen && x.StoreItemType == item.StoreItemType))
                 {
                     items.Add(item.Clone());
+                }
+            }
+        }
+
+        public static void LoadStores()
+        {
+            Directory.CreateDirectory($"{Core.path}/KeenStoreConfigs/");
+            foreach (var file in Directory.GetFiles($"{Core.path}/KeenStoreConfigs/", "*",
+                         SearchOption.AllDirectories))
+            {
+                var parsed = Utils.ReadFromJsonFile<List<StoreEntryModel>>(file);
+                if (parsed != null)
+                {
+                    MappedStoreNames[Path.GetFileNameWithoutExtension(file)] = parsed;
                 }
             }
         }

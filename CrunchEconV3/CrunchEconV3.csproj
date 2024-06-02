@@ -264,6 +264,7 @@
     <Compile Include="Patches\ContractPatchesDefaultSetup.cs" />
     <Compile Include="Patches\ContractPatches.cs" />
     <Compile Include="Patches\SessionLoadPatch.cs" />
+    <Compile Include="PlugAndPlay\BuyGasFixes.cs" />
     <Compile Include="PlugAndPlay\Contracts\Configs\GasContractConfig.cs" />
     <Compile Include="PlugAndPlay\Contracts\Configs\ItemHaulingConfig.cs" />
     <Compile Include="PlugAndPlay\Contracts\Configs\MiningContractConfig.cs" />
