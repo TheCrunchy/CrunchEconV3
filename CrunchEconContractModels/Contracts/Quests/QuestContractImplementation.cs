@@ -36,24 +36,26 @@ namespace CrunchEconContractModels.Contracts.Quests
                 StoreIds();
             }
             //get the quest
-            if (QuestHandler.Quests.TryGetValue(QuestName, out var currentQuest))
+            if (!QuestHandler.Quests.TryGetValue(QuestName, out var currentQuest)) 
+                return false;
+
+            if (!currentQuest.QuestStages.TryGetValue(CurrentQuestStage, out var stage))
+                return false;
+
+            var stageCompleteResult = stage.TryCompleteStage(PlayersCurrentPosition, JsonStoredData);
+            if (!stageCompleteResult)
+                return false;
+
+            if (currentQuest.CanAdvanceStage(this.CurrentQuestStage))
             {
-                if (currentQuest.QuestStages.TryGetValue(CurrentQuestStage, out var stage))
-                {
-                    var stageCompleteResult = stage.TryCompleteStage(PlayersCurrentPosition, JsonStoredData);
-                    if (stageCompleteResult)
-                    {
-                        if (currentQuest.CanAdvanceStage(this.CurrentQuestStage))
-                        {
-                            CurrentQuestStage += 1;
-                        }
-                        else
-                        {
-                            //quest is completed, no longer track it
-                            return true;
-                        }
-                    }
-                }
+                CurrentQuestStage += 1;
+                currentQuest.QuestStages.TryGetValue(CurrentQuestStage, out var nextStage);
+                nextStage?.StartStage(PlayersCurrentPosition, JsonStoredData);
+            }
+            else
+            {
+                //quest is completed, no longer track it
+                return true;
             }
 
             return false;
