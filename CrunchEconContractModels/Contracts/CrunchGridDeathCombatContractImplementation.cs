@@ -414,6 +414,9 @@ namespace CrunchEconContractModels.Contracts
                     MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
                         this.FactionId, this.ReputationGainOnComplete, ReputationChangeReason.Contract, true);
                 }
+
+                var playerData = Core.PlayerStorage.GetData(this.AssignedPlayerSteamId);
+                playerData.ContractFinished?.Invoke(true, this);
                 return true;
             }
 
@@ -426,6 +429,8 @@ namespace CrunchEconContractModels.Contracts
             {
                 MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1,ReputationChangeReason.Contract);
             }
+            var playerData = Core.PlayerStorage.GetData(this.AssignedPlayerSteamId);
+            playerData.ContractFinished?.Invoke(false, this);
             this.DeleteDeliveryGPS();
             CrunchEconV3.Core.SendMessage("Contracts", DateTime.Now > ExpireAt ? $"{this.Name} failed, time expired." : $"{this.Name} failed.", Color.Red, this.AssignedPlayerSteamId);
         }

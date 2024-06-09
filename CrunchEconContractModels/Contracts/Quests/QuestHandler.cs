@@ -73,6 +73,5 @@ namespace CrunchEconContractModels.Contracts.Quests
             EconUtils.addMoney(identityId, MoneyReward);
             return true;
         }
-
     }
 }

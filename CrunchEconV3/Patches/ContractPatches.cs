@@ -298,7 +298,7 @@ namespace CrunchEconV3.Patches
                                 deleteThese.Add(contract);
                                 Core.SendMessage("Contracts", $"{contract.Name} completed!, you have been paid.", Color.Green, player.Id.SteamId);
                                 contract.DeleteDeliveryGPS();
-
+                                playerData.ContractFinished?.Invoke(true, contract);
                                 continue;
                             }
                         }
