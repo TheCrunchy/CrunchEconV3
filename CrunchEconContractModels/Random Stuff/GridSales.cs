@@ -139,11 +139,18 @@ namespace CrunchEconContractModels.Random_Stuff
                                     }
                                     var pos = player.GetPosition();
                                     Vector3 Position = new Vector3((float)pos.X, (float)pos.Y, (float)pos.Z);
+                                    if (!string.IsNullOrEmpty(actualSale.SpawnGps))
+                                    {
+                                        Position = GPSHelper.ScanChat(actualSale.SpawnGps).Coords;
+                                    }
+                                    else
+                                    {
+                                        Position.Add(new Vector3(
+                                            Core.random.Next(actualSale.SpawnDistanceMin, actualSale.SpawnDistanceMax),
+                                            Core.random.Next(actualSale.SpawnDistanceMin, actualSale.SpawnDistanceMax),
+                                            Core.random.Next(actualSale.SpawnDistanceMin, actualSale.SpawnDistanceMax)));
 
-                                    Position.Add(new Vector3(
-                                        Core.random.Next(actualSale.SpawnDistanceMin, actualSale.SpawnDistanceMax),
-                                        Core.random.Next(actualSale.SpawnDistanceMin, actualSale.SpawnDistanceMax),
-                                        Core.random.Next(actualSale.SpawnDistanceMin, actualSale.SpawnDistanceMax)));
+                                    }
 
                                     if (GridManager.LoadGrid(path, Position, false, player.Id.SteamId,
                                             actualSale.PrefabName.Replace(".sbc", ""), false))
@@ -204,6 +211,8 @@ namespace CrunchEconContractModels.Random_Stuff
             public int Reputation { get; set; }
             public int SpawnDistanceMin { get; set; }
             public int SpawnDistanceMax { get; set; }
+
+            public string SpawnGps { get; set; } = "";
         }
 
         //{

@@ -485,7 +485,7 @@ namespace CrunchEconV3.Utils
              * Now we know the radius that can house all grids which will now be 
              * used to determine the perfect place to paste the grids to. 
              */
-            return MyEntities.FindFreePlace(playerPosition, sphere.Radius);
+            return MyEntities.FindFreePlace(playerPosition, sphere.Radius, allowSafezones:true);
         }
 
         private static BoundingSphereD FindBoundingSphere(MyObjectBuilder_CubeGrid[] grids)

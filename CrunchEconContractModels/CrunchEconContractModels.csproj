@@ -102,6 +102,8 @@
     <Compile Include="Contracts\CrunchMiningContractImplementation.cs" />
     <Compile Include="Contracts\CrunchPeopleHaulingContractImplementation.cs" />
     <Compile Include="Contracts\CrunchMESSpawnerContractImplementation.cs" />
+    <Compile Include="Contracts\Quests\QuestHandler.cs" />
+    <Compile Include="Contracts\Quests\QuestContractImplementation.cs" />
     <Compile Include="Contracts\SearchContractImplementation.cs" />
     <Compile Include="Contracts\testing.cs" />
     <Compile Include="DynamicEconomy\DamageBlockerScriptThingy.cs" />

@@ -337,6 +337,7 @@ namespace CrunchEconContractModels.Contracts
                     if (WaterModAPI.Registered)
                     {
                         var pos = WaterModAPI.GetClosestSurfacePoint(Position, null);
+                       
                         if (pos != null && !pos.Equals(Vector3D.Zero))
                         {
                             Position = pos;
