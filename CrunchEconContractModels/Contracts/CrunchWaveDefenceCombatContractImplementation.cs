@@ -300,7 +300,6 @@ namespace CrunchEconContractModels.Contracts.WaveDefence
                         this.FactionId, this.ReputationGainOnComplete, ReputationChangeReason.Contract, true);
                 }
 
-
                 var playerData = Core.PlayerStorage.GetData(this.AssignedPlayerSteamId);
                 playerData.ContractFinished?.Invoke(true, this);
                 return true;

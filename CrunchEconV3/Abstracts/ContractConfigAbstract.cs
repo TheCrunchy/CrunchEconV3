@@ -97,19 +97,18 @@ namespace CrunchEconV3.Abstracts
                     availablePositions.Add(Tuple.Create(GPS.Coords, foundFaction.FactionId));
                 }
             }
-            else
+
+            if (MySession.Static.Settings.EnableEconomy)
             {
-                if (MySession.Static.Settings.EnableEconomy)
-                {
-                    var positions = MySession.Static.Factions.GetNpcFactions()
-                        .Where(x => x.Stations.Any())
-                        .SelectMany(x => x.Stations)
-                        .Where(x => x.StationEntityId != keenstation.StationEntityId)
-                        .Select(x => Tuple.Create(x.Position, x.FactionId))
-                        .ToList();
-                    availablePositions.AddRange(positions);
-                }
+                var positions = MySession.Static.Factions.GetNpcFactions()
+                    .Where(x => x.Stations.Any())
+                    .SelectMany(x => x.Stations)
+                    .Where(x => x.StationEntityId != keenstation.StationEntityId)
+                    .Select(x => Tuple.Create(x.Position, x.FactionId))
+                    .ToList();
+                availablePositions.AddRange(positions);
             }
+
 
             return availablePositions.GetRandomItemFromList() ?? Tuple.Create(Vector3D.Zero, 0l);
         }

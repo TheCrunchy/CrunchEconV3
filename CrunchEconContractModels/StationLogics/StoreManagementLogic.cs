@@ -8,14 +8,17 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
+using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
 using NLog.Fluent;
+using Sandbox.Common.ObjectBuilders.Definitions;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.EntityComponents;
+using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Ingame;
@@ -31,6 +34,7 @@ using VRage.Game.ModAPI.Ingame;
 using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Groups;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 using VRageMath;
 using IMyCubeBlock = VRage.Game.ModAPI.IMyCubeBlock;
 using IMyInventory = VRage.Game.ModAPI.IMyInventory;
@@ -138,6 +142,7 @@ namespace CrunchEconContractModels.StationLogics
             MethodInfo method = typeof(MyStoreBlock).GetMethod("BuyPrefabInternal", BindingFlags.NonPublic | BindingFlags.Instance);
             MethodInfo patchMethod = typeof(StoreManagementLogic).GetMethod(nameof(BuyPrefabInternalPatch), BindingFlags.NonPublic | BindingFlags.Static);
             ctx.GetPattern(method).Prefixes.Add(patchMethod);
+            DatapadHelper.Setup();
         }
 
         public static Dictionary<long, long> Safezones = new Dictionary<long, long>();
@@ -179,13 +184,13 @@ namespace CrunchEconContractModels.StationLogics
         {
             StoreItemsHandler.LoadTheFiles();
         }
-        
+
 
         public static List<VRage.Game.ModAPI.IMyInventory> GetInventories(MyCubeGrid grid, string cargoNames = "")
         {
             List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();
             var gridOwnerFac = FacUtils.GetOwner(grid);
-            
+
             foreach (var block in grid.GetFatBlocks().OfType<MyCargoContainer>().Where(x => x.OwnerId == gridOwnerFac))
             {
                 if (cargoNames != "")
@@ -195,7 +200,7 @@ namespace CrunchEconContractModels.StationLogics
                         continue;
                     }
                 }
-           
+
                 for (int i = 0; i < block.InventoryCount; i++)
                 {
                     VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)block).GetInventory(i);
@@ -228,7 +233,7 @@ namespace CrunchEconContractModels.StationLogics
                 store.CancelStoreItem(item.Id);
             }
 
-            
+
         }
 
         public Task<bool> DoLogic(MyCubeGrid grid)
@@ -389,6 +394,7 @@ namespace CrunchEconContractModels.StationLogics
 
             int amount = CrunchEconV3.Core.random.Next((int)item.AmountToSellMin,
                 (int)item.AmountToSellMax);
+            int notSpawnedAmount = 0;
             if (quantityInGrid < amount)
             {
                 if (item.SpawnItemsIfMissing && quantityInGrid < item.SpawnIfBelowThisQuantity)
@@ -396,11 +402,37 @@ namespace CrunchEconContractModels.StationLogics
                     var amountToSpawn = amount - quantityInGrid;
                     MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                     {
-                        if (!CrunchEconV3.Handlers.InventoriesHandler.SpawnItems(id, amountToSpawn, gridInventories))
+                        var used = new HashSet<String>();
+                        if (id.TypeId.ToString() == "MyObjectBuilder_Datapad")
                         {
-                            CrunchEconV3.Core.Log.Error(
-                                $"Unable to spawn items for offer in grid {item.Type} {item.Subtype}");
+                            for (int i = 0; i < amountToSpawn; i++)
+                            {
+                                var datapadBuilder = BuildDataPad(id.SubtypeName);
+                                if (used.Contains(datapadBuilder.Data))
+                                {
+                                    notSpawnedAmount += 1;
+                                    continue;
+                                }
+                                used.Add(datapadBuilder.Data);
+                                var inventory = gridInventories.FirstOrDefault(x =>
+                                    x.CanItemsBeAdded(1, new MyItemType(id.TypeId, id.SubtypeId)));
+                                if (inventory != null)
+                                {
+                                    inventory.AddItems(1, datapadBuilder);
+                                }
+
+                            }
+                            amountToSpawn -= notSpawnedAmount;
                         }
+                        else
+                        {
+                            if (!CrunchEconV3.Handlers.InventoriesHandler.SpawnItems(id, amountToSpawn, gridInventories))
+                            {
+                                CrunchEconV3.Core.Log.Error(
+                                    $"Unable to spawn items for offer in grid {item.Type} {item.Subtype}");
+                            }
+                        }
+
                     });
                 }
                 else
@@ -487,6 +519,81 @@ namespace CrunchEconContractModels.StationLogics
         public bool OnlyAllowToBuyOrSellNotBoth = false;
         public DateTime NextRefresh { get; set; }
         public int SecondsBetweenRefresh = 600;
+
+        public static MyObjectBuilder_Datapad BuildDataPad(string subtype)
+        {
+            var station = DatapadHelper.GetRandomStation();
+            if (DatapadHelper.DatapadEntriesBySubtypes.TryGetValue(subtype, out var lists))
+            {
+                var datapadBuilder = new MyObjectBuilder_Datapad() { SubtypeName = subtype };
+                var randomStation =
+                    datapadBuilder.Data = lists.GetRandomItemFromList()
+                        .Replace("{StationGps}", station);
+                return datapadBuilder;
+            }
+            var datapadBuilder2 = new MyObjectBuilder_Datapad() { SubtypeName = "Datapad" };
+            datapadBuilder2.Data = "Subtype for datapad not found! report to admins.";
+            return datapadBuilder2;
+        }
+    }
+
+    public static class DatapadHelper
+    {
+        public static Dictionary<string, List<string>>
+            DatapadEntriesBySubtypes = new Dictionary<string, List<string>>();
+
+        public static void Setup()
+        {
+            FileUtils utils = new FileUtils();
+            var path = $"{Core.path}Datapads.json";
+            if (File.Exists(path))
+            {
+                DatapadEntriesBySubtypes = utils.ReadFromJsonFile<Dictionary<string, List<string>>>(path);
+            }
+            else
+            {
+                DatapadEntriesBySubtypes.Add("Datapad", new List<string>(){"{StationGps}", "Hello! {StationGps}"});
+                utils.WriteToJsonFile(path, DatapadEntriesBySubtypes);
+            }
+        }
+
+        public static string GetRandomStation()
+        {
+            List<Tuple<Vector3D, long>> availablePositions = new List<Tuple<Vector3D, long>>();
+
+            // If it's not a custom station, get random keen ones
+            var stations = Core.StationStorage.GetAll()
+                    .Where(x => x.UseAsDeliveryLocation)
+                    .ToList();
+
+            foreach (var station in stations)
+            {
+                var foundFaction = MySession.Static.Factions.TryGetFactionByTag(station.FactionTag);
+                var GPS = GPSHelper.ScanChat(station.LocationGPS);
+                availablePositions.Add(Tuple.Create(GPS.Coords, foundFaction.FactionId));
+            }
+
+
+            if (MySession.Static.Settings.EnableEconomy)
+            {
+                var positions = MySession.Static.Factions.GetNpcFactions()
+                    .Where(x => x.Stations.Any())
+                    .SelectMany(x => x.Stations)
+                    .Select(x => Tuple.Create(x.Position, x.FactionId))
+                    .ToList();
+                availablePositions.AddRange(positions);
+            }
+
+            var chosen = availablePositions.GetRandomItemFromList();
+            var faction = MySession.Static.Factions.TryGetFactionById(chosen.Item2);
+            var gps = new MyGps()
+            {
+                Coords = chosen.Item1,
+                Name = $"{faction.Tag} - Station",
+                DisplayName = $"{faction.Tag} - Station",
+            };
+            return gps.ToString();
+        }
     }
 
     public class StoreEntryModel

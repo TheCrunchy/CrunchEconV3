@@ -252,7 +252,7 @@ namespace CrunchEconV3.PlugAndPlay
                     {
                         insertThis.StoreItemType = StoreItemTypes.Order;
                         var price = model.GetSellMinAndMaxPrice();
-                        insertThis.PricePerUnit = Core.random.Next((int)price.Item1, (int)price.Item2);
+                        insertThis.PricePerUnit = (int)(Core.random.Next((int)price.Item1, (int)price.Item2) * model.SellPriceModifier);
                     }
                     break;
             }
