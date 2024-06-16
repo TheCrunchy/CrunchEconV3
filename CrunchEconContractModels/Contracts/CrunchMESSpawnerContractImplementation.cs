@@ -459,6 +459,8 @@ namespace CrunchEconContractModels.Contracts.MES
         public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
             long idUsedForDictionary)
         {
+            var min = 100 * 1000;
+            var max = 200 * 1000;
             if (this.DeliveryGPSes.Any())
             {
                 if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())
@@ -476,17 +478,72 @@ namespace CrunchEconContractModels.Contracts.MES
                             }
 
                         }
-
                         if (keenstation != null)
                         {
                             return Tuple.Create(GPS.Coords, keenstation.FactionId);
                         }
-
                         return Tuple.Create(GPS.Coords, 0l);
                     }
                 }
             }
+            if (keenstation != null)
+            {
+                for (int i = 0; i < 10; i++)
+                {
 
+                    Vector3D randomDirection = MyUtils.GetRandomVector3Normalized();
+
+                    // Generate a random distance within the specified range
+                    double randomDistance = MyUtils.GetRandomDouble(min, max);
+
+                    // Calculate the new position by adding the random direction multiplied by the random distance
+                    Vector3 Position = keenstation.Position + randomDirection * randomDistance;
+
+                    if (MyGravityProviderSystem.IsPositionInNaturalGravity(Position))
+                    {
+                        min += 100;
+                        max += 100;
+                        continue;
+                    }
+                    return Tuple.Create(new Vector3D(Position), keenstation.FactionId);
+                }
+            }
+
+
+            if (__instance != null)
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    // Generate a random direction vector
+                    Vector3D randomDirection = MyUtils.GetRandomVector3Normalized();
+
+                    // Generate a random distance within the specified range
+                    double randomDistance = MyUtils.GetRandomDouble(min, max);
+
+                    // Calculate the new position by adding the random direction multiplied by the random distance
+                    Vector3D Position = __instance.CubeGrid.PositionComp.GetPosition() + randomDirection * randomDistance;
+                    if (MyGravityProviderSystem.IsPositionInNaturalGravity(Position))
+                    {
+                        min += 100;
+                        max += 100;
+                        continue;
+                    }
+                    var faction = MySession.Static.Factions.TryGetFactionByTag(__instance.GetOwnerFactionTag());
+                    if (faction != null)
+                    {
+                        return Tuple.Create(new Vector3D(Position), faction.FactionId);
+                    }
+                }
+            }
+            var keenEndResult = StationHandler.KeenStations.GetRandomItemFromList();
+            if (keenEndResult != null)
+            {
+                var foundFaction = MySession.Static.Factions.TryGetFactionById(keenEndResult.FactionId);
+                if (foundFaction != null)
+                {
+                    return Tuple.Create(keenEndResult.Position, foundFaction.FactionId);
+                }
+            }
             return Tuple.Create(Vector3D.Zero, 0l);
         }
         public int PlayerDistanceToGpsBeforeSpawn = 15000;
