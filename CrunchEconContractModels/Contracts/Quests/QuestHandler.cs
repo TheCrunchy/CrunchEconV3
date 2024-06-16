@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Utils;
+using Newtonsoft.Json;
 using VRageMath;
 
 namespace CrunchEconContractModels.Contracts.Quests
@@ -18,7 +19,7 @@ namespace CrunchEconContractModels.Contracts.Quests
         }
     }
 
-    public class Quest
+    public class Quest : ICloneable
     {
         public string QuestName { get; set; }
         public Dictionary<int, QuestStage> QuestStages = new Dictionary<int, QuestStage>();
@@ -26,6 +27,37 @@ namespace CrunchEconContractModels.Contracts.Quests
         public bool CanAdvanceStage(int currentStage)
         {
             return QuestStages.ContainsKey(currentStage + 1);
+        }
+
+        public object Clone()
+        {
+            Quest clonedQuest = new Quest
+            {
+                QuestName = this.QuestName
+            };
+
+            // Deep copy of QuestStages dictionary
+            foreach (var kvp in this.QuestStages)
+            {
+                //This is a very lazy way of doing this since the Stage is an abstract 
+                var json = JsonConvert.SerializeObject(kvp.Value, new JsonSerializerSettings()
+                {
+                    TypeNameHandling = TypeNameHandling.Auto,
+                    Binder = new MySerializationBinder(),
+                    Formatting = Newtonsoft.Json.Formatting.Indented
+                });
+
+                var asItem = JsonConvert.DeserializeObject<QuestStage>(json, new JsonSerializerSettings()
+                {
+                    TypeNameHandling = TypeNameHandling.Auto,
+                    Binder = new MySerializationBinder(),
+                    Formatting = Newtonsoft.Json.Formatting.Indented
+                });
+
+                clonedQuest.QuestStages[kvp.Key] = asItem;
+            }
+
+            return clonedQuest;
         }
     }
 

@@ -94,7 +94,8 @@ namespace CrunchEconV3.Utils
             }
         }
     }
-    class MySerializationBinder : DefaultSerializationBinder
+
+    public class MySerializationBinder : DefaultSerializationBinder
     {
         public override Type BindToType(string assemblyName, string typeName)
         {
