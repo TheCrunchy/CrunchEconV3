@@ -1,10 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CrunchEconV3;
 using CrunchEconV3.Utils;
 using Newtonsoft.Json;
+using Sandbox.Common.ObjectBuilders.Definitions;
+using Sandbox.Game.Entities;
+using Sandbox.Game.Multiplayer;
+using Sandbox.Game.Screens.Helpers;
+using Sandbox.Game.World;
+using Sandbox.ModAPI;
+using Torch.Managers.PatchManager;
 using VRageMath;
 
 namespace CrunchEconContractModels.Contracts.Quests
@@ -12,10 +21,37 @@ namespace CrunchEconContractModels.Contracts.Quests
     public static class QuestHandler
     {
         public static Dictionary<string, Quest> Quests = new Dictionary<string, Quest>();
+        private static FileUtils fileUtils = new FileUtils();
+
+        public static void Patch(PatchContext ctx)
+        {
+            LoadQuests();
+        }
 
         public static void LoadQuests()
         {
+            var folder = $"{Core.path}\\Quests\\";
+            Directory.CreateDirectory(folder);
 
+            foreach (var file in Directory.GetFiles(folder, "*", SearchOption.AllDirectories))
+            {
+                try
+                {
+                    Quest quest = fileUtils.ReadFromJsonFile<Quest>(file);
+                    Quests[quest.QuestName] = quest;
+                }
+                catch (Exception e)
+                {
+                    Core.Log.Error($"Error reading quest file - {file}");
+                }
+            }
+        }
+
+        public static void SaveQuest(Quest quest)
+        {
+
+            var path = $"{Core.path}\\Quests\\{quest.QuestName}.json";
+            fileUtils.WriteToJsonFile(path, quest);
         }
     }
 
@@ -63,12 +99,17 @@ namespace CrunchEconContractModels.Contracts.Quests
 
     public abstract class QuestStage
     {
-        public virtual bool TryCompleteStage(Vector3 PlayersCurrentPosition, Dictionary<string, string> jsonStoredData)
+        public virtual bool TryCompleteStage(Vector3 PlayersCurrentPosition, Dictionary<string, string> jsonStoredData, Guid QuestId)
         {
             return false;
         }
 
-        public virtual void StartStage(Vector3 PlayersCurrentPosition, Dictionary<string, string> jsonStoredData)
+        public virtual void SetPosition(Vector3 EditorsCurrentPosition)
+        {
+            //implement in the inheriting stage
+        }
+
+        public virtual void StartStage(Vector3 PlayersCurrentPosition, Dictionary<string, string> jsonStoredData, Guid QuestId)
         {
 
         }
@@ -77,29 +118,73 @@ namespace CrunchEconContractModels.Contracts.Quests
     public class TextPositionStage : QuestStage
     {
         public Vector3 Position { get; set; }
-        public int DistanceToPosition { get; set; }
-        public override bool TryCompleteStage(Vector3 PlayersCurrentPosition, Dictionary<string, string> jsonStoredData)
+        public int DistanceToPosition { get; set; } = 5;
+        public string GpsName { get; set; } = "Quest Location";
+        public string TextToSend { get; set; } = "Example Quest text";
+        public string DatapadName { get; set; } = "Example Quest Datapad";
+        public string MessageSenderName { get; set; } = "Quests";
+        public string DatapadAddedMessage { get; set; } = "Datapad Added to Inventory";
+
+        //Set the position from the editor
+        public override void SetPosition(Vector3 EditorsCurrentPosition)
+        {
+            Position = EditorsCurrentPosition;
+        }
+
+        public override bool TryCompleteStage(Vector3 PlayersCurrentPosition, Dictionary<string, string> jsonStoredData, Guid QuestId)
         {
             if (Vector3.Distance(Position, PlayersCurrentPosition) > DistanceToPosition)
             {
                 return false;
             }
 
+            if (MySession.Static.Players.TryGetPlayerBySteamId(ulong.Parse(jsonStoredData["SteamId"]), out var player))
+            {
+                Core.SendMessage(MessageSenderName, $"{DatapadAddedMessage} {DatapadName}", Color.Aqua, player.Id.SteamId);
+                var datapadBuilder = new MyObjectBuilder_Datapad() { SubtypeName = "Datapad" };
+                datapadBuilder.Data = TextToSend;
+                datapadBuilder.Name = DatapadName;
+                player.Character.GetInventory().AddItems(1, datapadBuilder);
+                MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+                try
+                {
+                    gpscol.SendDeleteGpsRequest(player.Identity.IdentityId, int.Parse(jsonStoredData[$"{QuestId}-Position"]));
+                }
+                catch (Exception)
+                {
+                }
+                return true;
+            }
             //player is close enough to position, send them some text 
 
-            return true;
+            return false;
         }
 
-        public override void StartStage(Vector3 PlayersCurrentPosition, Dictionary<string, string> jsonStoredData)
+        public override void StartStage(Vector3 PlayersCurrentPosition, Dictionary<string, string> jsonStoredData, Guid QuestId)
         {
-            //send them a gps of where to go 
+            var identityId = long.Parse(jsonStoredData["IdentityId"]);
+            MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+            StringBuilder sb = new StringBuilder();
+            MyGps gpsRef = new MyGps();
+            gpsRef.Coords = Position;
+            gpsRef.Name = $"{GpsName}";
+            gpsRef.GPSColor = Color.OrangeRed;
+            gpsRef.ShowOnHud = true;
+            gpsRef.AlwaysVisible = true;
+            gpsRef.DiscardAt = new TimeSpan?();
+            gpsRef.UpdateHash();
+            gpsRef.Description = sb.ToString();
+            gpscol.SendAddGpsRequest(identityId, ref gpsRef);
+
+            jsonStoredData[$"{QuestId}-Position"] = gpsRef.Hash.ToString();
         }
+
     }
 
     public class SpaceCreditRewardStage : QuestStage
     {
-        public long MoneyReward { get; set; } 
-        public override bool TryCompleteStage(Vector3 PlayersCurrentPosition, Dictionary<string, string> jsonStoredData)
+        public long MoneyReward { get; set; }
+        public override bool TryCompleteStage(Vector3 PlayersCurrentPosition, Dictionary<string, string> jsonStoredData, Guid QuestId)
         {
             var identityId = long.Parse(jsonStoredData["IdentityId"]);
             EconUtils.addMoney(identityId, MoneyReward);
