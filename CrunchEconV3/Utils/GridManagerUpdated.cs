@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
+using NLog.Targets.Wrappers;
 using Sandbox;
 using Sandbox.Common.ObjectBuilders;
+using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Multiplayer;
@@ -263,65 +265,9 @@ namespace CrunchEconV3.Utils
 
             return new List<MyCubeGrid>();
         }
-        private static BoundingBoxD GetProjectionBoundingBox(MyProjectorBase projector)
-        {
-            MatrixD projectorWorldMatrix = projector.WorldMatrix;
-            var projectedGrid = projector.ProjectedGrid;
-
-            BoundingBoxD localBB = CalculateBoundingBox(projectedGrid);
-            BoundingBoxD worldBB = localBB.TransformFast(ref projectorWorldMatrix);
-
-            return worldBB;
-        }
-
-        private static BoundingBoxD CalculateBoundingBox(MyCubeGrid grid)
-        {
-            BoundingBoxD boundingBox = new BoundingBoxD();
-            bool firstBlock = true;
-
-            foreach (var block in grid.GetBlocks())
-            {
-                if (firstBlock)
-                {
-                    boundingBox = new BoundingBoxD(block.Min * grid.GridSize, block.Max * grid.GridSize);
-                    firstBlock = false;
-                }
-                else
-                {
-                    boundingBox.Include(block.Min * grid.GridSize);
-                    boundingBox.Include(block.Max * grid.GridSize);
-                }
-            }
-
-            return boundingBox;
-        }
-
-        private static bool IsProjectionAreaFree(MyProjectorBase projector)
-        {
-            if (projector == null)
-                return false;
-
-            BoundingBoxD projectionBoundingBox = GetProjectionBoundingBox(projector);
-            List<IMyEntity> entities = MyAPIGateway.Entities.GetEntitiesInAABB(ref projectionBoundingBox);
-
-            foreach (IMyEntity entity in entities)
-            {
-                // Check if entity is not part of the projector's grid
-                if (entity != projector.CubeGrid && entity is IMyCubeGrid)
-                {
-                    return false; // Area is not free
-                }
-            }
-
-            return true; // Area is free
-        }
 
         public static List<MyCubeGrid> LoadFromProjector(MyProjectorBase projector, ulong steamID)
         {
-            if (!IsProjectionAreaFree(projector))
-            {
-                return new List<MyCubeGrid>();
-            }
             MyObjectBuilder_CubeGrid projectedGrid = (MyObjectBuilder_CubeGrid)projector.ProjectedGrid.GetObjectBuilder();
 
             // Make a clone of the object builder to modify before pasting
@@ -341,16 +287,23 @@ namespace CrunchEconV3.Utils
             }
             // Optionally, modify the gridToPaste as needed, for example, set the position
             gridToPaste.PositionAndOrientation = projectedGrid.PositionAndOrientation.Value;
-
+            var pos = MyEntities.FindFreePlace(projectedGrid.PositionAndOrientation.Value.Position, 10, allowSafezones: true);
+            if (!pos.HasValue)
+            {
+                return new List<MyCubeGrid>();
+            }
+            var orientation = new MyPositionAndOrientation(pos.Value, gridToPaste.PositionAndOrientation.Value.Forward, gridToPaste.PositionAndOrientation.Value.Up);
+            gridToPaste.PositionAndOrientation = orientation;
+           
             // Convert object builder to entity and add it to the world
             MyAPIGateway.Entities.RemapObjectBuilder(gridToPaste); // Remap to avoid conflicts
-            MyCubeGrid newEntity = (MyCubeGrid)MyAPIGateway.Entities.CreateFromObjectBuilderAndAdd(gridToPaste);
+            MyCubeGrid newEntity = (MyCubeGrid)MyAPIGateway.Entities.CreateFromObjectBuilderParallel(gridToPaste, true);
 
-            if (newEntity != null)
-            {
-                // Successfully added the grid to the world
-                MyAPIGateway.Entities.AddEntity(newEntity);
-            }
+            //if (newEntity != null)
+            //{
+            //    // Successfully added the grid to the world
+            //    MyAPIGateway.Entities.AddEntity(newEntity);
+            //}
 
             return new List<MyCubeGrid>() { newEntity };
         }
@@ -586,7 +539,7 @@ namespace CrunchEconV3.Utils
              * Now we know the radius that can house all grids which will now be 
              * used to determine the perfect place to paste the grids to. 
              */
-            return MyEntities.FindFreePlace(playerPosition, sphere.Radius);
+            return MyEntities.FindFreePlace(playerPosition, sphere.Radius, allowSafezones:true);
         }
 
         private static BoundingSphereD FindBoundingSphere(MyObjectBuilder_CubeGrid[] grids)
