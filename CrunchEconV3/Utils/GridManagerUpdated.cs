@@ -18,10 +18,11 @@ using Torch.Commands;
 using VRage;
 using VRage.Game;
 using VRage.Game.Entity;
+using VRage.Game.ModAPI;
+using VRage.ModAPI;
 using VRage.ObjectBuilders;
 using VRage.ObjectBuilders.Private;
 using VRageMath;
-
 namespace CrunchEconV3.Utils
 {
 
@@ -262,8 +263,97 @@ namespace CrunchEconV3.Utils
 
             return new List<MyCubeGrid>();
         }
+        private static BoundingBoxD GetProjectionBoundingBox(MyProjectorBase projector)
+        {
+            MatrixD projectorWorldMatrix = projector.WorldMatrix;
+            var projectedGrid = projector.ProjectedGrid;
 
+            BoundingBoxD localBB = CalculateBoundingBox(projectedGrid);
+            BoundingBoxD worldBB = localBB.TransformFast(ref projectorWorldMatrix);
 
+            return worldBB;
+        }
+
+        private static BoundingBoxD CalculateBoundingBox(MyCubeGrid grid)
+        {
+            BoundingBoxD boundingBox = new BoundingBoxD();
+            bool firstBlock = true;
+
+            foreach (var block in grid.GetBlocks())
+            {
+                if (firstBlock)
+                {
+                    boundingBox = new BoundingBoxD(block.Min * grid.GridSize, block.Max * grid.GridSize);
+                    firstBlock = false;
+                }
+                else
+                {
+                    boundingBox.Include(block.Min * grid.GridSize);
+                    boundingBox.Include(block.Max * grid.GridSize);
+                }
+            }
+
+            return boundingBox;
+        }
+
+        private static bool IsProjectionAreaFree(MyProjectorBase projector)
+        {
+            if (projector == null)
+                return false;
+
+            BoundingBoxD projectionBoundingBox = GetProjectionBoundingBox(projector);
+            List<IMyEntity> entities = MyAPIGateway.Entities.GetEntitiesInAABB(ref projectionBoundingBox);
+
+            foreach (IMyEntity entity in entities)
+            {
+                // Check if entity is not part of the projector's grid
+                if (entity != projector.CubeGrid && entity is IMyCubeGrid)
+                {
+                    return false; // Area is not free
+                }
+            }
+
+            return true; // Area is free
+        }
+
+        public static List<MyCubeGrid> LoadFromProjector(MyProjectorBase projector, ulong steamID)
+        {
+            if (!IsProjectionAreaFree(projector))
+            {
+                return new List<MyCubeGrid>();
+            }
+            MyObjectBuilder_CubeGrid projectedGrid = (MyObjectBuilder_CubeGrid)projector.ProjectedGrid.GetObjectBuilder();
+
+            // Make a clone of the object builder to modify before pasting
+            MyObjectBuilder_CubeGrid gridToPaste = projectedGrid.Clone() as MyObjectBuilder_CubeGrid;
+            foreach (MyObjectBuilder_CubeBlock block in gridToPaste.CubeBlocks)
+            {
+                try
+                {
+                    long ownerID = IdentityHelper.GetIdentityByNameOrId(steamID.ToString()).IdentityId;
+                    block.Owner = ownerID;
+                    block.BuiltBy = ownerID;
+                }
+                catch (Exception)
+                {
+                    return new List<MyCubeGrid>();
+                }
+            }
+            // Optionally, modify the gridToPaste as needed, for example, set the position
+            gridToPaste.PositionAndOrientation = projectedGrid.PositionAndOrientation.Value;
+
+            // Convert object builder to entity and add it to the world
+            MyAPIGateway.Entities.RemapObjectBuilder(gridToPaste); // Remap to avoid conflicts
+            MyCubeGrid newEntity = (MyCubeGrid)MyAPIGateway.Entities.CreateFromObjectBuilderAndAdd(gridToPaste);
+
+            if (newEntity != null)
+            {
+                // Successfully added the grid to the world
+                MyAPIGateway.Entities.AddEntity(newEntity);
+            }
+
+            return new List<MyCubeGrid>() { newEntity };
+        }
 
         public static List<MyCubeGrid> LoadShipBlueprint(MyObjectBuilder_ShipBlueprintDefinition shipBlueprint,
             Vector3D playerPosition, bool keepOriginalLocation, long steamID, string Name, CommandContext context = null, bool force = false)
@@ -388,22 +478,22 @@ namespace CrunchEconV3.Utils
 
             foreach (var ob in objectBuilderList)
             {
-               var ent = MyEntities.CreateFromObjectBuilderParallel(ob, true);
-               if (ent != null)
-               {
-                   gridIds.Add(ent as MyCubeGrid);
+                var ent = MyEntities.CreateFromObjectBuilderParallel(ob, true);
+                if (ent != null)
+                {
+                    gridIds.Add(ent as MyCubeGrid);
                 }
-         
-               //if (ent is MyCubeGrid grid)
-               //{
-               //    grid.GridSystems.AiBlockSystem.SetMovementFlightMode(FlightMode.Circle);
-               //    var wayPoint = new MyAutopilotWaypoint(playerPosition, "Home");
 
-               //    grid.GridSystems.AiBlockSystem.SetMovementWaypoint(wayPoint);
-               //    Core.Log.Info("ai");
-               // }
+                //if (ent is MyCubeGrid grid)
+                //{
+                //    grid.GridSystems.AiBlockSystem.SetMovementFlightMode(FlightMode.Circle);
+                //    var wayPoint = new MyAutopilotWaypoint(playerPosition, "Home");
+
+                //    grid.GridSystems.AiBlockSystem.SetMovementWaypoint(wayPoint);
+                //    Core.Log.Info("ai");
+                // }
             }
-            
+
             //}
             //else
             //{
