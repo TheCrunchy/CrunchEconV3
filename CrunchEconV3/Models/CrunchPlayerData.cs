@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Utils;
+using Newtonsoft.Json;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
@@ -39,6 +40,7 @@ namespace CrunchEconV3.Models
         }
 
         //true for completed, false for failed
+        [JsonIgnore]
         public Action<bool, ICrunchContract> ContractFinished;
     }
 }
