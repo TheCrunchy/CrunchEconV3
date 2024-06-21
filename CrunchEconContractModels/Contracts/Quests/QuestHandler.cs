@@ -122,6 +122,7 @@ namespace CrunchEconContractModels.Contracts.Quests
         public int DistanceToPosition { get; set; } = 5;
         public string GpsName { get; set; } = "Quest Location";
         public string TextToSend { get; set; } = "Example Quest text";
+        public bool GiveDataPad { get; set; } = true;
         public string DatapadName { get; set; } = "Example Quest Datapad";
         public string MessageSenderName { get; set; } = "Quests";
         public string DatapadAddedMessage { get; set; } = "Datapad Added to Inventory";
@@ -144,11 +145,15 @@ namespace CrunchEconContractModels.Contracts.Quests
                 var identityId = long.Parse(jsonStoredData["IdentityId"]);
                 MyVisualScriptLogicProvider.RemoveQuestlogDetails(playerId: identityId);
                 MyVisualScriptLogicProvider.AddQuestlogDetail(TextToSend, playerId: identityId);
-                //Core.SendMessage(MessageSenderName, $"{DatapadAddedMessage} {DatapadName}", Color.Aqua, player.Id.SteamId);
-                //var datapadBuilder = new MyObjectBuilder_Datapad() { SubtypeName = "Datapad" };
-                //datapadBuilder.Data = TextToSend;
-                //datapadBuilder.Name = DatapadName;
-                //player.Character.GetInventory().AddItems(1, datapadBuilder);
+                if (GiveDataPad)
+                {
+                    Core.SendMessage(MessageSenderName, $"{DatapadAddedMessage} {DatapadName}", Color.Aqua, player.Id.SteamId);
+                    var datapadBuilder = new MyObjectBuilder_Datapad() { SubtypeName = "Datapad" };
+                    datapadBuilder.Data = TextToSend;
+                    datapadBuilder.Name = DatapadName;
+                    player.Character.GetInventory().AddItems(1, datapadBuilder);
+                }
+
                 MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
                 try
                 {
