@@ -200,4 +200,26 @@ namespace CrunchEconContractModels.Contracts.Quests
             return true;
         }
     }
+
+    public class DelayStage : QuestStage
+    {
+        public int SecondsToDelay = 10;
+        public override bool TryCompleteStage(Vector3 PlayersCurrentPosition, Dictionary<string, string> jsonStoredData, Guid QuestId)
+        {
+            if (jsonStoredData.TryGetValue("SecondsToDelay", out var value))
+            {
+               var parsed = DateTime.Parse(value);
+               if (DateTime.Now > parsed)
+               {
+                   jsonStoredData.Remove("SecondsToDelay");
+                   return true;
+               }
+            }
+            else
+            {
+                jsonStoredData.Add("SecondsToDelay", DateTime.Now.AddSeconds(SecondsToDelay).ToString());
+            }
+            return false;
+        }
+    }
 }
