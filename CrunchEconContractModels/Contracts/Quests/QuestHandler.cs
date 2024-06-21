@@ -144,7 +144,7 @@ namespace CrunchEconContractModels.Contracts.Quests
             {
                 var identityId = long.Parse(jsonStoredData["IdentityId"]);
                 MyVisualScriptLogicProvider.RemoveQuestlogDetails(playerId: identityId);
-                MyVisualScriptLogicProvider.AddQuestlogDetail(TextToSend, playerId: identityId);
+                MyVisualScriptLogicProvider.AddQuestlogDetail(TextToSend, playerId: identityId, useTyping:false, completePrevious:false);
                 if (GiveDataPad)
                 {
                     Core.SendMessage(MessageSenderName, $"{DatapadAddedMessage} {DatapadName}", Color.Aqua, player.Id.SteamId);
