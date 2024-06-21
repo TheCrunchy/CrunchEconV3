@@ -8,6 +8,7 @@ using CrunchEconV3;
 using CrunchEconV3.Utils;
 using Newtonsoft.Json;
 using Sandbox.Common.ObjectBuilders.Definitions;
+using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
@@ -140,11 +141,13 @@ namespace CrunchEconContractModels.Contracts.Quests
 
             if (MySession.Static.Players.TryGetPlayerBySteamId(ulong.Parse(jsonStoredData["SteamId"]), out var player))
             {
-                Core.SendMessage(MessageSenderName, $"{DatapadAddedMessage} {DatapadName}", Color.Aqua, player.Id.SteamId);
-                var datapadBuilder = new MyObjectBuilder_Datapad() { SubtypeName = "Datapad" };
-                datapadBuilder.Data = TextToSend;
-                datapadBuilder.Name = DatapadName;
-                player.Character.GetInventory().AddItems(1, datapadBuilder);
+                var identityId = long.Parse(jsonStoredData["IdentityId"]);
+                MyVisualScriptLogicProvider.AddQuestlogDetail(TextToSend, playerId: identityId);
+                //Core.SendMessage(MessageSenderName, $"{DatapadAddedMessage} {DatapadName}", Color.Aqua, player.Id.SteamId);
+                //var datapadBuilder = new MyObjectBuilder_Datapad() { SubtypeName = "Datapad" };
+                //datapadBuilder.Data = TextToSend;
+                //datapadBuilder.Name = DatapadName;
+                //player.Character.GetInventory().AddItems(1, datapadBuilder);
                 MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
                 try
                 {
@@ -163,6 +166,8 @@ namespace CrunchEconContractModels.Contracts.Quests
         public override void StartStage(Vector3 PlayersCurrentPosition, Dictionary<string, string> jsonStoredData, Guid QuestId)
         {
             var identityId = long.Parse(jsonStoredData["IdentityId"]);
+            var steamId = long.Parse(jsonStoredData["SteamId"]);
+
             MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             StringBuilder sb = new StringBuilder();
             MyGps gpsRef = new MyGps();
@@ -177,6 +182,9 @@ namespace CrunchEconContractModels.Contracts.Quests
             gpscol.SendAddGpsRequest(identityId, ref gpsRef);
 
             jsonStoredData[$"{QuestId}-Position"] = gpsRef.Hash.ToString();
+            //      MyVisualScriptLogicProvider.AddGPSObjective("Gps Objective", "Gps Description", Position, Color.OrangeRed, playerId:identityId);
+            MyVisualScriptLogicProvider.AddQuestlogDetail("Travel to Quest Location", playerId: identityId);
+
         }
 
     }

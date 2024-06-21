@@ -57,7 +57,7 @@ namespace CrunchEconContractModels.Random_Stuff
                     return false;
                 }
 
-                if (Core.StationStorage.GetAll().Any(x => x.GetGrid() != null && x.GetGrid().EntityId == __instance.CubeGrid.EntityId && owningFac.Tag == x.FactionTag))
+                if (Core.StationStorage.GetAll().Any(x => x.GetGrid() != null && x.GetGrid().EntityId == __instance.CubeGrid.GetBiggestGridInGroup().EntityId && owningFac.Tag == x.FactionTag))
                 {
                     ulong steamId = MyEventContext.Current.Sender.Value;
 

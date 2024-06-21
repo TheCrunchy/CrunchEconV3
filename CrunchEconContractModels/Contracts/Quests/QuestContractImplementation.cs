@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CrunchEconV3;
 using CrunchEconV3.Abstracts;
 using CrunchEconV3.Interfaces;
+using Sandbox.Game;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRageMath;
 
@@ -35,9 +36,13 @@ namespace CrunchEconContractModels.Contracts.Quests
 
         public override bool Update100(Vector3 PlayersCurrentPosition)
         {
+
             if (!JsonStoredData.ContainsKey("SteamId"))
             {
                 StoreIds();
+                    MyVisualScriptLogicProvider.SetQuestlog(true, QuestName, (long)this.AssignedPlayerIdentityId);
+                    MyVisualScriptLogicProvider.SetQuestlogTitle(QuestName, (long)this.AssignedPlayerIdentityId);
+                    MyVisualScriptLogicProvider.SetQuestlogVisible(true, (long)this.AssignedPlayerIdentityId);
             }
             //get the quest
             if (!QuestHandler.Quests.TryGetValue(QuestName, out var currentQuest)) 
@@ -59,6 +64,8 @@ namespace CrunchEconContractModels.Contracts.Quests
 
             if (currentQuest.CanAdvanceStage(this.CurrentQuestStage))
             {
+                MyVisualScriptLogicProvider.SetQuestlogTitle(QuestName, (long)this.AssignedPlayerIdentityId);
+                MyVisualScriptLogicProvider.SetQuestlogVisible(true, (long)this.AssignedPlayerIdentityId);
                 CurrentQuestStage += 1;
                 currentQuest.QuestStages.TryGetValue(CurrentQuestStage, out var nextStage);
                 nextStage?.StartStage(PlayersCurrentPosition, JsonStoredData, QuestId);
