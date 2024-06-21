@@ -32,6 +32,7 @@ namespace CrunchEconContractModels.Contracts.Quests
         {
             JsonStoredData["SteamId"] = this.AssignedPlayerSteamId.ToString();
             JsonStoredData["IdentityId"] = this.AssignedPlayerIdentityId.ToString();
+            JsonStoredData["QuestPage"] = 0.ToString();
         }
 
         public override bool Update100(Vector3 PlayersCurrentPosition)
@@ -64,8 +65,7 @@ namespace CrunchEconContractModels.Contracts.Quests
 
             if (currentQuest.CanAdvanceStage(this.CurrentQuestStage))
             {
-                MyVisualScriptLogicProvider.SetQuestlogTitle(QuestName, (long)this.AssignedPlayerIdentityId);
-                MyVisualScriptLogicProvider.SetQuestlogVisible(true, (long)this.AssignedPlayerIdentityId);
+           
                 CurrentQuestStage += 1;
                 currentQuest.QuestStages.TryGetValue(CurrentQuestStage, out var nextStage);
                 nextStage?.StartStage(PlayersCurrentPosition, JsonStoredData, QuestId);

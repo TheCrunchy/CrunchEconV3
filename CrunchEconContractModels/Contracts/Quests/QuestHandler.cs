@@ -142,6 +142,7 @@ namespace CrunchEconContractModels.Contracts.Quests
             if (MySession.Static.Players.TryGetPlayerBySteamId(ulong.Parse(jsonStoredData["SteamId"]), out var player))
             {
                 var identityId = long.Parse(jsonStoredData["IdentityId"]);
+                MyVisualScriptLogicProvider.RemoveQuestlogDetails(playerId: identityId);
                 MyVisualScriptLogicProvider.AddQuestlogDetail(TextToSend, playerId: identityId);
                 //Core.SendMessage(MessageSenderName, $"{DatapadAddedMessage} {DatapadName}", Color.Aqua, player.Id.SteamId);
                 //var datapadBuilder = new MyObjectBuilder_Datapad() { SubtypeName = "Datapad" };
@@ -183,7 +184,7 @@ namespace CrunchEconContractModels.Contracts.Quests
 
             jsonStoredData[$"{QuestId}-Position"] = gpsRef.Hash.ToString();
             //      MyVisualScriptLogicProvider.AddGPSObjective("Gps Objective", "Gps Description", Position, Color.OrangeRed, playerId:identityId);
-            MyVisualScriptLogicProvider.AddQuestlogDetail("Travel to Quest Location", playerId: identityId);
+            MyVisualScriptLogicProvider.AddQuestlogDetail($"Travel to {GpsName}", playerId: identityId);
 
         }
 
