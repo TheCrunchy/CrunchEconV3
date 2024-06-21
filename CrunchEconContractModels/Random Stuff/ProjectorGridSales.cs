@@ -72,8 +72,26 @@ namespace CrunchEconContractModels.Random_Stuff
                             return false;
                         }
 
-                        var saleData = projectors.FirstOrDefault();
-                        var actualSale = JsonConvert.DeserializeObject<GridSale>(saleData.CustomData);
+                        GridSale actualSale = null;
+                        MyProjectorBase saleData = null;
+                        foreach (var projector in projectors)
+                        {
+                             var temp = JsonConvert.DeserializeObject<GridSale>(projector.CustomData);
+                             if (temp.ButtonDataName != customData)
+                             {
+                                 continue;
+                             }
+
+                             saleData = projector;
+                             actualSale = temp;
+                        }
+
+                        if (actualSale == null)
+                        {
+                            Core.SendMessage("Grid Sales", $"No projection with index .", color: Color.Red,
+                                steamID: steamId);
+                            return false;
+                        }
 
                         if (actualSale.ReputationRequired)
                         {
@@ -193,6 +211,7 @@ namespace CrunchEconContractModels.Random_Stuff
 
         public class GridSale
         {
+            public string ButtonDataName { get; set; }
             public long Price { get; set; }
             public bool ReputationRequired { get; set; }
             public string FacTagForReputation { get; set; }
