@@ -113,15 +113,15 @@ namespace CrunchEconV3.Abstracts
             return availablePositions.GetRandomItemFromList() ?? Tuple.Create(Vector3D.Zero, 0l);
         }
 
-        public int AmountOfContractsToGenerate { get; set; }
-        public long SecondsToComplete { get; set; }
-        public int ReputationGainOnCompleteMin { get; set; }
-        public int ReputationGainOnCompleteMax { get; set; }
-        public int ReputationLossOnAbandon { get; set; }
-        public int ReputationRequired { get; set; }
-        public float ChanceToAppear { get; set; }
-        public long CollateralMin { get; set; }
-        public long CollateralMax { get; set; }
-        public List<string> DeliveryGPSes { get; set; }
+        public virtual int AmountOfContractsToGenerate { get; set; }
+        public virtual long SecondsToComplete { get; set; }
+        public virtual int ReputationGainOnCompleteMin { get; set; }
+        public virtual int ReputationGainOnCompleteMax { get; set; }
+        public virtual int ReputationLossOnAbandon { get; set; }
+        public virtual int ReputationRequired { get; set; }
+        public virtual float ChanceToAppear { get; set; }
+        public virtual long CollateralMin { get; set; }
+        public virtual long CollateralMax { get; set; }
+        public virtual List<string> DeliveryGPSes { get; set; }
     }
 }

@@ -19,7 +19,7 @@ namespace CrunchEconV3.Utils
                 var contentsToWriteToFile = JsonConvert.SerializeObject(objectToWrite, new JsonSerializerSettings()
                 {
                     TypeNameHandling = TypeNameHandling.Auto,
-                    Binder = new MySerializationBinder(),
+                    SerializationBinder = new MySerializationBinder(),
                     Formatting = Newtonsoft.Json.Formatting.Indented
                 });
                 writer = new StreamWriter(filePath, append);
@@ -43,7 +43,7 @@ namespace CrunchEconV3.Utils
                     return JsonConvert.DeserializeObject<T>(fileContents, new JsonSerializerSettings()
                     {
                         TypeNameHandling = TypeNameHandling.Auto,
-                        Binder = new MySerializationBinder(),
+                        SerializationBinder = new MySerializationBinder(),
                         Formatting = Newtonsoft.Json.Formatting.Indented
                     });
                 }

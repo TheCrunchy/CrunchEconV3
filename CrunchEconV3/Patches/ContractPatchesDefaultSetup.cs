@@ -345,7 +345,7 @@ namespace CrunchEconV3.Patches
             contract.FailContract();
             contract.DeleteDeliveryGPS();
             playerData.RemoveContract(contract);
-            Task.Run(async () =>
+            Task.Run(() =>
             {
                 Core.PlayerStorage.Save(playerData);
             });

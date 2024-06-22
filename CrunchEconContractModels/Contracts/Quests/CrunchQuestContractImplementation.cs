@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using CrunchEconV3;
 using CrunchEconV3.Abstracts;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
+using Newtonsoft.Json;
 using Sandbox.Game;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
@@ -13,7 +15,7 @@ using VRageMath;
 
 namespace CrunchEconContractModels.Contracts.Quests
 {
-    public class QuestTextContractImplementation : ContractAbstract
+    public class CrunchQuestContractImplementation : ContractAbstract
     {
         public int CurrentQuestStage { get; set; }
         public string QuestName { get; set; }
@@ -35,6 +37,9 @@ namespace CrunchEconContractModels.Contracts.Quests
 
         public override void Start()
         {
+            MyVisualScriptLogicProvider.RemoveQuestlogDetails(playerId: this.AssignedPlayerIdentityId);
+            MyVisualScriptLogicProvider.SetQuestlogTitle(this.QuestName, (long)this.AssignedPlayerIdentityId);
+            MyVisualScriptLogicProvider.SetQuestlogVisible(true, (long)this.AssignedPlayerIdentityId);
             StoreIds();
         }
 
@@ -114,26 +119,33 @@ namespace CrunchEconContractModels.Contracts.Quests
             return new Tuple<bool, MyContractResults>(true, MyContractResults.Success);
         }
 
+        public override void FailContract()
+        {
+            MyVisualScriptLogicProvider.RemoveQuestlogDetails(playerId: this.AssignedPlayerIdentityId);
+            MyVisualScriptLogicProvider.SetQuestlogTitle("Failed", (long)this.AssignedPlayerIdentityId);
+            MyVisualScriptLogicProvider.SetQuestlogVisible(false, (long)this.AssignedPlayerIdentityId);
+            base.FailContract();
+        }
+
+        public override void SendDeliveryGPS()
+        {
+            //we dont want this here 
+            return;
+        }
+
         public override bool Update100(Vector3 PlayersCurrentPosition)
         {
-
-            if (!JsonStoredData.ContainsKey("SteamId"))
-            {
-                StoreIds();
-                MyVisualScriptLogicProvider.SetQuestlog(true, QuestName, (long)this.AssignedPlayerIdentityId);
-                MyVisualScriptLogicProvider.SetQuestlogTitle(QuestName, (long)this.AssignedPlayerIdentityId);
-                MyVisualScriptLogicProvider.SetQuestlogVisible(true, (long)this.AssignedPlayerIdentityId);
-            }
             //get the quest
             if (!QuestHandler.Quests.TryGetValue(QuestName, out var currentQuest))
                 return false;
 
-            if (CurrentQuestStage == 0)
-            {
-                currentQuest.QuestStages[1].StartStage(PlayersCurrentPosition, JsonStoredData, QuestId);
-                CurrentQuestStage += 1;
-                return false;
-            }
+            //All quests are given a 60 second delay as their first stage for UI shenanigans 
+            //if (CurrentQuestStage == 0)
+            //{
+            //    currentQuest.QuestStages[1].StartStage(PlayersCurrentPosition, JsonStoredData, QuestId);
+            //    CurrentQuestStage += 1;
+            //    return false;
+            //}
 
             if (!currentQuest.QuestStages.TryGetValue(CurrentQuestStage, out var stage))
                 return false;
@@ -154,11 +166,69 @@ namespace CrunchEconContractModels.Contracts.Quests
                 this.ReadyToDeliver = true;
                 //quest is completed, no longer track it
                 QuestHandler.SaveQuestCompleted(this.AssignedPlayerSteamId, this.QuestName);
+                MyVisualScriptLogicProvider.SetQuestlogVisible(false, (long)this.AssignedPlayerIdentityId);
                 return true;
             }
 
             return false;
         }
 
+    }
+
+    public class CrunchQuestContractConfig : ContractConfigAbstract
+    {
+        public override ICrunchContract GenerateTheRest(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        {
+            if (this.ChanceToAppear < 1)
+            {
+                var random = CrunchEconV3.Core.random.NextDouble();
+                if (random > this.ChanceToAppear)
+                {
+                    return null;
+                }
+            }
+            var description = new StringBuilder();
+            var contract = new CrunchQuestContractImplementation();
+            
+            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Find";
+            contract.Name = $"{this.QuestName}";
+            contract.ReputationRequired = this.ReputationRequired;
+            contract.ReadyToDeliver = true;
+            contract.QuestName = this.QuestName;
+            description.AppendLine($"{this.Description}");
+            if (this.ReputationRequired != 0)
+            {
+                description.AppendLine($" ||| Reputation with owner required: {this.ReputationRequired}");
+            }
+
+            if (this.RequireCompletedQuest)
+            {
+                description.AppendLine($" ||| Completed quest required: {this.RequiredQuestName}");
+            }
+            if (this.CanRepeat)
+            {
+                description.AppendLine($" ||| Quest can be repeated.");
+            }
+
+            contract.ReadyToDeliver = false;
+            contract.Description = description.ToString();
+
+            return contract;
+        }
+
+        public string QuestName { get; set; } = "Put Quest Name here";
+        public bool RequireCompletedQuest { get; set; } = false;
+        public string RequiredQuestName { get; set; } = "Empty Name";
+        public bool CanRepeat { get; set; } = false;
+        public string Description { get; set; } = "Quest Description";
+
+        [JsonIgnore]
+        public override long SecondsToComplete { get; set; }
+        [JsonIgnore]
+        public override int ReputationGainOnCompleteMin { get; set; }
+        [JsonIgnore]
+        public override int ReputationGainOnCompleteMax { get; set; }
+        [JsonIgnore]
+        public override List<string> DeliveryGPSes { get; set; }
     }
 }

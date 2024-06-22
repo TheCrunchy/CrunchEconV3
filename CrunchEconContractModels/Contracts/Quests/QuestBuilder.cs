@@ -43,7 +43,10 @@ namespace CrunchEconContractModels.Contracts.Quests
                     QuestName = questName,
                     QuestStages = new Dictionary<int, QuestStage>()
                 };
-
+                newQuest.QuestStages[0] = new DelayStage()
+                {
+                    SecondsToDelay = 5
+                };
                 QuestsBeingBuilt[Context.Player.SteamUserId] = newQuest;
             }
        
@@ -64,7 +67,7 @@ namespace CrunchEconContractModels.Contracts.Quests
 
             if (QuestHandler.Quests.TryGetValue(questName, out var existing))
             {
-                var contract = new QuestTextContractImplementation()
+                var contract = new CrunchQuestContractImplementation()
                 {
                     QuestName = questName,
                     AssignedPlayerIdentityId = Context.Player.IdentityId,
