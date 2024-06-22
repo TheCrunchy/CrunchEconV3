@@ -67,6 +67,15 @@ namespace CrunchEconContractModels.Contracts.Quests
             }
         }
 
+        public static bool HasPlayerCompletedQuest(ulong steamid, string questName)
+        {
+            if (QuestHandler.QuestDatas.TryGetValue(steamid, out var quests))
+            {
+                return quests.CompletedQuestNames.Contains(questName);
+            }
+            return false;
+        }
+
         public static void SaveQuestCompleted(ulong steamId, string questName)
         {
             var folder = $"{Core.path}\\PlayerQuestsData\\{steamId}.json";

@@ -49,18 +49,9 @@ namespace CrunchEconContractModels.Contracts.Quests
         {
             if (this.RequireCompletedQuest)
             {
-                if (QuestHandler.QuestDatas.TryGetValue(playerData.PlayerSteamId, out var quests))
-                {
-                    if (!quests.CompletedQuestNames.Contains(RequiredQuestName))
-                    {
-                        return new Tuple<bool, MyContractResults>(false, MyContractResults.Fail_CannotAccess);
-                    }
-                    else if (!CanRepeat)
-                    {
-                        return new Tuple<bool, MyContractResults>(false, MyContractResults.Fail_CannotAccess);
-                    }
-                }
-                else
+                var hasCompleted =
+                    QuestHandler.HasPlayerCompletedQuest(playerData.PlayerSteamId, this.RequiredQuestName);
+                if (!hasCompleted)
                 {
                     return new Tuple<bool, MyContractResults>(false, MyContractResults.Fail_CannotAccess);
                 }
@@ -68,12 +59,11 @@ namespace CrunchEconContractModels.Contracts.Quests
 
             if (!CanRepeat)
             {
-                if (QuestHandler.QuestDatas.TryGetValue(playerData.PlayerSteamId, out var completed))
+                var hasCompleted =
+                    QuestHandler.HasPlayerCompletedQuest(playerData.PlayerSteamId, this.QuestName);
+                if (hasCompleted)
                 {
-                    if (completed.CompletedQuestNames.Contains(RequiredQuestName))
-                    {
-                        return new Tuple<bool, MyContractResults>(false, MyContractResults.Fail_CannotAccess);
-                    }
+                    return new Tuple<bool, MyContractResults>(false, MyContractResults.Fail_CannotAccess);
                 }
             }
 
