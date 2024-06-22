@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
@@ -22,7 +23,9 @@ namespace CrunchEconContractModels.Contracts.Quests
     public static class QuestHandler
     {
         public static Dictionary<string, Quest> Quests = new Dictionary<string, Quest>();
+        public static Dictionary<ulong, PlayerQuestData> QuestDatas = new Dictionary<ulong, PlayerQuestData>();
         private static FileUtils fileUtils = new FileUtils();
+
 
         public static void Patch(PatchContext ctx)
         {
@@ -46,6 +49,42 @@ namespace CrunchEconContractModels.Contracts.Quests
                     Core.Log.Error($"Error reading quest file - {file}");
                 }
             }
+
+            folder = $"{Core.path}\\PlayerQuestsData\\";
+            Directory.CreateDirectory(folder);
+
+            foreach (var file in Directory.GetFiles(folder, "*", SearchOption.AllDirectories))
+            {
+                try
+                {
+                    PlayerQuestData data = fileUtils.ReadFromJsonFile<PlayerQuestData>(file);
+                    QuestDatas[data.SteamId] = data;
+                }
+                catch (Exception e)
+                {
+                    Core.Log.Error($"Error reading quest file - {file}");
+                }
+            }
+        }
+
+        public static void SaveQuestCompleted(ulong steamId, string questName)
+        {
+            var folder = $"{Core.path}\\PlayerQuestsData\\{steamId}.json";
+            if (QuestDatas.TryGetValue(steamId, out var data))
+            {
+                data.CompletedQuestNames.Add(questName);
+                fileUtils.WriteToJsonFile(folder, data);
+            }
+            else
+            {
+                data = new PlayerQuestData()
+                {
+                    SteamId = steamId,
+                    CompletedQuestNames = new List<string>() { questName }
+                };
+                QuestDatas.Add(steamId, data);
+                fileUtils.WriteToJsonFile(folder, data);
+            }
         }
 
         public static void SaveQuest(Quest quest)
@@ -54,6 +93,12 @@ namespace CrunchEconContractModels.Contracts.Quests
             var path = $"{Core.path}\\Quests\\{quest.QuestName}.json";
             fileUtils.WriteToJsonFile(path, quest);
         }
+    }
+
+    public class PlayerQuestData
+    {
+        public ulong SteamId { get; set; }
+        public List<string> CompletedQuestNames { get; set; }
     }
 
     public class Quest : ICloneable
@@ -144,7 +189,7 @@ namespace CrunchEconContractModels.Contracts.Quests
             {
                 var identityId = long.Parse(jsonStoredData["IdentityId"]);
                 MyVisualScriptLogicProvider.RemoveQuestlogDetails(playerId: identityId);
-                MyVisualScriptLogicProvider.AddQuestlogDetail(TextToSend, playerId: identityId, useTyping:false, completePrevious:false);
+                MyVisualScriptLogicProvider.AddQuestlogDetail(TextToSend, playerId: identityId, useTyping: false, completePrevious: false);
                 if (GiveDataPad)
                 {
                     Core.SendMessage(MessageSenderName, $"{DatapadAddedMessage} {DatapadName}", Color.Aqua, player.Id.SteamId);
@@ -213,12 +258,12 @@ namespace CrunchEconContractModels.Contracts.Quests
         {
             if (jsonStoredData.TryGetValue("SecondsToDelay", out var value))
             {
-               var parsed = DateTime.Parse(value);
-               if (DateTime.Now > parsed)
-               {
-                   jsonStoredData.Remove("SecondsToDelay");
-                   return true;
-               }
+                var parsed = DateTime.Parse(value);
+                if (DateTime.Now > parsed)
+                {
+                    jsonStoredData.Remove("SecondsToDelay");
+                    return true;
+                }
             }
             else
             {
