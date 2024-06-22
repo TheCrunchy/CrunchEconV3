@@ -14,7 +14,22 @@ namespace CrunchEconContractModels.Contracts.Quests
     [Category("qb")]
     public class QuestBuilder : CommandModule
     {
+        //Making a quest:
+        //!qb start QuestName
 
+        //!qb setstage stageNumber typename
+        //if the stage implemenets the set position, it will use your player characters position
+        //just put anything for the name, it will error and return available types 
+        
+        //!qb save
+
+        //to stop editing
+        //!qb discard
+
+        //then just add it to a contract block
+
+        //to test a quest
+        //!qb test questname
         public static Dictionary<ulong, Quest> QuestsBeingBuilt = new Dictionary<ulong, Quest>();
 
         [Command("start", "Start building a quest")]
