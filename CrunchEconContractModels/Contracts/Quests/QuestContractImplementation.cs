@@ -44,7 +44,7 @@ namespace CrunchEconContractModels.Contracts.Quests
             JsonStoredData["IdentityId"] = this.AssignedPlayerIdentityId.ToString();
         }
 
-        public virtual Tuple<bool, MyContractResults> TryAcceptContract(CrunchPlayerData playerData, long identityId,
+        public override Tuple<bool, MyContractResults> TryAcceptContract(CrunchPlayerData playerData, long identityId,
             MyContractBlock __instance)
         {
             if (this.RequireCompletedQuest)
