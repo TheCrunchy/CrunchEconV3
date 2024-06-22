@@ -95,42 +95,55 @@ namespace CrunchEconContractModels.Random_Stuff
 
                         if (actualSale.ReputationRequired)
                         {
-                            var fac = MySession.Static.Factions.TryGetFactionByTag(actualSale.FacTagForReputation);
-                            if (fac == null)
+                            var failed = true;
+                            var failMessage = "";
+                            var facs = actualSale.FacTagForReputation.Split(',').Select(x => x.Trim());
+                            foreach (var faction in facs)
                             {
-                                Core.SendMessage("Grid Sales", "Faction for reputation requirement not found",
-                                    color: Color.Red, steamID: steamId);
-                                return false;
-                            }
-
-                            var rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(
-                                player.Identity.IdentityId, fac.FactionId);
-
-                            if (actualSale.Reputation > 0)
-                            {
-                                if (rep.Item2 <= actualSale.Reputation)
+                                var fac = MySession.Static.Factions.TryGetFactionByTag(faction);
+                                if (fac == null)
                                 {
-                                    var text =
-                                        $"Reputation requirement not met, required {actualSale.ReputationRequired} with {actualSale.FacTagForReputation}";
-                                    Core.SendMessage("Grid Sales", text, color: Color.Red, steamID: steamId);
-                                    var message = new NotificationMessage(text, 5000, "Red");
-                                    ModCommunication.SendMessageTo(message, player.Id.SteamId);
-                                    return false;
+                                    failMessage = $"Faction for reputation requirement not found";
+                             
+                                    continue;
                                 }
-                            }
-                            else
-                            {
+
+                                var rep = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(
+                                    player.Identity.IdentityId, fac.FactionId);
+
+                                if (actualSale.Reputation > 0)
+                                {
+                                    if (rep.Item2 <= actualSale.Reputation)
+                                    {
+                                        failMessage=$"Reputation requirement not met, required {actualSale.ReputationRequired} with {actualSale.FacTagForReputation}";
+                                        continue;
+                                    }
+
+                                    failed = false;
+                                    break;
+                                }
+
                                 if (rep.Item2 >= actualSale.Reputation)
                                 {
 
-                                    var text =
-                                        $"Reputation requirement not met, required {actualSale.ReputationRequired} with {actualSale.FacTagForReputation}";
-                                    Core.SendMessage("Grid Sales", text, color: Color.Red, steamID: steamId);
-                                    var message = new NotificationMessage(text, 5000, "Red");
-                                    ModCommunication.SendMessageTo(message, player.Id.SteamId);
-                                    return false;
+                                    failMessage = $"Reputation requirement not met, required {actualSale.ReputationRequired} with {actualSale.FacTagForReputation}";
+                                    continue;
                                 }
+
+                                failed = false;
+                                break;
+
+
                             }
+
+                            if (failed)
+                            {
+                                var message = new NotificationMessage(failMessage, 5000, "Red");
+                                ModCommunication.SendMessageTo(message, player.Id.SteamId);
+                                Core.SendMessage("Grid Sales", failMessage, color: Color.Red, steamID: steamId);
+                                return false;
+                            }
+                       
                         }
 
                         if (EconUtils.getBalance(player.Identity.IdentityId) >= actualSale.Price)
