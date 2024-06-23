@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
+using CrunchEconV3.Abstracts;
 using CrunchEconV3.APIs;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
@@ -29,11 +30,8 @@ using VRageMath;
 
 namespace CrunchEconContractModels.Contracts.MES
 {
-    public class CrunchMESSpawnerContractImplementation : ICrunchContract
+    public class CrunchMESSpawnerContractImplementation : ContractAbstract
     {
-
-        public long ContractId { get; set; }
-        public string ContractType { get; set; }
         private bool HasPower(VRage.Game.ModAPI.IMyCubeGrid grid)
         {
             var blocks = new List<IMySlimBlock>();
@@ -74,46 +72,12 @@ namespace CrunchEconContractModels.Contracts.MES
 
             return false;
         }
-        public MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
-        {
-            string definition = this.DefinitionId;
-            string contractName = this.Name;
-            string contractDescription;
-            contractDescription = descriptionOverride != "" ? descriptionOverride : this.Description;
-
-            if (!MyDefinitionId.TryParse(definition, out var definitionId)) return null;
-            var newContract = new MyObjectBuilder_ContractCustom
-            {
-                SubtypeName = definition.Replace("MyObjectBuilder_ContractTypeDefinition/", ""),
-                Id = this.ContractId,
-                IsPlayerMade = false,
-                State = MyContractStateEnum.Active,
-                Owners = new MySerializableList<long>(),
-                RewardMoney = 0,
-                RewardReputation = this.ReputationGainOnComplete,
-                StartingDeposit = this.CollateralToTake,
-                FailReputationPrice = this.ReputationLossOnAbandon,
-                StartFaction = 1,
-                StartStation = 0,
-                StartBlock = this.BlockId,
-                Creation = 1,
-                TicksToDiscard = (int?)this.SecondsToComplete,
-                RemainingTimeInS = this.SecondsToComplete,
-                ContractCondition = null,
-                DefinitionId = definitionId,
-                ContractName = contractName,
-                ContractDescription = contractDescription
-            };
-
-            return newContract;
-        }
-
-        public MyObjectBuilder_Contract BuildAssignedContract()
+        public override MyObjectBuilder_Contract BuildAssignedContract()
         {
             return BuildUnassignedContract(Description);
         }
 
-        public Tuple<bool, MyContractResults> TryAcceptContract(CrunchPlayerData playerData, long identityId,
+        public override Tuple<bool, MyContractResults> TryAcceptContract(CrunchPlayerData playerData, long identityId,
             MyContractBlock __instance)
         {
             if (this.DeliverLocation.Equals(Vector3.Zero))
@@ -169,13 +133,6 @@ namespace CrunchEconContractModels.Contracts.MES
             this.AssignedPlayerSteamId = playerData.PlayerSteamId;
             return Tuple.Create(true, MyContractResults.Success);
         }
-
-        public void Start()
-        {
-            ExpireAt = DateTime.Now.AddSeconds(SecondsToComplete);
-            SendDeliveryGPS();
-        }
-
         private bool HasStarted = false;
 
         public string CommandToExecute { get; set; }
@@ -206,7 +163,7 @@ namespace CrunchEconContractModels.Contracts.MES
             }
         }
 
-        public bool Update100(Vector3 PlayersCurrentPosition)
+        public override bool Update100(Vector3 PlayersCurrentPosition)
         {
             if (DateTime.Now > ExpireAt)
             {
@@ -285,7 +242,7 @@ namespace CrunchEconContractModels.Contracts.MES
             return false;
         }
 
-        public bool TryCompleteContract(ulong steamId, Vector3D? currentPosition)
+        public override bool TryCompleteContract(ulong steamId, Vector3D? currentPosition)
         {
             if (DateTime.Now >= this.ExpireAt)
             {
@@ -325,7 +282,7 @@ namespace CrunchEconContractModels.Contracts.MES
             return false;
         }
 
-        public void FailContract()
+        public override void FailContract()
         {
             MyAPIGateway.Entities.OnEntityAdd -= OnEntityAdd;
             this.DeleteDeliveryGPS();
@@ -341,7 +298,7 @@ namespace CrunchEconContractModels.Contracts.MES
                 this.AssignedPlayerSteamId);
         }
 
-        public void SendDeliveryGPS()
+        public override void SendDeliveryGPS()
         {
             MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             StringBuilder sb = new StringBuilder();
@@ -360,31 +317,6 @@ namespace CrunchEconContractModels.Contracts.MES
             GpsId = gpsRef.Hash;
         }
 
-        public void DeleteDeliveryGPS()
-        {
-            MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
-            gpscol.SendDeleteGpsRequest(this.AssignedPlayerIdentityId, GpsId);
-        }
-
-        public int ReputationRequired { get; set; }
-        public long BlockId { get; set; }
-        public long AssignedPlayerIdentityId { get; set; }
-        public ulong AssignedPlayerSteamId { get; set; }
-        public int ReputationGainOnComplete { get; set; }
-        public int ReputationLossOnAbandon { get; set; }
-        public long FactionId { get; set; }
-        public long RewardMoney { get; set; }
-        public long DistanceReward { get; set; }
-        public Vector3 DeliverLocation { get; set; }
-        public DateTime ExpireAt { get; set; }
-        public string DefinitionId { get; set; } = "MyObjectBuilder_ContractTypeDefinition/Escort";
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public long SecondsToComplete { get; set; }
-        public int GpsId { get; set; }
-        public bool ReadyToDeliver { get; set; }
-        public long CollateralToTake { get; set; }
-        public long DeliveryFactionId { get; set; }
         public List<GridDestruction> GridsToDestroy = new List<GridDestruction>();
         public long UncollectedPay = 0;
 

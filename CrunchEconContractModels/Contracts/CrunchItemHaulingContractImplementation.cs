@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using CrunchEconV3;
+using CrunchEconV3.Abstracts;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
@@ -22,7 +23,7 @@ using VRageMath;
 
 namespace CrunchEconContractModels.Contracts
 {
-    public class CrunchItemHaulingContractImplementation : ICrunchContract
+    public class CrunchItemHaulingContractImplementation : ContractAbstract
     {
         public List<VRage.Game.ModAPI.IMyInventory> GetStationInventories(MyCubeGrid grid)
         {
@@ -45,42 +46,7 @@ namespace CrunchEconContractModels.Contracts
             return inventories;
         }
 
-        public string ContractType { get; set; }
-        public MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
-        {
-            string definition = this.DefinitionId;
-            string contractName = this.Name;
-            string contractDescription;
-            contractDescription = descriptionOverride != "" ? descriptionOverride : this.Description;
-
-            if (!MyDefinitionId.TryParse(definition, out var definitionId)) return null;
-            var newContract = new MyObjectBuilder_ContractCustom
-            {
-                SubtypeName = definition.Replace("MyObjectBuilder_ContractTypeDefinition/", ""),
-                Id = this.ContractId,
-                IsPlayerMade = false,
-                State = MyContractStateEnum.Active,
-                Owners = new MySerializableList<long>(),
-                RewardMoney = this.RewardMoney,
-                RewardReputation = this.ReputationGainOnComplete,
-                StartingDeposit = this.CollateralToTake,
-                FailReputationPrice = this.ReputationLossOnAbandon,
-                StartFaction = 1,
-                StartStation = 0,
-                StartBlock = this.BlockId,
-                Creation = 1,
-                TicksToDiscard = (int?)this.SecondsToComplete,
-                RemainingTimeInS = this.SecondsToComplete,
-                ContractCondition = null,
-                DefinitionId = definitionId,
-                ContractName = contractName,
-                ContractDescription = contractDescription
-            };
-
-            return newContract;
-        }
-
-        public MyObjectBuilder_Contract BuildAssignedContract()
+        public override MyObjectBuilder_Contract BuildAssignedContract()
         {
             var contractDescription = $"You must go deliver {this.ItemToDeliver.AmountToDeliver:##,###} {this.ItemToDeliver.TypeId.Replace("MyObjectBuilder_", "")} {this.ItemToDeliver.SubTypeId}";
 
@@ -89,7 +55,7 @@ namespace CrunchEconContractModels.Contracts
             return BuildUnassignedContract(contractDescription);
         }
 
-        public Tuple<bool, MyContractResults> TryAcceptContract(CrunchPlayerData playerData, long identityId, MyContractBlock __instance)
+        public override Tuple<bool, MyContractResults> TryAcceptContract(CrunchPlayerData playerData, long identityId, MyContractBlock __instance)
         {
             if (this.DeliverLocation.Equals(Vector3.Zero))
             {
@@ -143,7 +109,7 @@ namespace CrunchEconContractModels.Contracts
             this.AssignedPlayerSteamId = playerData.PlayerSteamId;
             return Tuple.Create(true, MyContractResults.Success);
         }
-        public void SendDeliveryGPS()
+        public override void SendDeliveryGPS()
         {
             MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             StringBuilder sb = new StringBuilder();
@@ -163,18 +129,7 @@ namespace CrunchEconContractModels.Contracts
             GpsId = gpsRef.Hash;
         }
 
-        public void DeleteDeliveryGPS()
-        {
-            MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
-            gpscol.SendDeleteGpsRequest(this.AssignedPlayerIdentityId, GpsId);
-        }
-        public void Start()
-        {
-            ExpireAt = DateTime.Now.AddSeconds(SecondsToComplete);
-            SendDeliveryGPS();
-        }
-
-        public bool Update100(Vector3 PlayersCurrentPosition)
+        public override bool Update100(Vector3 PlayersCurrentPosition)
         {
             if (DateTime.Now > ExpireAt)
             {
@@ -184,7 +139,7 @@ namespace CrunchEconContractModels.Contracts
 
             return false;
         }
-        public bool TryCompleteContract(ulong steamId, Vector3D? currentPosition)
+        public override bool TryCompleteContract(ulong steamId, Vector3D? currentPosition)
         {
             if (!MySession.Static.Players.TryGetPlayerBySteamId((ulong)this.AssignedPlayerSteamId, out var player))
                 return false;
@@ -246,41 +201,6 @@ namespace CrunchEconContractModels.Contracts
 
             return true;
         }
-
-        public void FailContract()
-        {
-            DeleteDeliveryGPS();
-            if (this.ReputationLossOnAbandon != 0)
-            {
-                MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId, this.FactionId, ReputationLossOnAbandon *= -1, ReputationChangeReason.Contract);
-            }
-
-            Core.SendMessage("Contracts",
-                DateTime.Now > ExpireAt ? $"{this.Name} failed, time expired." : $"{this.Name} failed.", Color.Red,
-                this.AssignedPlayerSteamId);
-        }
-        public int ReputationRequired { get; set; }
-        public long ContractId { get; set; }
-        public long BlockId { get; set; }
-        public long AssignedPlayerIdentityId { get; set; }
-        public ulong AssignedPlayerSteamId { get; set; }
-        public int ReputationGainOnComplete { get; set; }
-        public int ReputationLossOnAbandon { get; set; }
-        public long FactionId { get; set; }
-        public long RewardMoney { get; set; }
-        public long DistanceReward { get; set; }
-        public Vector3 DeliverLocation { get; set; }
-        public DateTime ExpireAt { get; set; }
-        public string DefinitionId { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public long SecondsToComplete { get; set; }
-
-        public long DeliveryFactionId { get; set; }
-
-        public int GpsId { get; set; }
-        public bool ReadyToDeliver { get; set; }
-        public long CollateralToTake { get; set; }
         public ItemToDeliver ItemToDeliver { get; set; }
         public bool PlaceItemsInTargetStation { get; set; }
         public List<string> CargoNames = new List<string>();
