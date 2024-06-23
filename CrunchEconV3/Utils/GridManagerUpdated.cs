@@ -298,7 +298,7 @@ namespace CrunchEconV3.Utils
             // Convert object builder to entity and add it to the world
             MyAPIGateway.Entities.RemapObjectBuilder(gridToPaste); // Remap to avoid conflicts
             MyCubeGrid newEntity = (MyCubeGrid)MyAPIGateway.Entities.CreateFromObjectBuilderParallel(gridToPaste, true);
-
+          
             //if (newEntity != null)
             //{
             //    // Successfully added the grid to the world
