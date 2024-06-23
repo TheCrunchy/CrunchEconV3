@@ -31,40 +31,6 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
 {
     public class MiningContractImplementation : ContractAbstract
     {
-        public override MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
-        {
-            string definition = this.DefinitionId;
-            string contractName = this.Name;
-            string contractDescription;
-            contractDescription = descriptionOverride != "" ? descriptionOverride : this.Description;
-
-            if (!MyDefinitionId.TryParse(definition, out var definitionId)) return null;
-            var newContract = new MyObjectBuilder_ContractCustom
-            {
-                SubtypeName = definition.Replace("MyObjectBuilder_ContractTypeDefinition/", ""),
-                Id = this.ContractId,
-                IsPlayerMade = false,
-                State = MyContractStateEnum.Active,
-                Owners = new MySerializableList<long>(),
-                RewardMoney = this.RewardMoney,
-                RewardReputation = this.ReputationGainOnComplete,
-                StartingDeposit = this.CollateralToTake,
-                FailReputationPrice = this.ReputationLossOnAbandon,
-                StartFaction = 1,
-                StartStation = 0,
-                StartBlock = this.BlockId,
-                Creation = 1,
-                TicksToDiscard = (int?)this.SecondsToComplete,
-                RemainingTimeInS = (DateTime.Now -ExpireAt).TotalSeconds,
-                ContractCondition = null,
-                DefinitionId = definitionId,
-                ContractName = contractName,
-                ContractDescription = contractDescription
-            };
-
-            return newContract;
-        }
-
         public override MyObjectBuilder_Contract BuildAssignedContract()
         {
             var contractDescription = $"You must go mine {this.AmountToMine - this.MinedOreAmount:##,###} {this.OreSubTypeName} using a ship drill, then return here.";
