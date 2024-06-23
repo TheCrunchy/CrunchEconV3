@@ -55,7 +55,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
                 StartBlock = this.BlockId,
                 Creation = 1,
                 TicksToDiscard = (int?)this.SecondsToComplete,
-                RemainingTimeInS = this.SecondsToComplete,
+                RemainingTimeInS = (DateTime.Now -ExpireAt).TotalSeconds,
                 ContractCondition = null,
                 DefinitionId = definitionId,
                 ContractName = contractName,
