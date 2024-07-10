@@ -11,13 +11,15 @@ using VRage.Utils;
 
 namespace CrunchEconContractModels.Patches
 {
+    [PatchShim]
     public static class DrillCrashFix
     {
         private static int patchCount = 0;
         public static void Patch(PatchContext ctx)
         {
+      
             patchCount++;
-            if (patchCount >= 1)
+            if (patchCount > 1)
             {
                 return;
             }
@@ -36,11 +38,17 @@ namespace CrunchEconContractModels.Patches
             typeof(DrillCrashFix).GetMethod(nameof(DrillEnvironment), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
-        public static bool DrillEnvironment(MyDrillSensorBase.DetectionInfo entry,
+        public static bool DrillEnvironment(MyDrillBase __instance, MyDrillSensorBase.DetectionInfo entry,
             float speedMultiplier,
             out MyStringHash targetMaterial)
         {
             targetMaterial = MyStringHash.GetOrCompute("Wood");
+            if (__instance.OutputInventory != null && __instance.OutputInventory.Owner is MyShipDrill)
+            {
+                Core.Log.Info("Prevented a crash by denying tree kill by ship drill");
+                return false;
+            }
+       
             if (patchCount >= 1)
             {
                 return true;

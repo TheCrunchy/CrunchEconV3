@@ -136,7 +136,7 @@ namespace CrunchEconV3.Abstracts
                 if (this.ReputationGainOnComplete != 0)
                 {
                     MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
-                        this.FactionId, this.ReputationGainOnComplete, ReputationChangeReason.Contract, true);
+                        this.FactionId, this.ReputationGainOnComplete, ReputationChangeReason.Admin, true);
                 }
 
                 return true;

@@ -207,18 +207,20 @@ namespace CrunchEconContractModels.Contracts
     [PatchShim]
     public static class DrillPatch
     {
-
+        private static int PatchCount = 0;
         public static void Patch(PatchContext ctx)
         {
+            if (PatchCount >= 1)
+            {
+                return;
+            }
+
+            PatchCount++;
             CrunchEconV3.Core.Log.Error("PATCHING DRILL");
             ctx.GetPattern(update).Suffixes.Add(updatePatch);
         }
 
-        public static void UnPatch(PatchContext ctx)
-        {
-            CrunchEconV3.Core.Log.Error("UNPATCHING DRILL");
-            ctx.GetPattern(update).Suffixes.Remove(updatePatch);
-        }
+     
 
         public static Dictionary<ulong, DateTime> messageCooldown = new Dictionary<ulong, DateTime>();
 
@@ -237,6 +239,11 @@ namespace CrunchEconContractModels.Contracts
             bool collectOre,
             Action<bool> OnDrillingPerformed = null)
         {
+            if (PatchCount >= 1)
+            {
+                return;
+            }
+
             if (!collectOre)
             {
                 return;
@@ -285,58 +292,43 @@ namespace CrunchEconContractModels.Contracts
                         if (material.Key == null)
                         {
                             Core.Log.Info("material key null");
-                            return;
+                            continue;
                         }
                         if (string.IsNullOrEmpty(material.Key.MinedOre))
-                            return;
+                            continue;
 
                         if (material.Value <= 0)
                         {
                             continue;
                         }
-                     //   Core.Log.Info("1");
+
                         MyObjectBuilder_Ore newObject = MyObjectBuilderSerializerKeen.CreateNewObject<MyObjectBuilder_Ore>(material.Key.MinedOre);
-                      //  Core.Log.Info("2");
                         newObject.MaterialTypeName = new MyStringHash?(material.Key.Id.SubtypeId);
-                      //  Core.Log.Info("3");
                         float num = (float)(material.Value / (double)byte.MaxValue * 1.0) * __instance.VoxelHarvestRatio * material.Key.MinedOreRatio;
-                      //  Core.Log.Info("4");
                         if (!MySession.Static.AmountMined.ContainsKey(material.Key.MinedOre))
                             MySession.Static.AmountMined[material.Key.MinedOre] = (MyFixedPoint)0;
-                      //  Core.Log.Info("5");
                         MySession.Static.AmountMined[material.Key.MinedOre] += (MyFixedPoint)num;
-                      //  Core.Log.Info("6");
                         MyPhysicalItemDefinition physicalItemDefinition = MyDefinitionManager.Static.GetPhysicalItemDefinition((MyObjectBuilder_Base)newObject);
-                       // Core.Log.Info("7");
                         MyFixedPoint amountItems1 = (MyFixedPoint)(num / physicalItemDefinition.Volume);
-                      //  Core.Log.Info("8");
                         MyFixedPoint maxAmountPerDrop = (MyFixedPoint)(float)(0.150000005960464 / (double)physicalItemDefinition.Volume);
-                      //  Core.Log.Info("9");
 
 
                         MyFixedPoint collectionRatio = (MyFixedPoint)drill.GetField("m_inventoryCollectionRatio", BindingFlags.NonPublic | BindingFlags.Instance).GetValue((object)__instance);
-                       // Core.Log.Info("10");
                         MyFixedPoint b = amountItems1 * ((MyFixedPoint)1 - collectionRatio);
-                      //  Core.Log.Info("11");
                         MyFixedPoint amountItems2 = MyFixedPoint.Min(maxAmountPerDrop * 10 - (MyFixedPoint)0.001, b);
-                      //  Core.Log.Info("12");
                         MyFixedPoint totalAmount = amountItems1 * collectionRatio - amountItems2;
-                   //     Core.Log.Info("13");
                         if (totalAmount > 0)
                         {
                             if (MinedAmount.ContainsKey(material.Key.MinedOre))
                             {
-                               // Core.Log.Info("14");
                                 MinedAmount[material.Key.MinedOre] += totalAmount.ToIntSafe();
                             }
                             else
                             {
-                             //   Core.Log.Info("15");
                                 MinedAmount.Add(material.Key.MinedOre, totalAmount.ToIntSafe());
                             }
                         }
                     }
-                   // Core.Log.Info("16");
                     foreach (var mined in MinedAmount)
                     {
                         var contracts = data.PlayersContracts.Where(x => x.Value != null && x.Value.ContractType == "CrunchMining");
