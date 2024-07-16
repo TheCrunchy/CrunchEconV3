@@ -259,21 +259,21 @@ namespace CrunchEconContractModels.Contracts
             {
                 return null;
             }
-            description.AppendLine($"Deliver {contract.ItemToDeliver.AmountToDeliver} {contract.ItemToDeliver.TypeId.Replace("MyObjectBuilder_", "")} {contract.ItemToDeliver.SubTypeId}");
-
-            if (this.BonusPerKMDistance != 0)
+           
+            var distance = Vector3.Distance(contract.DeliverLocation, __instance != null ? __instance.PositionComp.GetPosition() : keenstation.Position);
+            var division = distance / 1000;
+            var distanceBonus = (long)(division * this.BonusPerKMDistance);
+            if (division > 2)
             {
-                var distance = Vector3.Distance(contract.DeliverLocation, __instance != null ? __instance.PositionComp.GetPosition() : keenstation.Position);
-                var division = distance / 1000;
-                var distanceBonus = (long)(division * this.BonusPerKMDistance);
-                if (distanceBonus > 0)
-                {
-                    contract.DistanceReward += distanceBonus;
-                }
-                description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###} - Distance to target: {Math.Round(distance)} KM");
-
+                contract.DistanceReward += distanceBonus;
+                description.AppendLine($"Deliver {contract.ItemToDeliver.AmountToDeliver} {contract.ItemToDeliver.TypeId.Replace("MyObjectBuilder_", "")} {contract.ItemToDeliver.SubTypeId} to another station");
+                description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###}");
+                description.AppendLine($" ||| Distance to target: {Math.Round(division)} km");
             }
-
+            else
+            {
+                description.AppendLine($"Deliver {contract.ItemToDeliver.AmountToDeliver} {contract.ItemToDeliver.TypeId.Replace("MyObjectBuilder_", "")} {contract.ItemToDeliver.SubTypeId} to this station");
+            }
 
 
             if (this.ReputationRequired != 0)
