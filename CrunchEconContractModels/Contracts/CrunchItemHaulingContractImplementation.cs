@@ -270,7 +270,7 @@ namespace CrunchEconContractModels.Contracts
                 {
                     contract.DistanceReward += distanceBonus;
                 }
-                description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###} - Distance to target: {Math.Round(distance)} KM");
+                description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###} - Distance to target: {Math.Round(distance) / 1000} KM");
 
             }
 

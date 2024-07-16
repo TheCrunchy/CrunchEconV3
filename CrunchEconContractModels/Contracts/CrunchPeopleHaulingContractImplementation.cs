@@ -502,7 +502,7 @@ namespace CrunchEconContractModels.Contracts
 
             description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###}");
             var distance2 = Vector3.Distance(contract.DeliverLocation, __instance != null ? __instance.PositionComp.GetPosition() : keenstation.Position);
-            description.AppendLine($" ||| Distance to target: {Math.Round(distance2)} KM");
+            description.AppendLine($" ||| Distance to target: {Math.Round(distance2) / 1000} KM");
 
             if (this.ReputationRequired != 0)
             {

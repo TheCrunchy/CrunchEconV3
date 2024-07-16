@@ -220,6 +220,8 @@ namespace CrunchEconContractModels.Contracts
             contract.SecondsToComplete = this.SecondsToComplete;
             contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver";
             contract.Name = $"{contract.GasName} Delivery";
+            var planetName = "";
+            contract.Name = $"{planetName} Item Delivery";
             contract.ReputationRequired = this.ReputationRequired;
             contract.ReadyToDeliver = true;
             contract.CollateralToTake = (CrunchEconV3.Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));
@@ -236,7 +238,7 @@ namespace CrunchEconContractModels.Contracts
                 return null;
             }
             var distance = Vector3.Distance(contract.DeliverLocation, __instance != null ? __instance.PositionComp.GetPosition() : keenstation.Position);
-            description.AppendLine($" ||| Distance to target: {Math.Round(distance)} KM");
+            description.AppendLine($" ||| Distance to target: {Math.Round(distance) / 1000} KM");
 
             contract.Description = description.ToString();
             return contract;
