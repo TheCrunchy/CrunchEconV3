@@ -1,10 +1,12 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using CrunchEconContractModels.PlugAndPlay.Helpers;
 using CrunchEconV3.Abstracts;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.PlugAndPlay.Helpers;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
+using VRageMath;
 
 namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
 {
@@ -44,6 +46,9 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             {
                 description.AppendLine($" ||| Reputation with owner required: {this.ReputationRequired}");
             }
+
+            float distance = Vector3.Distance(contract.DeliverLocation, __instance != null ? __instance.CubeGrid.PositionComp.GetPosition() : keenstation.Position);
+            description.AppendLine($" ||| Distance to target: {Math.Round(distance) / 1000} KM");
 
             contract.Description = description.ToString();
             return contract;
