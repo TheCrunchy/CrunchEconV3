@@ -259,6 +259,8 @@ namespace CrunchEconContractModels.Contracts
             {
                 return null;
             }
+            description.AppendLine($"Deliver {contract.ItemToDeliver.AmountToDeliver} {contract.ItemToDeliver.TypeId.Replace("MyObjectBuilder_", "")} {contract.ItemToDeliver.SubTypeId}");
+
             if (this.BonusPerKMDistance != 0)
             {
                 var distance = Vector3.Distance(contract.DeliverLocation, __instance != null ? __instance.PositionComp.GetPosition() : keenstation.Position);
@@ -268,11 +270,11 @@ namespace CrunchEconContractModels.Contracts
                 {
                     contract.DistanceReward += distanceBonus;
                 }
+                description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###} - Distance to target: {Math.Round(distance)} KM");
+
             }
 
-            description.AppendLine($"Deliver {contract.ItemToDeliver.AmountToDeliver} {contract.ItemToDeliver.TypeId.Replace("MyObjectBuilder_", "")} {contract.ItemToDeliver.SubTypeId}");
 
-            description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###}");
 
             if (this.ReputationRequired != 0)
             {

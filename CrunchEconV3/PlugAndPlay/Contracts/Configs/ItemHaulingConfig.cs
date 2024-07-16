@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using CrunchEconContractModels.PlugAndPlay.Helpers;
 using CrunchEconV3.Abstracts;
@@ -41,8 +42,9 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             contract.ReadyToDeliver = true;
             description.AppendLine(
                 $"Deliver {contract.ItemToDeliver.AmountToDeliver} {contract.ItemToDeliver.TypeId.Replace("MyObjectBuilder_", "")} {contract.ItemToDeliver.SubTypeId}");
-
-            description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###}");
+            float distance = 0;
+            distance = Vector3.Distance(contract.DeliverLocation, __instance != null ? __instance.CubeGrid.PositionComp.GetPosition() : keenstation.Position);
+            description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###} - Distance to target: {Math.Round(distance) / 1000} KM");
 
             if (this.ReputationRequired != 0)
             {

@@ -232,6 +232,10 @@ namespace CrunchEconContractModels.Contracts
             {
                 return null;
             }
+
+            var distance = Vector3.Distance(contract.DeliverLocation, __instance != null ? __instance.PositionComp.GetPosition() : keenstation.Position);
+            description.AppendLine($" ||| Distance to target: {Math.Round(distance)} KM");
+
             contract.Description = description.ToString();
             return contract;
         }
