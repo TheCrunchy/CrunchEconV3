@@ -98,12 +98,12 @@ namespace CrunchEconV3.Abstracts
                 }
             }
 
-            if (MySession.Static.Settings.EnableEconomy && keenstation != null)
+            if (MySession.Static.Settings.EnableEconomy)
             {
                 var positions = MySession.Static.Factions.GetNpcFactions()
                     .Where(x => x.Stations.Any())
                     .SelectMany(x => x.Stations)
-                    .Where(x => x.StationEntityId != keenstation.StationEntityId)
+                    .Where(x => x.StationEntityId != keenstation?.StationEntityId)
                     .Select(x => Tuple.Create(x.Position, x.FactionId))
                     .ToList();
                 availablePositions.AddRange(positions);
