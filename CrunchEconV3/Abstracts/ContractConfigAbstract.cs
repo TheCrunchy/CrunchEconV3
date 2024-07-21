@@ -98,7 +98,7 @@ namespace CrunchEconV3.Abstracts
                 }
             }
 
-            if (MySession.Static.Settings.EnableEconomy)
+            if (MySession.Static.Settings.EnableEconomy && keenstation != null)
             {
                 var positions = MySession.Static.Factions.GetNpcFactions()
                     .Where(x => x.Stations.Any())
