@@ -65,6 +65,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -110,6 +111,7 @@
     <Compile Include="Contracts\SearchContractImplementation.cs" />
     <Compile Include="Contracts\testing.cs" />
     <Compile Include="DynamicEconomy\DamageBlockerScriptThingy.cs" />
+    <Compile Include="DynamicEconomy\KeenStoreSender.cs" />
     <Compile Include="DynamicEconomy\StoreLoggingForDynamic.cs" />
     <Compile Include="DynamicEconomy\StoreLogReader.cs" />
     <Compile Include="DynamicEconomy\TaxCollectionScript.cs" />
