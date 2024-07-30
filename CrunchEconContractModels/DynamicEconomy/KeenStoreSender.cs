@@ -5,16 +5,73 @@ using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
-using CoreSystems.Api;
-using Newtonsoft.Json;
-using ProtoBuf;
+using CrunchEconV3;
+using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.World;
+using Torch.Managers.PatchManager;
+using VRage.Game.ObjectBuilders.Definitions;
 
 namespace CrunchEconContractModels.DynamicEconomy
 {
-    public class KeenStoreSender
+    [PatchShim]
+    public static class KeenStoreSender
     {
-        public Guid ServerId = Guid.NewGuid();
-        public void SendStoreData(List<KeenNPCStoreEntry> entries)
+
+        public static void Patch(PatchContext ctx)
+        {
+            Core.Log.Info("Adding keen patch");
+            Core.UpdateCycle += Update;
+        }
+
+        private static int Ticks;
+        public static void Update()
+        {
+            Ticks++;
+            if (Ticks % 600 == 0)
+            {
+                var itemsToSend = new List<KeenNPCStoreEntry>();
+                foreach (KeyValuePair<long, MyFaction> faction in MySession.Static.Factions)
+                {
+                    foreach (MyStation station in faction.Value.Stations)
+                    {
+                        if (station.StoreItems == null)
+                        {
+                            continue;
+                        }
+                        
+                        foreach (var item in station.StoreItems)
+                        {
+                            try
+                            {
+                                itemsToSend.Add(ToKeenNPCStoreEntry(item, station, faction.Value.Tag));
+                            }
+                            catch (Exception e)
+                            {
+                            }
+                        }
+                    }
+                }
+
+                SendStoreData(itemsToSend);
+            }
+        }
+        public static KeenNPCStoreEntry ToKeenNPCStoreEntry(MyStoreItem Item,MyStation station, string ownerFactionTag)
+        {
+            return new KeenNPCStoreEntry
+            {
+                TypeId = Item?.Item.Value.TypeIdString ?? "",
+                SubTypeId = Item?.Item.Value.SubtypeName ?? "",
+                Amount = Item.Amount,
+                Price = Item.PricePerUnit,
+                SaleType = Item.StoreItemType == StoreItemTypes.Offer ? StoreSaleType.SellToPlayers : StoreSaleType.BuyFromPlayers,
+                GridName = station.PrefabName ?? string.Empty,
+                ExpireAt = DateTime.Now.AddSeconds(60),
+                KeenStationId = station.Id,
+                OwnerFactionTag = ownerFactionTag
+            };
+        }
+        public static Guid ServerId = Guid.NewGuid();
+        public static void SendStoreData(List<KeenNPCStoreEntry> entries)
         {
             Task.Run(async () =>
             {
@@ -54,11 +111,11 @@ namespace CrunchEconContractModels.DynamicEconomy
 
                     // Output the response for verification
                     var responseBody = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine(responseBody);
+                    Core.Log.Info(responseBody);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Request failed: {ex.Message}");
+                    Core.Log.Error($"Request failed: {ex.Message}");
                 }
                 finally
                 {
