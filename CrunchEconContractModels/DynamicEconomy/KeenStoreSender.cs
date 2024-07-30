@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
@@ -70,7 +71,7 @@ namespace CrunchEconContractModels.DynamicEconomy
                 OwnerFactionTag = ownerFactionTag
             };
         }
-        public static Guid ServerId = Guid.NewGuid();
+        public static Guid ServerId = Guid.Empty;
         public static void SendStoreData(List<KeenNPCStoreEntry> entries)
         {
             Task.Run(async () =>
@@ -130,13 +131,19 @@ namespace CrunchEconContractModels.DynamicEconomy
         }
     }
 
+    [DataContract]
     public class APIMessage
     {
+        [DataMember]
         public Guid ServerId { get; set; }
+        [DataMember]
         public string ServerName { get; set; }
+        [DataMember]
         public string APIKEY = "";
+        [DataMember]
         public string JsonMessage = "";
     }
+
     public class StoreEntry
     {
         public string TypeId { get; set; }
