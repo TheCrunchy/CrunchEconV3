@@ -37,12 +37,20 @@ namespace CrunchEconContractModels.ProductionBuffs
                     SpeedBuffs =
                         new Dictionary<string, List<BuffThreshold>>
                         {
-                            { "Stone", new List<BuffThreshold> { new BuffThreshold() {Amount = 1000, Buff = 1.01f}} }
+                            { "Stone", new List<BuffThreshold> { 
+                                    new BuffThreshold() {Amount = 1000000, Buff = 1.025f},
+                                new BuffThreshold() {Amount = 2500000, Buff = 1.05f},
+                                new BuffThreshold() {Amount = 5000000, Buff = 1.1f},
+                                new BuffThreshold() {Amount = 10000000, Buff = 1.25f}} }
                         },
                     YieldBuffs = 
                         new Dictionary<string, List<BuffThreshold>>
                         {
-                            { "Stone", new List<BuffThreshold> { new BuffThreshold() {Amount = 1000, Buff = 1.01f}} }
+                            { "Stone", new List<BuffThreshold> {
+                                new BuffThreshold() {Amount = 1000000, Buff = 1.025f},
+                                new BuffThreshold() {Amount = 2500000, Buff = 1.05f},
+                                new BuffThreshold() {Amount = 5000000, Buff = 1.1f},
+                                new BuffThreshold() {Amount = 10000000, Buff = 1.25f}} }
                         },
                 };
                 Utils.WriteToJsonFile(orePath, OreBuffs);
