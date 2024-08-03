@@ -39,6 +39,7 @@ namespace CrunchEconV3.Models
             PlayersContracts.Remove(contract.ContractId);
         }
 
-    
+        [JsonIgnore]
+        public Action<bool, ICrunchContract> ContractFinished { get; set; }
     }
 }

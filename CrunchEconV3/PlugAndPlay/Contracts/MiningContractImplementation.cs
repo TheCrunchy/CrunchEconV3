@@ -220,6 +220,10 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
             bool collectOre,
             Action<bool> OnDrillingPerformed = null)
         {
+            if (Core.CompileFailed)
+            {
+                return;
+            }
             if (!collectOre)
             {
                 return;
