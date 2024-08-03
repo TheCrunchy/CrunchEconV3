@@ -232,7 +232,11 @@ namespace CrunchEconContractModels.Contracts
             typeof(DrillPatch).GetMethod(nameof(PatchResults), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
+
         public static Type drill = null;
+
+
+
         public static void PatchResults(MyDrillBase __instance,
             Dictionary<MyVoxelMaterialDefinition, int> materials,
             Vector3D hitPosition,

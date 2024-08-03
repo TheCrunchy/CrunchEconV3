@@ -39,8 +39,6 @@ namespace CrunchEconV3.Models
             PlayersContracts.Remove(contract.ContractId);
         }
 
-        //true for completed, false for failed
-        [JsonIgnore]
-        public Action<bool, ICrunchContract> ContractFinished;
+    
     }
 }

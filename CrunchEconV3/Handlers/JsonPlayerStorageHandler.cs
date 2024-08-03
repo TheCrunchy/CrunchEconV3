@@ -116,5 +116,7 @@ namespace CrunchEconV3.Handlers
 
             }
         }
+
+        public Action<bool, ICrunchContract> ContractFinished { get; set; }
     }
 }

@@ -293,12 +293,14 @@ namespace CrunchEconV3.Patches
                         try
                         {
                             var completed = contract.TryCompleteContract(playerData.PlayerSteamId, player.Character.PositionComp.GetPosition());
+                 
                             if (completed)
                             {
+                                Core.PlayerStorage.ContractFinished?.Invoke(completed, contract);
                                 deleteThese.Add(contract);
                                 Core.SendMessage("Contracts", $"{contract.Name} completed!, you have been paid.", Color.Green, player.Id.SteamId);
                                 contract.DeleteDeliveryGPS();
-                                playerData.ContractFinished?.Invoke(true, contract);
+                                    //playerData.ContractFinished?.Invoke(true, contract);
                                 continue;
                             }
                         }

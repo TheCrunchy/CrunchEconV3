@@ -247,7 +247,6 @@ namespace CrunchEconContractModels.Contracts.MES
             if (DateTime.Now >= this.ExpireAt)
             {
                 var playerData = Core.PlayerStorage.GetData(this.AssignedPlayerSteamId);
-                playerData.ContractFinished?.Invoke(true, this);
                 MyAPIGateway.Entities.OnEntityAdd -= OnEntityAdd;
                 if (this.UncollectedPay >= this.RewardMoney)
                 {
@@ -270,7 +269,6 @@ namespace CrunchEconContractModels.Contracts.MES
             if (this.UncollectedPay >= 0)
             {
                 var playerData = Core.PlayerStorage.GetData(this.AssignedPlayerSteamId);
-                playerData.ContractFinished?.Invoke(true, this);
                 CrunchEconV3.Core.SendMessage("Contracts",
                     DateTime.Now > ExpireAt ? $"{this.Name}, Time Expired." : $"{this.Name}", Color.Green,
                     this.AssignedPlayerSteamId);
@@ -292,7 +290,6 @@ namespace CrunchEconContractModels.Contracts.MES
                     ReputationLossOnAbandon *= -1, ReputationChangeReason.Contract);
             }
             var playerData = Core.PlayerStorage.GetData(this.AssignedPlayerSteamId);
-            playerData.ContractFinished?.Invoke(false, this);
             CrunchEconV3.Core.SendMessage("Contracts",
                 DateTime.Now > ExpireAt ? $"{this.Name}, Abandoned." : $"{this.Name}", Color.Red,
                 this.AssignedPlayerSteamId);

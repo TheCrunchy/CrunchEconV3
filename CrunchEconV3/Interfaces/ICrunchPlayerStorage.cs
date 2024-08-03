@@ -18,5 +18,7 @@ namespace CrunchEconV3.Interfaces
         public void LoadLogin(IPlayer player);
 
         public void Save(CrunchPlayerData PlayerData);
+
+        public Action<bool, ICrunchContract> ContractFinished { get; set; }
     }
 }
