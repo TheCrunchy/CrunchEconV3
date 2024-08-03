@@ -8,6 +8,7 @@ using CrunchEconV3.Abstracts;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
+using EmptyKeys.UserInterface.Generated.PlayerTradeView_Bindings;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
@@ -201,6 +202,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
         {
             CrunchEconV3.Core.Log.Error("PATCHING DRILL");
             ctx.GetPattern(update).Suffixes.Add(updatePatch);
+           // ctx.GetPattern(updateHarvest).Prefixes.Add(updatePatchHarvest);
         }
 
         public static Dictionary<ulong, DateTime> messageCooldown = new Dictionary<ulong, DateTime>();
@@ -209,9 +211,36 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
             typeof(MyDrillBase).GetMethod("OnDrillResults", BindingFlags.Instance | BindingFlags.NonPublic) ??
             throw new Exception("Failed to find patch method");
 
+        internal static readonly MethodInfo updateHarvest =
+            typeof(MyDrillBase).GetMethod("TryHarvestOreMaterial", BindingFlags.Instance | BindingFlags.NonPublic) ??
+            throw new Exception("Failed to find patch method TryHarvestOreMaterial");
+
         internal static readonly MethodInfo updatePatch =
             typeof(DrillPatch).GetMethod(nameof(PatchResults), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
+
+        internal static readonly MethodInfo updatePatchHarvest =
+            typeof(DrillPatch).GetMethod(nameof(TryHarvestOreMaterial), BindingFlags.Static | BindingFlags.Public) ??
+            throw new Exception("Failed to find patch method 2 TryHarvestOreMaterial");
+
+        public static void TryHarvestOreMaterial(MyDrillBase __instance,
+            MyVoxelMaterialDefinition material,
+            Vector3D hitPosition,
+           ref int removedAmount,
+            bool onlyCheck)
+        {
+            if (string.IsNullOrEmpty(material.MinedOre))
+                return;
+            if (onlyCheck)
+                return;
+
+            Core.Log.Info(material.MinedOre);
+            if (material.MinedOre is "Ice")
+            {
+                removedAmount *= 10;
+            }
+            return;
+        }
 
         public static Type drill = null;
         public static void PatchResults(MyDrillBase __instance,
