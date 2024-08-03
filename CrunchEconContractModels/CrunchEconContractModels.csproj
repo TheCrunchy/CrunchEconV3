@@ -110,7 +110,7 @@
     <Compile Include="Contracts\Quests\Stages.cs" />
     <Compile Include="Contracts\SearchContractImplementation.cs" />
     <Compile Include="Contracts\testing.cs" />
-    <Compile Include="DynamicEconomy\ContractLogger.cs" />
+    <Compile Include="ProductionBuffs\MiningContractLogger.cs" />
     <Compile Include="DynamicEconomy\DamageBlockerScriptThingy.cs" />
     <Compile Include="DynamicEconomy\KeenStoreSender.cs" />
     <Compile Include="DynamicEconomy\StoreLoggingForDynamic.cs" />

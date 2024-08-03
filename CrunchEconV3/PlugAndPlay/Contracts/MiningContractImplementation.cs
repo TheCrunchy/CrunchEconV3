@@ -203,12 +203,6 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
             ctx.GetPattern(update).Suffixes.Add(updatePatch);
         }
 
-        public static void UnPatch(PatchContext ctx)
-        {
-            CrunchEconV3.Core.Log.Error("UNPATCHING DRILL");
-            ctx.GetPattern(update).Suffixes.Remove(updatePatch);
-        }
-
         public static Dictionary<ulong, DateTime> messageCooldown = new Dictionary<ulong, DateTime>();
 
         internal static readonly MethodInfo update =
@@ -276,10 +270,10 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
                 if (material.Key == null)
                 {
                     Core.Log.Info("material key null");
-                    return;
+                    continue;
                 }
                 if (string.IsNullOrEmpty(material.Key.MinedOre))
-                    return;
+                    continue;
 
                 if (material.Value <= 0)
                 {
@@ -321,7 +315,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
                     if (mining == null)
                     {
                         Core.Log.Info("Mining contract was null? the fuck");
-                        return;
+                        continue;
                     }
                     if (mining.OreSubTypeName != mined.Key) continue;
                     if (mining.MinedOreAmount >= mining.AmountToMine) continue;
