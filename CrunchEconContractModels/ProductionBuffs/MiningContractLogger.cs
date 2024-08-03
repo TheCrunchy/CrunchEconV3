@@ -18,16 +18,39 @@ namespace CrunchEconContractModels.ProductionBuffs
     {
         private static string Folder;
         private static FileUtils Utils = new FileUtils();
+        public static OreBuffThresholds OreBuffs;
         public static void Patch(PatchContext ctx)
         {
             Core.Session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += LoadLogin;
             Core.UpdateCycle += UpdateExample;
 
             Folder = $"{Core.path}\\CompletedMiningData";
+            var orePath = $"{Core.path}\\OreProductionBuffs.json";
+            if (File.Exists(orePath))
+            {
+                OreBuffs = Utils.ReadFromJsonFile<OreBuffThresholds>(orePath);
+            }
+            else
+            {
+                OreBuffs = new OreBuffThresholds()
+                {
+                    SpeedBuffs =
+                        new Dictionary<string, List<BuffThreshold>>
+                        {
+                            { "Stone", new List<BuffThreshold> { new BuffThreshold() {Amount = 1000, Buff = 1.01f}} }
+                        },
+                    YieldBuffs = 
+                        new Dictionary<string, List<BuffThreshold>>
+                        {
+                            { "Stone", new List<BuffThreshold> { new BuffThreshold() {Amount = 1000, Buff = 1.01f}} }
+                        },
+                };
+                Utils.WriteToJsonFile(orePath, OreBuffs);
+            }
             Directory.CreateDirectory(Folder);
         }
         private static int ticks;
-
+     
         public static void UpdateExample()
         {
             if (ticks == 0)
@@ -138,6 +161,21 @@ namespace CrunchEconContractModels.ProductionBuffs
         public class FinishedContractsModel
         {
             public Dictionary<string, long> FinishedTypes = new Dictionary<string, long>();
+        }
+
+        public class OreBuffThresholds
+        {
+            public Dictionary<string, List<BuffThreshold>> YieldBuffs =
+                new Dictionary<string, List<BuffThreshold>>();
+
+            public Dictionary<string, List<BuffThreshold>> SpeedBuffs =
+                new Dictionary<string, List<BuffThreshold>>();
+        }
+
+        public class BuffThreshold
+        {
+            public long Amount;
+            public float Buff;
         }
     }
 }
