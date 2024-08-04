@@ -12,6 +12,7 @@ using CrunchEconV3.PlugAndPlay.Models;
 using CrunchEconV3.Utils;
 using Sandbox.Definitions;
 using Sandbox.Game.World;
+using Torch;
 using Torch.API;
 using Torch.API.Managers;
 using Torch.Managers.PatchManager;
@@ -23,7 +24,8 @@ namespace CrunchEconContractModels.ProductionBuffs
         private static string Folder;
         private static FileUtils Utils = new FileUtils();
         public static OreBuffThresholds OreBuffs;
-        public static DrillBuffThresholds DrillBuffs;
+        public static GenericBuffThresholds DrillBuffs;
+        public static GenericBuffThresholds AssemblerBuffs;
         public static void Patch(PatchContext ctx)
         {
             Core.Session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += LoadLogin;
@@ -32,15 +34,39 @@ namespace CrunchEconContractModels.ProductionBuffs
             Folder = $"{Core.path}\\CompletedContractData";
             var orePath = $"{Core.path}\\OreProductionBuffs.json";
             var drillPath = $"{Core.path}\\DrillYieldBuffs.json";
-            if (File.Exists(drillPath))
+            var assemblerPath = $"{Core.path}\\AssemblerSpeedBuffs.json";
+            if (File.Exists(assemblerPath))
             {
-                DrillBuffs = Utils.ReadFromJsonFile<DrillBuffThresholds>(drillPath);
+                AssemblerBuffs = Utils.ReadFromJsonFile<GenericBuffThresholds>(assemblerPath);
             }
             else
             {
-                DrillBuffs = new DrillBuffThresholds()
+                AssemblerBuffs = new GenericBuffThresholds()
                 {
-                    DrillYieldBuffs = new Dictionary<string, List<BuffThreshold>>()
+                    Buffs = new Dictionary<string, List<BuffThreshold>>()
+
+                };
+
+                AssemblerBuffs.Buffs["Item Delivery"] = new List<BuffThreshold>
+                    {
+                        new BuffThreshold() { Amount = 10, Buff = 1.05f },
+                        new BuffThreshold() { Amount = 50, Buff = 1.15f },
+                        new BuffThreshold() { Amount = 100, Buff = 1.25f },
+                        new BuffThreshold() { Amount = 250, Buff = 1.5f },
+                        new BuffThreshold() { Amount = 500, Buff = 2f }
+                    };
+                
+                Utils.WriteToJsonFile(assemblerPath, AssemblerBuffs);
+            }
+            if (File.Exists(drillPath))
+            {
+                DrillBuffs = Utils.ReadFromJsonFile<GenericBuffThresholds>(drillPath);
+            }
+            else
+            {
+                DrillBuffs = new GenericBuffThresholds()
+                {
+                    Buffs = new Dictionary<string, List<BuffThreshold>>()
 
                 };
                 foreach (var definition in MyDefinitionManager.Static.GetAllDefinitions())
@@ -49,7 +75,7 @@ namespace CrunchEconContractModels.ProductionBuffs
                         continue;
                     if (definition.Id != null && definition.Id.TypeId.ToString() != "MyObjectBuilder_Ore")
                         continue;
-                    DrillBuffs.DrillYieldBuffs[definition.Id.SubtypeName] = new List<BuffThreshold>
+                    DrillBuffs.Buffs[definition.Id.SubtypeName] = new List<BuffThreshold>
                     {
                         new BuffThreshold() { Amount = 1000000, Buff = 1.025f },
                         new BuffThreshold() { Amount = 2500000, Buff = 1.05f },
@@ -125,15 +151,19 @@ namespace CrunchEconContractModels.ProductionBuffs
 
         public static void LoadLogin(IPlayer Player)
         {
+            //Core.Log.Info("login");
             var playerId = Player.SteamId;
-            if (MySession.Static.Players.TryGetPlayerBySteamId(playerId, out var player))
+            var identityId = MySession.Static.Players.TryGetPlayerIdentity(playerId);
+            if (identityId != null)
             {
-                Load(player.Identity.IdentityId, player.Id.SteamId);
+            //    Core.Log.Info("Loading from login");
+                Load(identityId.IdentityId, playerId);
             }
         }
 
         public static void Load(long identityId, ulong steamId)
         {
+       
             Task.Run(() =>
             {
                 var path = $"{Folder}\\{steamId}.json";
@@ -155,7 +185,6 @@ namespace CrunchEconContractModels.ProductionBuffs
             var path = $"{Folder}\\{Arg2.AssignedPlayerSteamId}.json";
             long NumToStore = 0;
             var nameToStore = Arg2.Name;
-            Core.Log.Info($"{Arg2.GetType().ToString()}");
             switch (Arg2.GetType().Name)
             {
                 case "CrunchMiningContractImplementation":
@@ -164,26 +193,32 @@ namespace CrunchEconContractModels.ProductionBuffs
                         NumToStore = ReflectMiningValue(Arg2);
                         break;
                     }
-                case "CrunchItemHaulingContractImplementation":
-                    {
-                        var itemToDeliver = ReflectHaulingValue(Arg2);
-                        if (itemToDeliver != null)
-                        {
-                            nameToStore = $"{itemToDeliver.TypeId} {itemToDeliver.SubTypeId} Hauling";
-                            NumToStore = itemToDeliver.AmountToDeliver;
-                        }
-                        break;
-                    }
                 case "ItemHaulingContractImplementation":
-                    {
-                        var itemToDeliver = ReflectPlugAndPlayHaulingValue(Arg2);
-                        if (itemToDeliver != null)
-                        {
-                            nameToStore = $"{itemToDeliver.TypeId} {itemToDeliver.SubTypeId} Hauling";
-                            NumToStore = itemToDeliver.AmountToDeliver;
-                        }
-                        break;
-                    }
+                case "CrunchItemHaulingContractImplementation":
+                {
+                    NumToStore = 1;
+                }
+                    break;
+                //case "CrunchItemHaulingContractImplementation":
+                //    {
+                //        var itemToDeliver = ReflectHaulingValue(Arg2);
+                //        if (itemToDeliver != null)
+                //        {
+                //            nameToStore = $"{itemToDeliver.TypeId} {itemToDeliver.SubTypeId} Hauling";
+                //            NumToStore = itemToDeliver.AmountToDeliver;
+                //        }
+                //        break;
+                //    }
+                //case "ItemHaulingContractImplementation":
+                //    {
+                //        var itemToDeliver = ReflectPlugAndPlayHaulingValue(Arg2);
+                //        if (itemToDeliver != null)
+                //        {
+                //            nameToStore = $"{itemToDeliver.TypeId} {itemToDeliver.SubTypeId} Hauling";
+                //            NumToStore = itemToDeliver.AmountToDeliver;
+                //        }
+                //        break;
+                //    }
                 default:
                     {
                         return;
@@ -266,9 +301,9 @@ namespace CrunchEconContractModels.ProductionBuffs
             public Dictionary<string, List<BuffThreshold>> SpeedBuffs =
                 new Dictionary<string, List<BuffThreshold>>();
         }
-        public class DrillBuffThresholds
+        public class GenericBuffThresholds
         {
-            public Dictionary<string, List<BuffThreshold>> DrillYieldBuffs =
+            public Dictionary<string, List<BuffThreshold>> Buffs =
                 new Dictionary<string, List<BuffThreshold>>();
 
         }

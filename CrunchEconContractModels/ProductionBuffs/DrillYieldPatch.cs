@@ -37,7 +37,7 @@ namespace CrunchEconContractModels.ProductionBuffs
                 {
                    // Core.Log.Info("A2");
                     if (ProductionContractLogger.DrillBuffs != null &&
-                        ProductionContractLogger.DrillBuffs.DrillYieldBuffs.TryGetValue(ore, out var thresholds))
+                        ProductionContractLogger.DrillBuffs.Buffs.TryGetValue(ore, out var thresholds))
                     {
                      //   Core.Log.Info("A3");
                         foreach (var item in thresholds)
@@ -53,7 +53,7 @@ namespace CrunchEconContractModels.ProductionBuffs
                 }
 
             }
-            Core.Log.Info($"{buff}");
+        //    Core.Log.Info($"{buff}");
             return (float)(buff);
         }
 
