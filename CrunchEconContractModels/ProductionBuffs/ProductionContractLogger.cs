@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.Remoting.Metadata;
 using System.Threading.Tasks;
 using CrunchEconV3;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.PlugAndPlay.Contracts;
 using CrunchEconV3.Utils;
+using Sandbox.Definitions;
 using Sandbox.Game.World;
 using Torch.API;
 using Torch.API.Managers;
@@ -14,11 +17,12 @@ using Torch.Managers.PatchManager;
 
 namespace CrunchEconContractModels.ProductionBuffs
 {
-    public static class MiningContractLogger
+    public static class ProductionContractLogger
     {
         private static string Folder;
         private static FileUtils Utils = new FileUtils();
         public static OreBuffThresholds OreBuffs;
+        public static DrillBuffThresholds DrillBuffs;
         public static void Patch(PatchContext ctx)
         {
             Core.Session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += LoadLogin;
@@ -26,6 +30,35 @@ namespace CrunchEconContractModels.ProductionBuffs
 
             Folder = $"{Core.path}\\CompletedMiningData";
             var orePath = $"{Core.path}\\OreProductionBuffs.json";
+            var drillPath = $"{Core.path}\\DrillYieldBuffs.json";
+            if (File.Exists(drillPath))
+            {
+                DrillBuffs = Utils.ReadFromJsonFile<DrillBuffThresholds>(drillPath);
+            }
+            else
+            {
+                DrillBuffs = new DrillBuffThresholds()
+                {
+                    DrillYieldBuffs = new Dictionary<string, List<BuffThreshold>>()
+                
+                };
+                foreach (var definition in MyDefinitionManager.Static.GetAllDefinitions())
+                {
+                    if ((definition as MyPhysicalItemDefinition) == null) 
+                        continue;
+                    if (definition.Id != null && definition.Id.TypeId.ToString() != "MyObjectBuilder_Ore") 
+                        continue;
+                    DrillBuffs.DrillYieldBuffs[definition.Id.SubtypeName] = new List<BuffThreshold>
+                    {
+                        new BuffThreshold() { Amount = 1000000, Buff = 1.025f },
+                        new BuffThreshold() { Amount = 2500000, Buff = 1.05f },
+                        new BuffThreshold() { Amount = 5000000, Buff = 1.1f },
+                        new BuffThreshold() { Amount = 10000000, Buff = 1.15f },
+                        new BuffThreshold() { Amount = 100000000, Buff = 1.20f }
+                    };
+                }
+                Utils.WriteToJsonFile(drillPath, DrillBuffs);
+            }
             if (File.Exists(orePath))
             {
                 OreBuffs = Utils.ReadFromJsonFile<OreBuffThresholds>(orePath);
@@ -35,30 +68,38 @@ namespace CrunchEconContractModels.ProductionBuffs
                 OreBuffs = new OreBuffThresholds()
                 {
                     SpeedBuffs =
-                        new Dictionary<string, List<BuffThreshold>>
-                        {
-                            { "Stone", new List<BuffThreshold> { 
-                                    new BuffThreshold() {Amount = 1000000, Buff = 1.025f},
-                                new BuffThreshold() {Amount = 2500000, Buff = 1.05f},
-                                new BuffThreshold() {Amount = 5000000, Buff = 1.1f},
-                                new BuffThreshold() {Amount = 10000000, Buff = 1.25f}} }
-                        },
-                    YieldBuffs = 
-                        new Dictionary<string, List<BuffThreshold>>
-                        {
-                            { "Stone", new List<BuffThreshold> {
-                                new BuffThreshold() {Amount = 1000000, Buff = 1.025f},
-                                new BuffThreshold() {Amount = 2500000, Buff = 1.05f},
-                                new BuffThreshold() {Amount = 5000000, Buff = 1.1f},
-                                new BuffThreshold() {Amount = 10000000, Buff = 1.25f}} }
-                        },
+                        new Dictionary<string, List<BuffThreshold>>(),
+                    YieldBuffs = new Dictionary<string, List<BuffThreshold>>(),
                 };
+                foreach (var definition in MyDefinitionManager.Static.GetAllDefinitions())
+                {
+                    if ((definition as MyPhysicalItemDefinition) == null)
+                        continue;
+                    if (definition.Id != null && definition.Id.TypeId.ToString() != "MyObjectBuilder_Ore")
+                        continue;
+                    OreBuffs.YieldBuffs[definition.Id.SubtypeName] = new List<BuffThreshold>
+                    {
+                        new BuffThreshold() { Amount = 1000000, Buff = 1.025f },
+                        new BuffThreshold() { Amount = 2500000, Buff = 1.05f },
+                        new BuffThreshold() { Amount = 5000000, Buff = 1.1f },
+                        new BuffThreshold() { Amount = 10000000, Buff = 1.15f },
+                        new BuffThreshold() { Amount = 100000000, Buff = 1.20f }
+                    };
+                    OreBuffs.SpeedBuffs[definition.Id.SubtypeName] = new List<BuffThreshold>
+                    {
+                        new BuffThreshold() { Amount = 1000000, Buff = 1.025f },
+                        new BuffThreshold() { Amount = 2500000, Buff = 1.05f },
+                        new BuffThreshold() { Amount = 5000000, Buff = 1.1f },
+                        new BuffThreshold() { Amount = 10000000, Buff = 1.15f },
+                        new BuffThreshold() { Amount = 100000000, Buff = 1.20f }
+                    };
+                }
                 Utils.WriteToJsonFile(orePath, OreBuffs);
             }
             Directory.CreateDirectory(Folder);
         }
         private static int ticks;
-     
+
         public static void UpdateExample()
         {
             if (ticks == 0)
@@ -179,7 +220,12 @@ namespace CrunchEconContractModels.ProductionBuffs
             public Dictionary<string, List<BuffThreshold>> SpeedBuffs =
                 new Dictionary<string, List<BuffThreshold>>();
         }
+        public class DrillBuffThresholds
+        {
+            public Dictionary<string, List<BuffThreshold>> DrillYieldBuffs =
+                new Dictionary<string, List<BuffThreshold>>();
 
+        }
         public class BuffThreshold
         {
             public long Amount;

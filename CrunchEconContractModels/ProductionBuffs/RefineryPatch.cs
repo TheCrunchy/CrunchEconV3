@@ -36,12 +36,12 @@ namespace CrunchEconContractModels.ProductionBuffs
         public static double GetBuff(long PlayerId, MyRefinery Refinery, string ore)
         {
             double buff = 1;
-            if (MiningContractLogger.SetupPlayers.TryGetValue(PlayerId, out var data))
+            if (ProductionContractLogger.SetupPlayers.TryGetValue(PlayerId, out var data))
             {
                 if (data.FinishedTypes.TryGetValue($"{ore} Mining Contract", out var minedAmount))
                 {
-                    if (MiningContractLogger.OreBuffs != null &&
-                        MiningContractLogger.OreBuffs.YieldBuffs.TryGetValue(ore, out var thresholds))
+                    if (ProductionContractLogger.OreBuffs != null &&
+                        ProductionContractLogger.OreBuffs.YieldBuffs.TryGetValue(ore, out var thresholds))
                     {
                         foreach (var item in thresholds)
                         {
@@ -62,12 +62,12 @@ namespace CrunchEconContractModels.ProductionBuffs
         public static double GetSpeedBuff(long PlayerId, MyRefinery Refinery, string ore)
         {
             double buff = 1;
-            if (MiningContractLogger.SetupPlayers.TryGetValue(PlayerId, out var data))
+            if (ProductionContractLogger.SetupPlayers.TryGetValue(PlayerId, out var data))
             {
                 if (data.FinishedTypes.TryGetValue($"{ore} Mining Contract", out var minedAmount))
                 {
-                    if (MiningContractLogger.OreBuffs != null &&
-                        MiningContractLogger.OreBuffs.SpeedBuffs.TryGetValue(ore, out var thresholds))
+                    if (ProductionContractLogger.OreBuffs != null &&
+                        ProductionContractLogger.OreBuffs.SpeedBuffs.TryGetValue(ore, out var thresholds))
                     {
                         foreach (var item in thresholds)
                         {
