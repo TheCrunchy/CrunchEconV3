@@ -257,6 +257,8 @@
     <Compile Include="Interfaces\IStationLogic.cs" />
     <Compile Include="Models\Config\Config.cs" />
     <Compile Include="Core.cs" />
+    <Compile Include="Models\ContractStuff\ItemHaul.cs" />
+    <Compile Include="Models\ContractStuff\ItemToDeliver.cs" />
     <Compile Include="Models\KeenNPCEntry.cs" />
     <Compile Include="APIs\NexusAPI.cs" />
     <Compile Include="Models\PassengerBlock.cs" />

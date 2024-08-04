@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using CrunchEconV3;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.PlugAndPlay.Contracts;
+using CrunchEconV3.PlugAndPlay.Models;
 using CrunchEconV3.Utils;
 using Sandbox.Definitions;
 using Sandbox.Game.World;
@@ -28,7 +29,7 @@ namespace CrunchEconContractModels.ProductionBuffs
             Core.Session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += LoadLogin;
             Core.UpdateCycle += UpdateExample;
 
-            Folder = $"{Core.path}\\CompletedMiningData";
+            Folder = $"{Core.path}\\CompletedContractData";
             var orePath = $"{Core.path}\\OreProductionBuffs.json";
             var drillPath = $"{Core.path}\\DrillYieldBuffs.json";
             if (File.Exists(drillPath))
@@ -40,13 +41,13 @@ namespace CrunchEconContractModels.ProductionBuffs
                 DrillBuffs = new DrillBuffThresholds()
                 {
                     DrillYieldBuffs = new Dictionary<string, List<BuffThreshold>>()
-                
+
                 };
                 foreach (var definition in MyDefinitionManager.Static.GetAllDefinitions())
                 {
-                    if ((definition as MyPhysicalItemDefinition) == null) 
+                    if ((definition as MyPhysicalItemDefinition) == null)
                         continue;
-                    if (definition.Id != null && definition.Id.TypeId.ToString() != "MyObjectBuilder_Ore") 
+                    if (definition.Id != null && definition.Id.TypeId.ToString() != "MyObjectBuilder_Ore")
                         continue;
                     DrillBuffs.DrillYieldBuffs[definition.Id.SubtypeName] = new List<BuffThreshold>
                     {
@@ -152,7 +153,8 @@ namespace CrunchEconContractModels.ProductionBuffs
         {
             var playerId = Arg2.AssignedPlayerIdentityId;
             var path = $"{Folder}\\{Arg2.AssignedPlayerSteamId}.json";
-            long NumToStore;
+            long NumToStore = 0;
+            var nameToStore = Arg2.Name;
             Core.Log.Info($"{Arg2.GetType().ToString()}");
             switch (Arg2.GetType().Name)
             {
@@ -160,6 +162,26 @@ namespace CrunchEconContractModels.ProductionBuffs
                 case "MiningContractImplementation":
                     {
                         NumToStore = ReflectMiningValue(Arg2);
+                        break;
+                    }
+                case "CrunchItemHaulingContractImplementation":
+                    {
+                        var itemToDeliver = ReflectHaulingValue(Arg2);
+                        if (itemToDeliver != null)
+                        {
+                            nameToStore = $"{itemToDeliver.TypeId} {itemToDeliver.SubTypeId} Hauling";
+                            NumToStore = itemToDeliver.AmountToDeliver;
+                        }
+                        break;
+                    }
+                case "ItemHaulingContractImplementation":
+                    {
+                        var itemToDeliver = ReflectPlugAndPlayHaulingValue(Arg2);
+                        if (itemToDeliver != null)
+                        {
+                            nameToStore = $"{itemToDeliver.TypeId} {itemToDeliver.SubTypeId} Hauling";
+                            NumToStore = itemToDeliver.AmountToDeliver;
+                        }
                         break;
                     }
                 default:
@@ -170,20 +192,20 @@ namespace CrunchEconContractModels.ProductionBuffs
 
             if (SetupPlayers.TryGetValue(playerId, out var data))
             {
-                if (data.FinishedTypes.TryGetValue(Arg2.Name, out var value))
+                if (data.FinishedTypes.TryGetValue(nameToStore, out var value))
                 {
-                    data.FinishedTypes[Arg2.Name] = value + NumToStore;
+                    data.FinishedTypes[nameToStore] = value + NumToStore;
                 }
                 else
                 {
-                    data.FinishedTypes[Arg2.Name] = NumToStore;
+                    data.FinishedTypes[nameToStore] = NumToStore;
                 }
             }
             else
             {
                 SetupPlayers.Add(playerId, new FinishedContractsModel()
                 {
-                    FinishedTypes = new Dictionary<string, long>() { { Arg2.Name, NumToStore } }
+                    FinishedTypes = new Dictionary<string, long>() { { nameToStore, NumToStore } }
                 });
             }
 
@@ -191,7 +213,19 @@ namespace CrunchEconContractModels.ProductionBuffs
             {
                 Utils.WriteToJsonFile(path, SetupPlayers[playerId]);
             });
-            Core.Log.Error($"{playerId} finished {Arg2.Name} {NumToStore}");
+        }
+
+        private static CrunchEconV3.Models.ContractStuff.ItemToDeliver ReflectHaulingValue(ICrunchContract contract)
+        {
+            Type contractType = contract.GetType();
+            PropertyInfo minedOreAmountProperty = contractType.GetProperty("ItemToDeliver");
+            if (minedOreAmountProperty != null)
+            {
+                CrunchEconV3.Models.ContractStuff.ItemToDeliver minedOreAmount = (CrunchEconV3.Models.ContractStuff.ItemToDeliver)minedOreAmountProperty.GetValue(contract);
+                return minedOreAmount;
+            }
+
+            return null;
         }
 
         public static long ReflectMiningValue(ICrunchContract contract)
@@ -205,6 +239,18 @@ namespace CrunchEconContractModels.ProductionBuffs
             }
 
             return 0;
+        }
+        public static ItemToDeliver ReflectPlugAndPlayHaulingValue(ICrunchContract contract)
+        {
+            Type contractType = contract.GetType();
+            PropertyInfo minedOreAmountProperty = contractType.GetProperty("ItemToDeliver");
+            if (minedOreAmountProperty != null)
+            {
+                ItemToDeliver minedOreAmount = (ItemToDeliver)minedOreAmountProperty.GetValue(contract);
+                return minedOreAmount;
+            }
+
+            return null;
         }
 
         public class FinishedContractsModel
