@@ -9,17 +9,13 @@ using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.World;
-using Sandbox.ModAPI;
 using SpaceEngineers.Game.Entities.Blocks;
 using Torch.Managers.PatchManager;
-using VRage.Audio;
-using VRage.Game;
 using VRage.Game.ModAPI;
-using VRage.ModAPI;
 using VRage.Network;
 using VRageMath;
 
-namespace CrunchEconContractModels.Random_Stuff
+namespace CrunchEconContractModels.Ship_Class_Stuff
 {
     [PatchShim]
     public static class PCULimits
@@ -28,6 +24,7 @@ namespace CrunchEconContractModels.Random_Stuff
         public class ShipLimits : ICloneable
         {
             public bool Enabled { get; set; }
+            public float GridDamageModifier { get; set; } = 1;
             private Dictionary<string, BlockGroupLimit> PairNameToLimits { get; set; } =
                 new Dictionary<string, BlockGroupLimit>();
 
@@ -97,6 +94,7 @@ namespace CrunchEconContractModels.Random_Stuff
                     cubeGrid.RemoveBlock(block.SlimBlock);
                 }
                 cubeGrid.OnBlockRemoved += HandleBlockRemoved;
+                cubeGrid.GridGeneralDamageModifier.ValidateAndSet(GridDamageModifier);
             }
 
             private void HandleBlockRemoved(IMySlimBlock removedBlock)
@@ -186,9 +184,10 @@ namespace CrunchEconContractModels.Random_Stuff
         {
             var limit = new BlockGroupLimit()
             {
-                AllowedBlocks = new List<string>() { "CWIS", "C30mmRevolver", "C30mmSingleT", "VXM-08 Multi Launch Missile System" },
-                MaximumPCUForLimits = 2000,
-                UsedPCU = 0
+                AllowedBlocks = new List<string>()
+                //AllowedBlocks = new List<string>() { "CWIS", "C30mmRevolver", "C30mmSingleT", "VXM-08 Multi Launch Missile System" },
+                //MaximumPCUForLimits = 2000,
+                //UsedPCU = 0
             };
             var gridLimit = new PCULimits.ShipLimits()
             {

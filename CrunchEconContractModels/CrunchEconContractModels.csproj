@@ -143,8 +143,9 @@
     <Compile Include="Random Stuff\StationFaker.cs" />
     <Compile Include="Random Stuff\StoreReputationRequirement.cs" />
     <Compile Include="Random Stuff\StorePurchaseLimit.cs" />
-    <Compile Include="Random Stuff\PCULimits.cs" />
+    <Compile Include="Ship Class Stuff\PCULimits.cs" />
     <Compile Include="Random Stuff\Update.cs" />
+    <Compile Include="Ship Class Stuff\ShipClassV3.cs" />
     <Compile Include="StationLogics\GrowthLogic.cs" />
     <Compile Include="StationLogics\FactionBalanceLogic.cs" />
     <Compile Include="StationLogics\HarmonyStuff.cs" />
@@ -155,7 +156,7 @@
     <Compile Include="StationLogics\StoreManagementLogic.cs" />
     <Compile Include="Random Stuff\SpawnPatch.cs" />
     <Compile Include="Random Stuff\GridTracking.cs" />
-    <Compile Include="Random Stuff\ThrusterStuff.cs" />
+    <Compile Include="Ship Class Stuff\ThrusterStuff.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CrunchEconV3\CrunchEconV3.csproj">

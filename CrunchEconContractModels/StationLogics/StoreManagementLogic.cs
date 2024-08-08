@@ -85,6 +85,42 @@ namespace CrunchEconContractModels.StationLogics
                 }
             }
 
+            foreach (KeyValuePair<long, MyFaction> faction in MySession.Static.Factions)
+            {
+                foreach (MyStation station in faction.Value.Stations)
+                {
+                    if (station.StoreItems == null)
+                    {
+                        continue;
+                    }
+
+                    foreach (var thing in station.StoreItems)
+                    {
+                        if (items.TryGetValue(faction.Value.Tag, out var savedItems))
+                        {
+                            if (savedItems.TryGetValue($"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}", out var stored))
+                            {
+                                stored = MapItem(thing, stored);
+                            }
+                            else
+                            {
+                                var mapped = MapItem(thing, new StoreEntryModel());
+                                savedItems[$"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}"] = mapped;
+                            }
+                        }
+                        else
+                        {
+                            savedItems = new Dictionary<string, StoreEntryModel>();
+                            var mapped = MapItem(thing, new StoreEntryModel());
+                            savedItems[$"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}"] = mapped;
+
+                            items[faction.Value.Tag] = savedItems;
+                        }
+                    }
+                }
+            }
+
+
             foreach (var item in items)
             {
                 var path = $"{CrunchEconV3.Core.path}/StoreConfigs/{item.Key}.json";
