@@ -169,6 +169,16 @@ namespace CrunchEconContractModels.StationLogics
 
             return stored;
         }
+
+        [Command("reloadstores", "export the orders and offers in a store block to store file")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void ReloadStores()
+        {
+            Context.Respond("Loading the files");
+            StoreItemsHandler.LoadTheFiles();
+            Context.Respond("Loaded the files");
+        }
+
     }
     public class StoreManagementLogic : IStationLogic
     {
@@ -715,7 +725,7 @@ namespace CrunchEconContractModels.StationLogics
                 try
                 {
                     var name = Path.GetFileNameWithoutExtension(file);
-                    MappedBlockNames.Add(name, utils.ReadFromJsonFile<List<StoreEntryModel>>(file));
+                    MappedBlockNames[name] = utils.ReadFromJsonFile<List<StoreEntryModel>>(file);
                 }
                 catch (Exception e)
                 {
