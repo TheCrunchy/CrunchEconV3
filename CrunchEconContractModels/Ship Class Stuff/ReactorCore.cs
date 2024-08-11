@@ -5,9 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.Components;
+using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
 using VRage.Utils;
@@ -47,7 +49,28 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
             }
             MyLog.Default.WriteLine($"[Crunch]: {multiplier}");
             _battery.OnMarkForClose += Closed;
+            MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(0, DamageHandler);
             NeedsUpdate |= MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
+        }
+
+        private void DamageHandler(object target, ref MyDamageInformation info)
+        {
+            if (_battery.Closed)
+            {
+                return;
+            }
+            if (!(target is IMySlimBlock))
+            {
+                //handle characters differently
+                return;
+            }
+
+            var block = target as IMySlimBlock;
+            if (block.CubeGrid.EntityId == _battery.CubeGrid.EntityId)
+            {
+                MyLog.Default.WriteLine($"[Crunch]: nerfing damage");
+                info.Amount *= _damagemultiplier;
+            }
         }
 
         public void Closed(IMyEntity entity)
