@@ -145,7 +145,10 @@
     <Compile Include="Random Stuff\StorePurchaseLimit.cs" />
     <Compile Include="Ship Class Stuff\PCULimits.cs" />
     <Compile Include="Random Stuff\Update.cs" />
+    <Compile Include="Ship Class Stuff\ReactorCoreServer.cs" />
     <Compile Include="Ship Class Stuff\ShipClassV3.cs" />
+    <Compile Include="Ship Class Stuff\ReactorCore.cs" />
+    <Compile Include="Ship Class Stuff\ThrustCore.cs" />
     <Compile Include="StationLogics\GrowthLogic.cs" />
     <Compile Include="StationLogics\FactionBalanceLogic.cs" />
     <Compile Include="StationLogics\HarmonyStuff.cs" />

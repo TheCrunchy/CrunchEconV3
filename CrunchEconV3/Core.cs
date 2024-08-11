@@ -139,6 +139,7 @@ namespace CrunchEconV3
                     PlayerStorage = new JsonPlayerStorageHandler(path);
                     Session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
                     GenerateDefaults();
+                    ScriptMangerPatch.ScriptInit(MySession.Static);
                 }
                 else
                 {
