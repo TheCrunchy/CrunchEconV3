@@ -266,6 +266,7 @@ namespace CrunchEconContractModels.Contracts
             var spawns = 0;
             foreach (var grid in spawn.GridsInWave)
             {
+                var spawnMe = grid.GridName.Split(',').GetRandomItem();
                 if (grid.ChanceToSpawn < 1)
                 {
                     var random = CrunchEconV3.Core.random.NextDouble();
@@ -305,18 +306,18 @@ namespace CrunchEconContractModels.Contracts
                     }
                 }
 
-                if (!File.Exists($"{Core.path}//Grids//{grid.GridName}")) continue;
+                if (!File.Exists($"{Core.path}//Grids//{spawnMe}")) continue;
 
 
-                var Ids = GridManagerUpdated.LoadGrid($"{Core.path}//Grids//{grid.GridName}", Position, false,
-                    (ulong)faction.Members.FirstOrDefault().Key, grid.GridName.Replace(".sbc", ""), false);
+                var Ids = GridManagerUpdated.LoadGrid($"{Core.path}//Grids//{spawnMe}", Position, false,
+                    (ulong)faction.Members.FirstOrDefault().Key, spawnMe.Replace(".sbc", ""), false);
                 foreach (var tempGrid in Ids)
                 {
                     tempGrid.GridGeneralDamageModifier.ValidateAndSet(grid.TakenDamagerModifier);
                 }
                 if (!Ids.Any())
                 {
-                    Core.Log.Info($"Could not load grid {grid.GridName}");
+                    Core.Log.Info($"Could not load grid {spawnMe}");
                     
                 }
                 else
@@ -326,7 +327,7 @@ namespace CrunchEconContractModels.Contracts
                     {
                         continue;
                     }
-                    var isPay = GridsToDestroy.FirstOrDefault(x => x.GridToDestroy.Replace(".sbc", "") == grid.GridName.Replace(".sbc", ""))?.Payment ?? 0;
+                    var isPay = GridsToDestroy.FirstOrDefault(x => x.GridToDestroy.Replace(".sbc", "") == spawnMe.Replace(".sbc", ""))?.Payment ?? 0;
                     if (GridIdsToPay.ContainsKey(main.EntityId))
                     {
                         Core.Log.Info("How the fuck did this happen");
