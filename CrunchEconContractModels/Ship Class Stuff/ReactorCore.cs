@@ -68,7 +68,7 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
             var block = target as IMySlimBlock;
             if (block.CubeGrid.EntityId == _battery.CubeGrid.EntityId)
             {
-                MyLog.Default.WriteLine($"[Crunch]: nerfing damage");
+                // MyLog.Default.WriteLine($"[Crunch]: nerfing damage");
                 info.Amount *= _damagemultiplier;
             }
         }
@@ -100,9 +100,7 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
             if (Closed || !_battery.SlimBlock.IsFullIntegrity)
             {
                 var thrusters = _battery.CubeGrid.GetFatBlocks<IMyReactor>();
-                MyLog.Default.WriteLine($"[Crunch]: resetting {thrusters.Count()}");
-                var grid = _battery.CubeGrid as MyCubeGrid;
-           //     grid.GridGeneralDamageModifier.SetLocalValue(1);
+                //      MyLog.Default.WriteLine($"[Crunch]: resetting {thrusters.Count()}");
                 foreach (var item in thrusters)
                 {
                     item.PowerOutputMultiplier = 1;
@@ -111,9 +109,7 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
             else if (_battery.SlimBlock.IsFullIntegrity)
             {
                 var thrusters = _battery.CubeGrid.GetFatBlocks<IMyReactor>();
-                MyLog.Default.WriteLine($"[Crunch]: modifying {thrusters.Count()}");
-                var grid = _battery.CubeGrid as MyCubeGrid;
-            //    grid.GridGeneralDamageModifier.SetLocalValue(_damagemultiplier);
+                //     MyLog.Default.WriteLine($"[Crunch]: modifying {thrusters.Count()}");
                 foreach (var item in thrusters)
                 {
                     item.PowerOutputMultiplier = _multiplier;

@@ -40,14 +40,14 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
                     _multiplier = 5;
                     break;
             }
-            MyLog.Default.WriteLine($"[Crunch]: {multiplier}");
+        //    MyLog.Default.WriteLine($"[Crunch]: {multiplier}");
             _battery.OnMarkForClose += Closed;
             NeedsUpdate |= MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
         }
 
         public void Closed(IMyEntity entity)
         {
-            MyLog.Default.WriteLine($"[Crunch]: closed");
+        //    MyLog.Default.WriteLine($"[Crunch]: closed");
             UpdateThrust(true);
         }
 
@@ -72,7 +72,7 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
             if (Closed || !_battery.SlimBlock.IsFullIntegrity)
             {
                 var thrusters = _battery.CubeGrid.GetFatBlocks<IMyThrust>();
-                MyLog.Default.WriteLine($"[Crunch]: resetting {thrusters.Count()}");
+              //  MyLog.Default.WriteLine($"[Crunch]: resetting {thrusters.Count()}");
                 foreach (var item in thrusters)
                 {
                     item.ThrustMultiplier = 1;
@@ -81,7 +81,7 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
             else if (_battery.SlimBlock.IsFullIntegrity)
             {
                 var thrusters = _battery.CubeGrid.GetFatBlocks<IMyThrust>();
-                MyLog.Default.WriteLine($"[Crunch]: modifying {thrusters.Count()}");
+             //   MyLog.Default.WriteLine($"[Crunch]: modifying {thrusters.Count()}");
                 foreach (var item in thrusters)
                 {
                     item.ThrustMultiplier = _multiplier;
