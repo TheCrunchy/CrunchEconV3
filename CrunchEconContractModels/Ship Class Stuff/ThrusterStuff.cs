@@ -4,7 +4,7 @@ using Torch.Managers.PatchManager;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
 
-namespace CrunchEconContractModels.Random_Stuff
+namespace CrunchEconContractModels.Ship_Class_Stuff
 {
     [PatchShim]
     public static class FunctionalBlockPatch

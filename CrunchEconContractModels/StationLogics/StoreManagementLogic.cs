@@ -96,25 +96,35 @@ namespace CrunchEconContractModels.StationLogics
 
                     foreach (var thing in station.StoreItems)
                     {
-                        if (items.TryGetValue(faction.Value.Tag, out var savedItems))
+                        if (thing.IsCustomStoreItem)
                         {
-                            if (savedItems.TryGetValue($"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}", out var stored))
+                            continue;
+                        }
+                        try
+                        {
+                            if (items.TryGetValue(faction.Value.Tag, out var savedItems))
                             {
-                                stored = MapItem(thing, stored);
+                                if (savedItems.TryGetValue($"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}", out var stored))
+                                {
+                                    stored = MapItem(thing, stored);
+                                }
+                                else
+                                {
+                                    var mapped = MapItem(thing, new StoreEntryModel());
+                                    savedItems[$"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}"] = mapped;
+                                }
                             }
                             else
                             {
+                                savedItems = new Dictionary<string, StoreEntryModel>();
                                 var mapped = MapItem(thing, new StoreEntryModel());
                                 savedItems[$"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}"] = mapped;
+
+                                items[faction.Value.Tag] = savedItems;
                             }
                         }
-                        else
+                        catch (Exception)
                         {
-                            savedItems = new Dictionary<string, StoreEntryModel>();
-                            var mapped = MapItem(thing, new StoreEntryModel());
-                            savedItems[$"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}"] = mapped;
-
-                            items[faction.Value.Tag] = savedItems;
                         }
                     }
                 }

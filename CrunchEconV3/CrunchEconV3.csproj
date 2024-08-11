@@ -305,6 +305,7 @@
     <Compile Include="Utils\GridManagerUpdated.cs" />
     <Compile Include="Utils\GridManager.cs" />
     <Compile Include="Utils\IdentityHelper.cs" />
+    <Compile Include="Utils\KeenScriptManagerPatch.cs" />
     <Compile Include="Utils\TankHelperModAPIVersion.cs" />
     <Compile Include="Utils\TankHelper.cs" />
   </ItemGroup>
