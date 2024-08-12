@@ -350,7 +350,7 @@ namespace CrunchEconContractModels.Contracts
             }
 
             if (spawns <= 0) return false;
-            if (ticks % 600 == 0)
+            if (ticks % 60 == 0)
             {
                 var playerData = Core.PlayerStorage.GetData(this.AssignedPlayerSteamId);
                 //   playerData.PlayersContracts[this.ContractId] = this;
