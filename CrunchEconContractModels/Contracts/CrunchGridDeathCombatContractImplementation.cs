@@ -338,12 +338,21 @@ namespace CrunchEconContractModels.Contracts
                     {
                         continue;
                     }
-                    var isPay = GridsToDestroy.FirstOrDefault(x => x.GridToDestroy.Replace(".sbc", "") == spawnMe.Replace(".sbc", ""))?.Payment ?? 0;
-                    if (GridIdsToPay.ContainsKey(main.EntityId))
+
+                    if (grid.Payment != 0)
                     {
-                        Core.Log.Info("How the fuck did this happen");
+                        GridIdsToPay.Add(main.EntityId, grid.Payment);
                     }
-                    GridIdsToPay.Add(main.EntityId, isPay);
+                    else
+                    {
+                        var isPay = GridsToDestroy.FirstOrDefault(x => x.GridToDestroy.Replace(".sbc", "") == spawnMe.Replace(".sbc", ""))?.Payment ?? 0;
+                        GridIdsToPay.Add(main.EntityId, isPay);
+                        if (GridIdsToPay.ContainsKey(main.EntityId))
+                        {
+                            Core.Log.Info("How the fuck did this happen");
+                        }
+                    }
+
                     StartingBlockCounts.Add(main.EntityId, main.BlocksCount);
                     spawns += 1;
                 }
@@ -659,6 +668,7 @@ namespace CrunchEconContractModels.Contracts
         public double ChanceToSpawn = 0.5;
         public string FacTagToOwnThisGrid = "SPRT";
         public float TakenDamagerModifier = 1;
+        public long Payment = 50000;
     }
 
     public class GridDestruction
