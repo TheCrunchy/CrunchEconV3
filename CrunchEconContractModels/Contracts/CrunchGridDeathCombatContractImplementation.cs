@@ -146,17 +146,28 @@ namespace CrunchEconContractModels.Contracts
         public Dictionary<long, long> GridIdsToPay = new Dictionary<long, long>();
         private Dictionary<long, MyCubeGrid> MappedGrids = new Dictionary<long, MyCubeGrid>();
         public Dictionary<long, int> StartingBlockCounts = new Dictionary<long, int>();
+        private int ticks = 0;
         public override bool Update100(Vector3 PlayersCurrentPosition)
         {
-            if (ReadyToDeliver)
+            ticks++;
+            if (this.UncollectedPay >= this.RewardMoney)
             {
-          //     Core.Log.Info("try complete 1");
-                var result = TryCompleteContract(this.AssignedPlayerSteamId, null);
-                if (result)
-                {
-                    return true;
-                }
+                ReadyToDeliver = true;
             }
+            if (ReadyToDeliver && ticks % 60 == 0)
+            {
+                Core.SendMessage($"{this.Name}", $"Contract ready to be completed.", Color.LightGreen, this.AssignedPlayerSteamId);
+            }
+
+          //  if (ReadyToDeliver)
+          //  {
+          ////     Core.Log.Info("try complete 1");
+          //      var result = TryCompleteContract(this.AssignedPlayerSteamId, null);
+          //      if (result)
+          //      {
+          //          return true;
+          //      }
+          //  }
             if (DateTime.Now > ExpireAt)
             {
                 FailContract();
@@ -266,7 +277,7 @@ namespace CrunchEconContractModels.Contracts
             var spawns = 0;
             foreach (var grid in spawn.GridsInWave)
             {
-                var spawnMe = grid.GridName.Split(',').GetRandomItem();
+                var spawnMe = grid.GridName.Split(',').ToList().GetRandomItemFromList();
                 if (grid.ChanceToSpawn < 1)
                 {
                     var random = CrunchEconV3.Core.random.NextDouble();
@@ -339,11 +350,13 @@ namespace CrunchEconContractModels.Contracts
             }
 
             if (spawns <= 0) return false;
-
-            var playerData = Core.PlayerStorage.GetData(this.AssignedPlayerSteamId);
-         //   playerData.PlayersContracts[this.ContractId] = this;
-            Task.Run(async () => { CrunchEconV3.Core.PlayerStorage.Save(playerData); });
-
+            if (ticks % 600 == 0)
+            {
+                var playerData = Core.PlayerStorage.GetData(this.AssignedPlayerSteamId);
+                //   playerData.PlayersContracts[this.ContractId] = this;
+                Task.Run(async () => { CrunchEconV3.Core.PlayerStorage.Save(playerData); });
+            }
+            
             foreach (var onlinePlayer in MySession.Static.Players.GetOnlinePlayers())
             {
                 Vector3D playerPosition = onlinePlayer.Character?.PositionComp.GetPosition() ?? Vector3D.Zero;

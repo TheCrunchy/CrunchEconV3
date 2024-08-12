@@ -43,7 +43,17 @@ namespace CrunchEconContractModels.Contracts.Hud
                             foreach (var item in data.PlayersContracts.Values)
                             {
                                 var timeLeft = item.ExpireAt.Subtract(DateTime.Now);
-                                MyVisualScriptLogicProvider.AddQuestlogDetail($"{item.Name}, {timeLeft.Hours} Hours, {timeLeft.Minutes} Minutes", playerId: player.Identity.IdentityId, useTyping: false, completePrevious: false);
+                                if (item.ReadyToDeliver)
+                                {
+                                    MyVisualScriptLogicProvider.AddQuestlogDetail($"{item.Name}, {timeLeft.Hours} Hours, {timeLeft.Minutes} Minutes, Can be turned in.", playerId: player.Identity.IdentityId, useTyping: false, completePrevious: false);
+
+                                }
+                                else
+                                {
+                                    MyVisualScriptLogicProvider.AddQuestlogDetail($"{item.Name}, {timeLeft.Hours} Hours, {timeLeft.Minutes} Minutes", playerId: player.Identity.IdentityId, useTyping: false, completePrevious: false);
+
+                                }
+
                             }
                         }
                     }
