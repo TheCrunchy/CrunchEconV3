@@ -19,7 +19,7 @@ namespace CrunchEconContractModels.Random_Stuff
         }
 
         internal static readonly MethodInfo detonateMethod =
-            typeof(MyCubeBlock).GetMethod("CalculateStoredExplosiveDamage",
+            typeof(MyCubeBlock).GetMethod("DetonateAmmo",
                 BindingFlags.Instance | BindingFlags.NonPublic) ??
             throw new Exception("Failed to find patch method contract");
 
