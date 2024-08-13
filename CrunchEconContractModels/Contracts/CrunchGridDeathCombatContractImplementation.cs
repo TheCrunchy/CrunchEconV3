@@ -391,7 +391,6 @@ namespace CrunchEconContractModels.Contracts
                 pay = temp > this.MaximumReward ? this.MaximumReward : temp;
 
                 EconUtils.addMoney(this.AssignedPlayerIdentityId, pay);
-                Core.SendMessage("Contracts", $"{this.Name} completed!, you have been paid.", Color.Green, this.AssignedPlayerSteamId);
                 if (this.ReputationGainOnComplete != 0)
                 {
                     MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
