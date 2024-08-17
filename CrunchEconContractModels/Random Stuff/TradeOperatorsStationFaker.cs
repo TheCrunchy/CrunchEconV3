@@ -15,7 +15,7 @@ using VRage.ModAPI;
 
 namespace CrunchEconContractModels.Random_Stuff
 {
-    public static class ShinkuTOCFaker
+    public static class TradeOperatorsStationFaker
     {
         public static HashSet<String> TOCFacTags = new HashSet<String>() { "TAG1", "TAG2", "ETC" };
         public static List<string> BannedItems = new List<string>() { "Ingot/Banana", "Ore/Banana" };
@@ -66,6 +66,7 @@ namespace CrunchEconContractModels.Random_Stuff
                         gps.Coords = grid.GetBiggestGridInGroup().PositionComp.GetPosition();
                         fake.LocationGPS = gps.ToString();
                         fake.SetFake();
+                        fake.UsesDefault = true;
                         fake.SetGrid(grid.GetBiggestGridInGroup());
                         fake.FileName = grid.GetBiggestGridInGroup().DisplayName;
                         Core.Fakes.Add(fake);
@@ -79,7 +80,7 @@ namespace CrunchEconContractModels.Random_Stuff
        throw new Exception("Failed to find patch method InsertStoreItem");
 
         internal static readonly MethodInfo insertPatch =
-            typeof(ShinkuTOCFaker).GetMethod(nameof(StorePatchMethod), BindingFlags.Static | BindingFlags.Public) ??
+            typeof(TradeOperatorsStationFaker).GetMethod(nameof(StorePatchMethod), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
 
         public static Boolean StorePatchMethod(MyStoreBlock __instance, IMyStoreItem item)
