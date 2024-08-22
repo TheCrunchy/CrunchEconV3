@@ -42,6 +42,7 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
             }
         //    MyLog.Default.WriteLine($"[Crunch]: {multiplier}");
             _battery.OnMarkForClose += Closed;
+
             NeedsUpdate |= MyEntityUpdateEnum.BEFORE_NEXT_FRAME;
         }
 

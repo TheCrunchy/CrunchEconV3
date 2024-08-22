@@ -426,7 +426,8 @@ namespace CrunchEconContractModels.Contracts
             var description = new StringBuilder();
             var contract = new CrunchMiningContractImplementation();
             contract.AmountToMine = Core.random.Next(this.AmountToMineThenDeliverMin, this.AmountToMineThenDeliverMax);
-            contract.RewardMoney = contract.AmountToMine * (Core.random.Next((int)this.PricePerItemMin, (int)this.PricePerItemMax));
+            long tempValue = contract.AmountToMine;
+            contract.RewardMoney = tempValue * (Core.random.Next((int)this.PricePerItemMin, (int)this.PricePerItemMax));
             var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
             contract.DeliverLocation = result.Item1;
             contract.DeliveryFactionId = result.Item2;
