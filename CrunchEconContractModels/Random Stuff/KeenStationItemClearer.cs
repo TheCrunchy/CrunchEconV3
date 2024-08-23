@@ -6,8 +6,10 @@ using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
 using VRage.Game.Entity;
-using VRage.Game.ModAPI;
-using VRage.ModAPI;
+using VRage.Game.ModAPI.Ingame;
+using IMyCubeGrid = VRage.Game.ModAPI.IMyCubeGrid;
+using IMyEntity = VRage.ModAPI.IMyEntity;
+using IMySlimBlock = VRage.Game.ModAPI.IMySlimBlock;
 
 namespace CrunchEconContractModels.Random_Stuff
 {
@@ -24,7 +26,7 @@ namespace CrunchEconContractModels.Random_Stuff
         public static void Patch(PatchContext ctx)
         {
             MyAPIGateway.Entities.OnEntityAdd += OnEntityAdd;
-
+            Core.UpdateCycle += Update;
             // Iterate through all existing grids when the mod initializes
             var grids = new List<IMyEntity>();
             MyAPIGateway.Entities.GetEntities(null, (entity) =>
@@ -39,35 +41,54 @@ namespace CrunchEconContractModels.Random_Stuff
 
         }
 
+        private static Stack<MyCubeGrid> Grids = new Stack<MyCubeGrid>();
+        private static void Update()
+        {
+            if (Grids.Any())
+            {
+                var grid = Grids.Pop();
+                if (MySession.Static.Factions.Any(x => x.Value.Stations.Any(z => z.StationEntityId == grid.EntityId)))
+                {
+                    Core.Log.Info("Keen Station spawned, clearing");
+                    foreach (var block in grid.CubeBlocks)
+                    {
+                        if (block is IMyEntity inventory)
+                        {
+                            List<uint> deleteThese = new List<uint>();
+                            for (int i = 0; i < inventory.InventoryCount; i++)
+                            {
+                                VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)block).GetInventory(i);
+                                foreach (MyPhysicalInventoryItem invitem in inv.GetItems())
+                                {
+                                    if (ItemsToDelete.Contains($"{invitem.Content.TypeId}/{invitem.Content.SubtypeName}"))
+                                    {
+                                        Core.Log.Info($"Item to delete found {invitem.Content.TypeId}/{invitem.Content.SubtypeName}");
+                                        deleteThese.Add(invitem.ItemId);
+                                    }
+                                    else
+                                    {
+                                        Core.Log.Info($"Item found {invitem.Content.TypeId}/{invitem.Content.SubtypeName}");
+                                    }
+                                }
+                                foreach (uint id in deleteThese)
+                                {
+                                    inv.RemoveItems(id);
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
 
         private static void OnEntityAdd(IMyEntity entity)
         {
             if (entity is IMyCubeGrid grid)
             {
                 var asMyCube = grid as MyCubeGrid;
-                if (MySession.Static.Factions.Any(x => x.Value.Stations.Any(z => z.StationEntityId == grid.EntityId)))
-                {
-                    Core.Log.Info("Keen Station spawned, clearing");
-                    foreach (var block in asMyCube.GetFatBlocks())
-                    {
-                        if (block.HasInventory)
-                        {
-                            List<uint> deleteThese = new List<uint>();
-                            foreach (MyPhysicalInventoryItem invitem in block.GetInventory().GetItems())
-                            {
-                                if (ItemsToDelete.Contains($"{invitem.Content.TypeId}/{invitem.Content.SubtypeName}"))
-                                {
-                                    Core.Log.Info($"Item to delete found {invitem.Content.TypeId}/{invitem.Content.SubtypeName}");
-                                    deleteThese.Add(invitem.ItemId);
-                                }
-                            }
-                            foreach (uint id in deleteThese)
-                            {
-                                block.GetInventory().RemoveItems(id);
-                            }
-                        }
-                    }
-                }
+                Core.Log.Info("Checking grid");
+                Grids.Push(asMyCube);
             }
         }
     }
