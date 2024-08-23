@@ -2,6 +2,7 @@
 using System.Linq;
 using CrunchEconV3;
 using Sandbox.Game.Entities;
+using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
@@ -38,7 +39,6 @@ namespace CrunchEconContractModels.Random_Stuff
                 return false;
             });
 
-
         }
 
         private static Stack<MyCubeGrid> Grids = new Stack<MyCubeGrid>();
@@ -50,9 +50,9 @@ namespace CrunchEconContractModels.Random_Stuff
                 if (MySession.Static.Factions.Any(x => x.Value.Stations.Any(z => z.StationEntityId == grid.EntityId)))
                 {
                     Core.Log.Info("Keen Station spawned, clearing");
-                    foreach (var block in grid.CubeBlocks)
+                    foreach (var block in grid.GetFatBlocks())
                     {
-                        if (block is IMyEntity inventory)
+                        if (block is IMyInventoryOwner inventory)
                         {
                             List<uint> deleteThese = new List<uint>();
                             for (int i = 0; i < inventory.InventoryCount; i++)
@@ -67,7 +67,7 @@ namespace CrunchEconContractModels.Random_Stuff
                                     }
                                     else
                                     {
-                                        Core.Log.Info($"Item found {invitem.Content.TypeId}/{invitem.Content.SubtypeName}");
+                                     //   Core.Log.Info($"Item found {invitem.Content.TypeId}/{invitem.Content.SubtypeName}");
                                     }
                                 }
                                 foreach (uint id in deleteThese)
