@@ -43,7 +43,7 @@ namespace CrunchEconV3.PlugAndPlay
         }
     }
 
-    [PatchShim]
+
     public static class KeenStoreManagement
     {
         public static bool UpdatingStoreFiles = false;
@@ -57,10 +57,10 @@ namespace CrunchEconV3.PlugAndPlay
             throw new Exception("Failed to find patch method");
         public static void Patch(PatchContext ctx)
         {
-            Core.Log.Info("Adding keen patch");
-            ctx.GetPattern(updateMethod).Prefixes.Add(updatePatch);
-
+            Core.Log.Info("Adding keen patch 2");
             LoadStores();
+
+            ctx.GetPattern(updateMethod).Prefixes.Add(updatePatch);
 
         }
 
@@ -375,6 +375,7 @@ namespace CrunchEconV3.PlugAndPlay
         public static void LoadStores()
         {
             Directory.CreateDirectory($"{Core.path}/KeenStoreConfigs/");
+         //   Core.Log.Error($"{Core.path}");
             foreach (var file in Directory.GetFiles($"{Core.path}/KeenStoreConfigs/", "*",
                          SearchOption.AllDirectories))
             {
