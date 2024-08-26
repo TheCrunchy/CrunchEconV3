@@ -50,6 +50,7 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
         {
         //    MyLog.Default.WriteLine($"[Crunch]: closed");
             UpdateThrust(true);
+            _battery.OnMarkForClose -= Closed;
         }
 
         public override void UpdateOnceBeforeFrame()
