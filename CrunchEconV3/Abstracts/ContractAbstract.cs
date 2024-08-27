@@ -27,7 +27,10 @@ namespace CrunchEconV3.Abstracts
             string contractName = this.Name;
             string contractDescription;
             contractDescription = descriptionOverride != "" ? descriptionOverride : this.Description;
-
+            if (this.AssignedPlayerIdentityId == 0l) 
+            {
+                ExpireAt = DateTime.Now.AddSeconds(this.SecondsToComplete);
+            }
             if (!MyDefinitionId.TryParse(definition, out var definitionId)) return null;
             var newContract = new MyObjectBuilder_ContractCustom
             {
