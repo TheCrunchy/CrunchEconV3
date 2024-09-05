@@ -245,6 +245,7 @@ namespace CrunchEconContractModels.Contracts
         {
             if (PatchCount >= 1)
             {
+                Core.Log.Info("Patch count above 1, returning, you should probably restart");
                 return;
             }
 
