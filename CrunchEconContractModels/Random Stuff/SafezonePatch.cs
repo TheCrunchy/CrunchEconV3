@@ -20,7 +20,7 @@ namespace CrunchEconContractModels.Random_Stuff
         }
 
         internal static readonly MethodInfo buttonMethod =
-            typeof(MySafeZone).GetMethod("UpdateOnceBeforeFrame", BindingFlags.Instance | BindingFlags.Public) ??
+            typeof(MySafeZone).GetMethod("UpdateBeforeSimulation", BindingFlags.Instance | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method contract");
 
         internal static readonly MethodInfo buttonPatch =
