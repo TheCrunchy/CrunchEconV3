@@ -102,16 +102,31 @@ namespace CrunchEconV3.Handlers
 
         public static bool SpawnItems(MyDefinitionId id, MyFixedPoint amount, List<VRage.Game.ModAPI.IMyInventory> inventories)
         {
-            foreach (var inv in inventories)
+            try
             {
-            
-                    MyItemType itemType = new MyInventoryItemFilter(id.TypeId + "/" + id.SubtypeName).ItemType;
-                if (inv.CanItemsBeAdded(amount, itemType))
+                MyItemType itemType = new MyInventoryItemFilter(id.TypeId + "/" + id.SubtypeName).ItemType;
+                foreach (var inv in inventories)
                 {
-                    inv.AddItems(amount,
-                        (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializerKeen.CreateNewObject(id));
-                    return true;
+                    if (itemType == null)
+                    {
+                        return false;
+                    }
+                    if (inv.CanItemsBeAdded(amount, itemType))
+                    {
+                        var obj = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializerKeen.CreateNewObject(id);
+                        if (obj == null)
+                        {
+                            return false;
+                        }
+                        inv.AddItems(amount, obj);
+                        return true;
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Core.Log.Error(e);
+                return false;
             }
             return false;
         }

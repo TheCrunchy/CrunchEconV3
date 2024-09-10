@@ -380,36 +380,6 @@ namespace CrunchEconContractModels.StationLogics
                 store.InsertOrder(itemInsert,
                     out long notUsingThis);
 
-            //    long newid2 = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-            //   MyStoreItem myStoreItem3 = new MyStoreItem(newid2, amount, 50, StoreItemTypes.Order, ItemTypes.Hydrogen);
-            //    myStoreItem3.IsCustomStoreItem = true;
-            //   myStoreItem3.PrefabName = "TestDestroyer";
-            //  long newid3 = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-            //  MyStoreItem myStoreItem2 = new MyStoreItem(newid3, amount, 50, StoreItemTypes.Order, ItemTypes.Grid);
-
-            // myStoreItem2.IsCustomStoreItem = true;
-            //  myStoreItem2.PrefabName = "TestDestroyer";
-            //   store.PlayerItems.Add(myStoreItem3);
-            //   store.PlayerItems.Add(myStoreItem2);
-
-            //  station.StoreItems.Add(myStoreItem);
-            //if (item.IsGas)
-            //{
-            //    long gasId = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-            //    MyStoreItem gasItem = null;
-            //    switch (item.GasSubType.ToLower())
-            //    {
-            //        case "hydrogen":
-            //            gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Order, ItemTypes.Hydrogen);
-            //            break;
-            //        case "oxygen":
-            //            gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Order, ItemTypes.Oxygen);
-            //            break;
-            //    }
-            //    gasItem.IsCustomStoreItem = true;
-            //    store.PlayerItems.Add(gasItem);
-            //    return;
-            //}
             if (result != MyStoreInsertResults.Success)
             {
                 if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum || result == MyStoreInsertResults.Fail_StoreLimitReached)
@@ -439,6 +409,7 @@ namespace CrunchEconContractModels.StationLogics
             if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id)) return;
 
             SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, item.Subtype);
+
             if (this.OnlyAllowToBuyOrSellNotBoth)
             {
                 if (store.PlayerItems.Any(x => x.Item.HasValue && x.Item.Value.TypeId == itemId.TypeId && x.Item.Value.SubtypeId == itemId.SubtypeId))
@@ -455,13 +426,18 @@ namespace CrunchEconContractModels.StationLogics
             {
                 if (item.SpawnItemsIfMissing && quantityInGrid < item.SpawnIfBelowThisQuantity)
                 {
+                    Directory.CreateDirectory($"{Core.path}/LOG");
+                    File.WriteAllText($"{Core.path}/LOG/S1.txt", $"{id.ToString()} {DateTime.Now}");
+                    Core.Log.Info($"S1 {id.ToString()}");
                     var amountToSpawn = amount - quantityInGrid;
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {
-                        var used = new HashSet<String>();
+                    Core.Log.Info($"S2");
+                    File.WriteAllText($"{Core.path}/LOG/S2.txt", $"{id.ToString()} {DateTime.Now}");
+                    var used = new HashSet<String>();
                         if (id.TypeId.ToString() == "MyObjectBuilder_Datapad")
                         {
-                            for (int i = 0; i < amountToSpawn; i++)
+                            Core.Log.Info($"S2 Datapad");
+                            File.WriteAllText($"{Core.path}/LOG/S2 Datapad.txt", $"{DateTime.Now}");
+                        for (int i = 0; i < amountToSpawn; i++)
                             {
                                 var datapadBuilder = BuildDataPad(id.SubtypeName);
                                 if (used.Contains(datapadBuilder.Data))
@@ -482,14 +458,21 @@ namespace CrunchEconContractModels.StationLogics
                         }
                         else
                         {
-                            if (!CrunchEconV3.Handlers.InventoriesHandler.SpawnItems(id, amountToSpawn, gridInventories))
+                            if (amountToSpawn < 0)
+                            {
+                                Core.Log.Info($"Quantity to spawn is below 0, the fuck?");
+                                return;
+                            }
+                            Core.Log.Info($"Before spawn S3");
+                            File.WriteAllText($"{Core.path}/LOG/S3.txt", $"{id.ToString()} {DateTime.Now}");
+                        if (!CrunchEconV3.Handlers.InventoriesHandler.SpawnItems(id, amountToSpawn, gridInventories))
                             {
                                 CrunchEconV3.Core.Log.Error(
                                     $"Unable to spawn items for offer in grid {item.Type} {item.Subtype}");
                             }
                         }
 
-                    });
+                  
                 }
                 else
                 {

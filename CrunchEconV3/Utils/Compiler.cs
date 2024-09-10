@@ -28,6 +28,10 @@ namespace CrunchEconV3.Utils
 
         public static MetadataReference[] GetRequiredRefernces()
         {
+            if (File.Exists($"{Core.path}/CrunchEconV3.dll"))
+            {
+                File.Delete($"{Core.path}/CrunchEconV3.dll");
+            }
             List<MetadataReference> metadataReferenceList = new List<MetadataReference>();
             foreach (Assembly assembly in ((IEnumerable<Assembly>)AppDomain.CurrentDomain.GetAssemblies()).Where<Assembly>((Func<Assembly, bool>)(a => !a.IsDynamic)))
             {
@@ -73,7 +77,7 @@ namespace CrunchEconV3.Utils
             //    }
             //}
 
-            foreach (var filePath in Directory.GetFiles(Core.path).Where(x => x.Contains(".dll")))
+            foreach (var filePath in Directory.GetFiles(Core.path).Where(x => x.Contains(".dll") && !x.Contains("CrunchEconV3.dll")))
             {
                 using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
