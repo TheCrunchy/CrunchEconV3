@@ -13,22 +13,34 @@ namespace CrunchEconV3.Utils
 
         public void WriteToJsonFile<T>(string filePath, T objectToWrite, bool append = false) where T : new()
         {
-            TextWriter writer = null;
             try
             {
+                // Check if the file is locked before opening it
+
                 var contentsToWriteToFile = JsonConvert.SerializeObject(objectToWrite, new JsonSerializerSettings()
                 {
                     TypeNameHandling = TypeNameHandling.Auto,
                     SerializationBinder = new MySerializationBinder(),
                     Formatting = Newtonsoft.Json.Formatting.Indented
                 });
-                writer = new StreamWriter(filePath, append);
-                writer.Write(contentsToWriteToFile);
+
+                // Use a FileStream to keep the file open while writing
+                using (var fileStream = new FileStream(filePath, append ? FileMode.Append : FileMode.Create,
+                           FileAccess.Write, FileShare.None))
+                {
+                    using (var writer = new StreamWriter(fileStream))
+                    {
+                        writer.Write(contentsToWriteToFile);
+                    }
+                }
             }
-            finally
+            catch (IOException ex)
             {
-                if (writer != null)
-                    writer.Close();
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred: {ex.Message}");
             }
         }
 
@@ -50,11 +62,11 @@ namespace CrunchEconV3.Utils
             }
             catch (Exception e)
             {
-             //   Core.Log.Error($"Error reading file, moved to backups");
+                //   Core.Log.Error($"Error reading file, moved to backups");
                 Core.Log.Error($"Error reading file {filePath} {e}");
 
-           //     Directory.CreateDirectory($"{Core.path}/ErroredFileBackups/");
-              //  File.Move(filePath, $"{Core.path}/ErroredFileBackups/{Path.GetFileNameWithoutExtension(filePath)}-{DateTime.Now:HH-mm-ss-dd-MM-yyyy}.json");
+                //     Directory.CreateDirectory($"{Core.path}/ErroredFileBackups/");
+                //  File.Move(filePath, $"{Core.path}/ErroredFileBackups/{Path.GetFileNameWithoutExtension(filePath)}-{DateTime.Now:HH-mm-ss-dd-MM-yyyy}.json");
 
                 return new T();
             }
