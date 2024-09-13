@@ -104,14 +104,9 @@ namespace CrunchEconV3.Handlers
         {
             try
             {
-                MyItemType itemType = new MyInventoryItemFilter(id.TypeId + "/" + id.SubtypeName).ItemType;
                 foreach (var inv in inventories)
                 {
-                    if (itemType == null)
-                    {
-                        return false;
-                    }
-                    if (inv.CanItemsBeAdded(amount, itemType))
+                    if (inv.CanItemsBeAdded(amount, id))
                     {
                         var obj = (MyObjectBuilder_PhysicalObject)MyObjectBuilderSerializerKeen.CreateNewObject(id);
                         if (obj == null)
