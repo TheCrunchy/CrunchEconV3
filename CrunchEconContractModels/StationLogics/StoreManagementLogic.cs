@@ -426,18 +426,11 @@ namespace CrunchEconContractModels.StationLogics
             {
                 if (item.SpawnItemsIfMissing && quantityInGrid < item.SpawnIfBelowThisQuantity)
                 {
-                    Directory.CreateDirectory($"{Core.path}/LOG");
-                    File.WriteAllText($"{Core.path}/LOG/S1.txt", $"{id.ToString()} {DateTime.Now}");
-                    Core.Log.Info($"S1 {id.ToString()}");
                     var amountToSpawn = amount - quantityInGrid;
-                    Core.Log.Info($"S2");
-                    File.WriteAllText($"{Core.path}/LOG/S2.txt", $"{id.ToString()} {DateTime.Now}");
                     var used = new HashSet<String>();
                         if (id.TypeId.ToString() == "MyObjectBuilder_Datapad")
                         {
-                            Core.Log.Info($"S2 Datapad");
-                            File.WriteAllText($"{Core.path}/LOG/S2 Datapad.txt", $"{DateTime.Now}");
-                        for (int i = 0; i < amountToSpawn; i++)
+                            for (int i = 0; i < amountToSpawn; i++)
                             {
                                 var datapadBuilder = BuildDataPad(id.SubtypeName);
                                 if (used.Contains(datapadBuilder.Data))
@@ -463,9 +456,7 @@ namespace CrunchEconContractModels.StationLogics
                                 Core.Log.Info($"Quantity to spawn is below 0, the fuck?");
                                 return;
                             }
-                            Core.Log.Info($"Before spawn S3");
-                            File.WriteAllText($"{Core.path}/LOG/S3.txt", $"{id.ToString()} {DateTime.Now}");
-                        if (!CrunchEconV3.Handlers.InventoriesHandler.SpawnItems(id, amountToSpawn, gridInventories))
+                            if (!CrunchEconV3.Handlers.InventoriesHandler.SpawnItems(id, amountToSpawn, gridInventories))
                             {
                                 CrunchEconV3.Core.Log.Error(
                                     $"Unable to spawn items for offer in grid {item.Type} {item.Subtype}");
