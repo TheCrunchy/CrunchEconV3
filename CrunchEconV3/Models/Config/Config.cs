@@ -13,5 +13,7 @@ namespace CrunchEconV3.Models.Config
         public bool RemoveKeenContractsOnStations = true;
         public bool OverrideKeenStores = false;
         public HashSet<KeenStoreFileEntry> KeenNPCStoresOverrides { get; set; } = new HashSet<KeenStoreFileEntry>();
+
+        public float GravityPriceModifier = 1;
     }
 }

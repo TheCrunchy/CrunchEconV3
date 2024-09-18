@@ -31,6 +31,7 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
             {
                 oxymodel = new PriceModel();
                 oxymodel.MinPrice = 1;
+                oxymodel.ContractPrice = 1;
                 oxymodel.Id = oxy;
                 _prices[oxymodel.Id] = oxymodel;
             }
@@ -39,6 +40,7 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
             {
                 hyromodel = new PriceModel();
                 hyromodel.MinPrice = 2;
+                hyromodel.ContractPrice = 2;
                 hyromodel.Id = hydro;
                 _prices[hyromodel.Id] = hyromodel;
             }
@@ -66,6 +68,7 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
                         model = new PriceModel();
                         model.MinPrice = CalculatePrice(def);
                         model.Id = def.Id.ToString();
+                        model.ContractPrice = model.MinPrice;
                         _prices[model.Id] = model;
                     }
                 }
@@ -76,6 +79,7 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
                     model = new PriceModel();
                     model.MinPrice = CalculatePrice(def);
                     model.Id = def.Id.ToString();
+                    model.ContractPrice = model.MinPrice;
                     _prices[model.Id] = model;
                 }
             }
@@ -220,6 +224,7 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
         public bool NotFound { get; set; } = false;
         public string Id { get; set; }
         public long MinPrice { get; set; }
+        public double ContractPrice { get; set; }
         //Min price has a + or - 5% 
         public float RangeModifier = 0.05f;
 
@@ -236,8 +241,14 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
             double modifier = random.NextDouble() * RangeModifier;
 
             // Randomly decide whether to add or subtract the modifier
+            double price = MinPrice;
+
             int sign = random.Next(0, 2) == 0 ? -1 : 1;
-            int priceChange = (int)(MinPrice * modifier) * sign;
+            if (contract && ContractPrice != 0)
+            {
+                price = ContractPrice;
+            }
+            double priceChange = (double)(price * modifier) * sign;
 
             var endModifier = contract ? SellPriceModifier : ContractPriceModifier;
 
@@ -248,9 +259,7 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
             // Ensure minPrice is the smaller value and maxPrice is the larger value
             if (minPrice > maxPrice)
             {
-                long temp = minPrice;
-                minPrice = maxPrice;
-                maxPrice = temp;
+                (minPrice, maxPrice) = (maxPrice, minPrice);
             }
 
             return Tuple.Create(minPrice, maxPrice);
@@ -265,18 +274,16 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
 
             // Randomly decide whether to add or subtract the modifier
             int sign = random.Next(0, 2) == 0 ? -1 : 1;
-            int priceChange = (int)(MinPrice * modifier) * sign;
+            double priceChange = (double)(MinPrice * modifier) * sign;
 
             // Calculate the minimum and maximum prices
-            long minPrice = MinPrice + priceChange;
-            long maxPrice = MinPrice - priceChange;
+            long minPrice = (long)(MinPrice + priceChange);
+            long maxPrice = (long)(MinPrice - priceChange);
 
             // Ensure minPrice is the smaller value and maxPrice is the larger value
             if (minPrice > maxPrice)
             {
-                long temp = minPrice;
-                minPrice = maxPrice;
-                maxPrice = temp;
+                (minPrice, maxPrice) = (maxPrice, minPrice);
             }
 
             return Tuple.Create(minPrice, maxPrice);

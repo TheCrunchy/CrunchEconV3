@@ -62,6 +62,12 @@ namespace CrunchEconV3.Abstracts
             {
                 return null;
             }
+
+            if (MyGravityProviderSystem.IsPositionInNaturalGravity(contract.DeliverLocation))
+            {
+                var temp = contract.RewardMoney * Core.config.GravityPriceModifier;
+                contract.RewardMoney = (long)temp;
+            }
             return contract;
         }
 
