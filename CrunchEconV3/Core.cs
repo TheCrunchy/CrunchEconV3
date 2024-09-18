@@ -390,9 +390,10 @@ namespace CrunchEconV3
             else
             {
                 SetupDefaults();
+                fileUtils.WriteToJsonFile(path, StationHandler.DefaultAvailables);
             }
             
-            fileUtils.WriteToJsonFile(path, StationHandler.DefaultAvailables);
+    
         }
 
         private static void SetupDefaults()

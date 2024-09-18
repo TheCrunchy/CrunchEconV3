@@ -39,6 +39,7 @@
     <Reference Include="CrunchGroupPlugin">
       <HintPath>..\..\AlliancesPlugin\TerritoryPlugin\bin\Debug\CrunchGroupPlugin.dll</HintPath>
     </Reference>
+    <Reference Include="HavokWrapper, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null" />
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\4 Torch Server\DedicatedServer64\Newtonsoft.Json.dll</HintPath>
@@ -136,6 +137,7 @@
     <Compile Include="Random Stuff\ProjectorGridSales.cs" />
     <Compile Include="Random Stuff\ReputationScript.cs" />
     <Compile Include="Random Stuff\RunMESCommand.cs" />
+    <Compile Include="Random Stuff\RigidBodyPatch.cs" />
     <Compile Include="Random Stuff\SafezonePatch.cs" />
     <Compile Include="Random Stuff\SpawnPatchSuit.cs" />
     <Compile Include="Random Stuff\SpawnPatchTwo.cs" />
