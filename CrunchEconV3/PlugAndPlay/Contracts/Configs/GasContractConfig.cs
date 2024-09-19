@@ -28,7 +28,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             var description = new StringBuilder();
             var contract = new GasContractImplementation();
             var price = PriceHelper.GetPriceModel($"MyObjectBuilder_GasProperties/{this.GasSubType}");
-            var pricing = price.GetSellMinAndMaxPrice();
+            var pricing = price.GetSellMinAndMaxPrice(true);
             if (price.NotFound)
             {
                 return null;
