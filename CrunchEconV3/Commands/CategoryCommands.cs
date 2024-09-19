@@ -119,7 +119,7 @@ namespace CrunchEconV3.Commands
             {
                 stationName += ".json";
             }
-            var station = Core.StationStorage.GetAll().FirstOrDefault(x => x.FileName == stationName);
+            var station = Core.StationStorage.GetAll().FirstOrDefault(x => x.FileName.ToLower() == stationName.ToLower());
             if (station == null)
             {
                 Context.Respond("Station not found");
