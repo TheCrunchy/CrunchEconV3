@@ -233,7 +233,7 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
 
         public float ContractPriceModifier = 0.7f;
 
-        public Tuple<long, long> GetSellMinAndMaxPrice(bool contract = false)
+        public Tuple<double, double> GetSellMinAndMaxPrice(bool contract = false)
         {
             Random random = new Random();
 
@@ -253,8 +253,8 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
             var endModifier = contract ? SellPriceModifier : ContractPriceModifier;
 
             // Calculate the minimum and maximum prices
-            long minPrice = (long)(MinPrice + priceChange * endModifier);
-            long maxPrice = (long)(MinPrice - priceChange * endModifier);
+            double minPrice = (MinPrice + priceChange * endModifier);
+            double maxPrice = (MinPrice - priceChange * endModifier);
 
             // Ensure minPrice is the smaller value and maxPrice is the larger value
             if (minPrice > maxPrice)
