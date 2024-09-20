@@ -27,7 +27,7 @@ namespace CrunchEconV3.PlugAndPlay.Models
             return new ItemToDeliver()
             {
                 AmountToDeliver = amount,
-                Pay = Core.random.Next((int)pricing.Item1, (int)pricing.Item2) * amount,
+                Pay = (long)((pricing.Item1 + Core.random.NextDouble() * (pricing.Item2 - pricing.Item1)) * amount),
                 SubTypeId = v.SubTypeId,
                 TypeId = v.TypeId,
             };

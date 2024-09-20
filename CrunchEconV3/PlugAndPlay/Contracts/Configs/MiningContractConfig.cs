@@ -44,7 +44,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
                 return null;
             }
             long tempValue = contract.AmountToMine;
-            contract.RewardMoney = tempValue * (Core.random.Next((int)pricing.Item1, (int)pricing.Item2));
+            contract.RewardMoney = (long)(tempValue * (pricing.Item1 + (Core.random.NextDouble() * (pricing.Item2 - pricing.Item1))));
             var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
             contract.DeliverLocation = result.Item1;
             contract.DeliveryFactionId = result.Item2;
