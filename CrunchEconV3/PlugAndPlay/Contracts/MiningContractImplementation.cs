@@ -200,7 +200,6 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
 
         public static void Patch(PatchContext ctx)
         {
-            CrunchEconV3.Core.Log.Error("PATCHING DRILL");
             ctx.GetPattern(update).Suffixes.Add(updatePatch);
         }
 
