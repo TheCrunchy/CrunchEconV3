@@ -239,29 +239,32 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
 
             // Calculate the random range within the RangeModifier
             double modifier = random.NextDouble() * RangeModifier;
-
+        //    Core.Log.Info($"{modifier}");
             // Randomly decide whether to add or subtract the modifier
             double price = MinPrice;
 
-            int sign = random.Next(0, 2) == 0 ? -1 : 1;
+            double sign = random.Next(0, 2) == 0 ? -1 : 1;
             if (contract && ContractPrice != 0)
             {
                 price = ContractPrice;
+       //         Core.Log.Info($"{price}");
             }
+      //      Core.Log.Info($"{price * modifier}");
+       //     Core.Log.Info($"{price * modifier * sign}");
             double priceChange = (double)(price * modifier) * sign;
 
             var endModifier = contract ? SellPriceModifier : ContractPriceModifier;
 
             // Calculate the minimum and maximum prices
-            double minPrice = (MinPrice + priceChange * endModifier);
-            double maxPrice = (MinPrice - priceChange * endModifier);
+            double minPrice = (price + priceChange * endModifier);
+            double maxPrice = (price - priceChange * endModifier);
 
             // Ensure minPrice is the smaller value and maxPrice is the larger value
             if (minPrice > maxPrice)
             {
                 (minPrice, maxPrice) = (maxPrice, minPrice);
             }
-
+       //     Core.Log.Info($"{minPrice} {maxPrice}");
             return Tuple.Create(minPrice, maxPrice);
         }
 
