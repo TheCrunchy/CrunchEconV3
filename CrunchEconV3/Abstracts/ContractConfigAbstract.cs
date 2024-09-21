@@ -67,7 +67,11 @@ namespace CrunchEconV3.Abstracts
             {
                 var temp = contract.RewardMoney * Core.config.GravityPriceModifier;
                 contract.RewardMoney = (long)temp;
+                contract.Description += " ||| Target in gravity.";
             }
+            float distance = Vector3.Distance(contract.DeliverLocation, __instance != null ? __instance.CubeGrid.PositionComp.GetPosition() : keenstation.Position);
+            contract.Description += $" ||| Distance to target: {Math.Round(distance) / 1000} KM";
+
             return contract;
         }
 
