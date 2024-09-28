@@ -38,6 +38,10 @@ namespace CrunchEconContractModels.Contracts
 {
     public class CrunchGridDeathCombatContractImplementation : ContractAbstract
     {
+        public override string GetStatus()
+        {
+            return $"{this.Name}";
+        }
         private bool HasPower(VRage.Game.ModAPI.IMyCubeGrid grid)
         {
             var blocks = new List<IMySlimBlock>();

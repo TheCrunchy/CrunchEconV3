@@ -26,6 +26,11 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
 
             return BuildUnassignedContract(contractDescription);
         }
+        public override string GetStatus()
+        {
+            return $"{this.Name} - {this.ItemToDeliver.AmountToDeliver:##,###} {this.ItemToDeliver.TypeId.Replace("MyObjectBuilder_", "")} {this.ItemToDeliver.SubTypeId}";
+        }
+
         public List<VRage.Game.ModAPI.IMyInventory> GetStationInventories(MyCubeGrid grid)
         {
             List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();

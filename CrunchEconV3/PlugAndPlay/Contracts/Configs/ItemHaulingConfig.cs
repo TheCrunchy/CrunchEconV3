@@ -43,9 +43,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             description.AppendLine(
                 $"Deliver {contract.ItemToDeliver.AmountToDeliver} {contract.ItemToDeliver.TypeId.Replace("MyObjectBuilder_", "")} {contract.ItemToDeliver.SubTypeId}");
             float distance = 0;
-            distance = Vector3.Distance(contract.DeliverLocation, __instance != null ? __instance.CubeGrid.PositionComp.GetPosition() : keenstation.Position);
-            description.AppendLine($" ||| Distance bonus applied {contract.DistanceReward:##,###} - Distance to target: {Math.Round(distance) / 1000} KM");
-
+   
             if (this.ReputationRequired != 0)
             {
                 description.AppendLine($" ||| Reputation with owner required: {this.ReputationRequired}");

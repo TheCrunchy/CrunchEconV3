@@ -4,6 +4,7 @@ using System.Text;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
+using Newtonsoft.Json;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
@@ -21,6 +22,12 @@ namespace CrunchEconV3.Abstracts
     {
         public long ContractId { get; set; }
         public string ContractType { get; set; }
+
+        public virtual string GetStatus()
+        {
+            return this.Name;
+        }
+
         public virtual MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
         {
             string definition = this.DefinitionId;

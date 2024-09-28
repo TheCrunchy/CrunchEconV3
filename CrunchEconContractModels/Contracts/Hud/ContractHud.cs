@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CrunchEconV3;
+using CrunchEconV3.Abstracts;
 using Sandbox.Game;
 using Sandbox.Game.World;
 using Torch.Managers.PatchManager;
@@ -45,13 +46,36 @@ namespace CrunchEconContractModels.Contracts.Hud
                                 var timeLeft = item.ExpireAt.Subtract(DateTime.Now);
                                 if (item.ReadyToDeliver)
                                 {
-                                    MyVisualScriptLogicProvider.AddQuestlogDetail($"{item.Name}, {timeLeft.Hours} Hours, {timeLeft.Minutes} Minutes, Can be turned in.", playerId: player.Identity.IdentityId, useTyping: false, completePrevious: false);
+                                    if (item is ContractAbstract)
+                                    {
+                                        var ab = item as ContractAbstract;
+                                        MyVisualScriptLogicProvider.AddQuestlogDetail($"{ab.GetStatus()}, {timeLeft.Hours} Hours, {timeLeft.Minutes} Minutes, Can be turned in.", playerId: player.Identity.IdentityId, useTyping: false, completePrevious: false);
+                                    
+                                    }
+                                    else
+                                    {
+                                        MyVisualScriptLogicProvider.AddQuestlogDetail($"{item.Name}, {timeLeft.Hours} Hours, {timeLeft.Minutes} Minutes, Can be turned in.", playerId: player.Identity.IdentityId, useTyping: false, completePrevious: false);
+                                    }
+                            
 
                                 }
                                 else
                                 {
-                                    MyVisualScriptLogicProvider.AddQuestlogDetail($"{item.Name}, {timeLeft.Hours} Hours, {timeLeft.Minutes} Minutes", playerId: player.Identity.IdentityId, useTyping: false, completePrevious: false);
-
+                                    if (item is ContractAbstract)
+                                    {
+                                        var ab = item as ContractAbstract;
+                                        MyVisualScriptLogicProvider.AddQuestlogDetail(
+                                            $"{ab.GetStatus()}, {timeLeft.Hours} Hours, {timeLeft.Minutes} Minutes",
+                                            playerId: player.Identity.IdentityId, useTyping: false,
+                                            completePrevious: false);
+                                    }
+                                    else
+                                    {
+                                        MyVisualScriptLogicProvider.AddQuestlogDetail(
+                                            $"{item.Name}, {timeLeft.Hours} Hours, {timeLeft.Minutes} Minutes",
+                                            playerId: player.Identity.IdentityId, useTyping: false,
+                                            completePrevious: false);
+                                    }
                                 }
 
                             }

@@ -26,6 +26,10 @@ namespace CrunchEconContractModels.Contracts
 {
     public class CrunchItemHaulingContractImplementation : ContractAbstract
     {
+        public override string GetStatus()
+        {
+            return $"{this.Name}";
+        }
         public List<VRage.Game.ModAPI.IMyInventory> GetStationInventories(MyCubeGrid grid)
         {
             List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();

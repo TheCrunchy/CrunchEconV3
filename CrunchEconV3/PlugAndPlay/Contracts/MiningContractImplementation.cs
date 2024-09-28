@@ -37,7 +37,10 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
             var contractDescription = $"You must go mine {this.AmountToMine - this.MinedOreAmount:##,###} {this.OreSubTypeName} using a ship drill, then return here.";
             return BuildUnassignedContract(contractDescription);
         }
-
+        public override string GetStatus()
+        {
+            return $"{this.Name} - {this.OreSubTypeName} {this.MinedOreAmount}/{this.AmountToMine}";
+        }
         public override Tuple<bool, MyContractResults> TryAcceptContract(CrunchPlayerData playerData, long identityId, MyContractBlock __instance)
         {
             if (this.DeliverLocation.Equals(Vector3.Zero))

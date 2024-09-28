@@ -19,6 +19,11 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
 {
     public class GasContractImplementation : ContractAbstract
     {
+        public override string GetStatus()
+        {
+            return $"{this.Name} - {this.GasAmount:##,###}L {this.GasName}";
+        }
+
         public override MyObjectBuilder_Contract BuildAssignedContract()
         {
             var contractDescription = $"You must obtain and deliver {this.GasAmount:##,###}L {this.GasName} in none stockpile tanks.";

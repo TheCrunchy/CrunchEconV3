@@ -7,7 +7,9 @@ using CrunchEconV3.Abstracts;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
+using CrunchEconV3.Models.ContractStuff;
 using CrunchEconV3.Utils;
+using Newtonsoft.Json;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Multiplayer;
@@ -17,21 +19,38 @@ using Sandbox.ModAPI;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
-using VRage.ObjectBuilder;
 using VRage.Utils;
 using VRageMath;
 
-namespace CrunchEconContractModels.Contracts
+namespace CrunchEconContractModels.Prozon
 {
-    public class CrunchGiveGasContractImplementation : ContractAbstract
+    public class ProzonItemHeistContract : ContractAbstract
     {
-        public override string GetStatus()
+        public List<VRage.Game.ModAPI.IMyInventory> GetStationInventories(MyCubeGrid grid)
         {
-            return $"{this.Name}";
+            List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();
+            var gridOwnerFac = FacUtils.GetOwner(grid);
+
+            foreach (var block in grid.GetFatBlocks().Where(x => x.OwnerId == gridOwnerFac))
+            {
+                if (block.DisplayNameText != null && !this.CargoNames.Contains(block.DisplayNameText))
+                {
+                    continue;
+                }
+
+                for (int i = 0; i < block.InventoryCount; i++)
+                {
+                    VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)block).GetInventory(i);
+                    inventories.Add(inv);
+                }
+            }
+            return inventories;
         }
+
         public override MyObjectBuilder_Contract BuildAssignedContract()
         {
-            var contractDescription = $"You must deliver {this.GasAmount:##,###}L {this.GasName} in none stockpile tanks.";
+            var contractDescription = $"You must go obtain {this.ItemToDeliver.AmountToDeliver:##,###} {this.ItemToDeliver.TypeId.Replace("MyObjectBuilder_", "")} {this.ItemToDeliver.SubTypeId} from the target, then deliver it back here.";
+
             return BuildUnassignedContract(contractDescription);
         }
 
@@ -72,40 +91,42 @@ namespace CrunchEconContractModels.Contracts
                     return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_InsufficientFunds);
                 }
             }
-
             var current = playerData.GetContractsForType(this.ContractType);
             if (current.Count >= 1)
             {
                 return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_ContractLimitReachedHard);
             }
-            var test = __instance.CubeGrid.GetGridGroup(GridLinkTypeEnum.Physical);
-            var grids = new List<IMyCubeGrid>();
-            var tanks = new List<IMyGasTank>();
 
-
-            test.GetGrids(grids);
-            foreach (var gridInGroup in grids)
-            {
-                tanks.AddRange(gridInGroup.GetFatBlocks<IMyGasTank>());
-            }
-
-            var playerTanks = TankHelper.MakeTankGroup(tanks, identityId, __instance.OwnerId, this.GasName);
-            if (playerTanks.Capacity < this.GasAmount)
-            {
-                return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_InsufficientSpace);
-            }
+            this.ReadyToDeliver = true;
 
             if (this.CollateralToTake > 0)
             {
                 EconUtils.takeMoney(identityId, this.CollateralToTake);
             }
+
             this.AssignedPlayerIdentityId = identityId;
             this.AssignedPlayerSteamId = playerData.PlayerSteamId;
-            TankHelper.AddGasToTanksInGroup(playerTanks, this.GasAmount);
-            return Tuple.Create(true, MyContractResults.Fail_ActivationConditionsNotMet_InsufficientSpace);
+            return Tuple.Create(true, MyContractResults.Success);
         }
+        public override void SendDeliveryGPS()
+        {
+            MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("Deliver items to");
+            sb.AppendLine("Hauling Contract Delivery Location.");
+            MyGps gpsRef = new MyGps();
+            gpsRef.Coords = DeliverLocation;
+            gpsRef.Name = $"Hauling Delivery Location";
+            gpsRef.GPSColor = Color.Orange;
+            gpsRef.ShowOnHud = true;
+            gpsRef.AlwaysVisible = true;
+            gpsRef.DiscardAt = new TimeSpan?();
+            gpsRef.UpdateHash();
+            gpsRef.Description = sb.ToString();
+            gpscol.SendAddGpsRequest(AssignedPlayerIdentityId, ref gpsRef);
 
-
+            GpsId = gpsRef.Hash;
+        }
 
         public override bool Update100(Vector3 PlayersCurrentPosition)
         {
@@ -117,89 +138,89 @@ namespace CrunchEconContractModels.Contracts
 
             return false;
         }
-
-        public override void SendDeliveryGPS()
-        {
-            MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"Deliver {GasAmount}L of {GasName} to");
-            sb.AppendLine("Contract Delivery Location.");
-            MyGps gpsRef = new MyGps();
-            gpsRef.Coords = DeliverLocation;
-            gpsRef.Name = $"Deliver {GasAmount:##,###}L of {GasName} to";
-            gpsRef.GPSColor = Color.Orange;
-            gpsRef.ShowOnHud = true;
-            gpsRef.AlwaysVisible = true;
-            gpsRef.DiscardAt = TimeSpan.FromSeconds(6000);
-            gpsRef.Description = sb.ToString();
-            gpscol.SendAddGpsRequest(AssignedPlayerIdentityId, ref gpsRef);
-
-            GpsId = gpsRef.Hash;
-        }
         public override bool TryCompleteContract(ulong steamId, Vector3D? currentPosition)
         {
-            try
+            if (!MySession.Static.Players.TryGetPlayerBySteamId((ulong)this.AssignedPlayerSteamId, out var player))
+                return false;
+
+            float distance = Vector3.Distance(this.DeliverLocation, (Vector3)currentPosition);
+            if (!(distance <= 500)) return false;
+
+            var sphere = new BoundingSphereD(this.DeliverLocation, 1000 * 2);
+            var playersGrids = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyCubeGrid>()
+                .Where(x => x.BlocksCount > 0 && FacUtils.IsOwnerOrFactionOwned(x, this.AssignedPlayerIdentityId, true)).ToList();
+
+
+            Dictionary<MyDefinitionId, int> itemsToRemove = new Dictionary<MyDefinitionId, int>();
+            var parseThis = $"{ItemToDeliver.TypeId}/" + this.ItemToDeliver.SubTypeId;
+            if (MyDefinitionId.TryParse(parseThis, out MyDefinitionId id))
             {
-                if (!MySession.Static.Players.TryGetPlayerBySteamId((ulong)this.AssignedPlayerSteamId, out var player))
-                    return false;
-
-                float distance = Vector3.Distance(this.DeliverLocation, (Vector3)currentPosition);
-                if (!(distance <= 500)) return false;
-
-                var sphere = new BoundingSphereD(this.DeliverLocation, 1000 * 2);
-                var playersGrids = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<IMyCubeGrid>()
-                    .Where(x => !x.Closed && FacUtils.IsOwnerOrFactionOwned(x as MyCubeGrid, this.AssignedPlayerIdentityId, true)).ToList();
-
-                var storeGrid = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<IMyCubeGrid>().Where(x => !x.Closed
-                    && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)) != null
-                    && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)).FactionId == this.DeliveryFactionId).ToList();
-                var tanks = new List<IMyGasTank>();
-                var storeTanks = new List<IMyGasTank>();
-                foreach (var grid in playersGrids)
-                {
-                    tanks.AddRange(grid.GetFatBlocks<IMyGasTank>());
-                }
-                foreach (var grid in storeGrid)
-                {
-
-                    storeTanks.AddRange(grid.GetFatBlocks<IMyGasTank>());
-                }
-                var tankGroup = TankHelper.MakeTankGroup(tanks, this.AssignedPlayerIdentityId, 0, this.GasName);
-                var storeTankGroup = TankHelper.MakeTankGroup(storeTanks, storeTanks.FirstOrDefault()?.OwnerId ?? 0, 0, this.GasName);
-                if (tankGroup.GasInTanks >= this.GasAmount)
-                {
-                    EconUtils.addMoney(this.AssignedPlayerIdentityId, this.RewardMoney);
-
-                    TankHelper.RemoveGasFromTanksInGroup(tankGroup, this.GasAmount);
-                    TankHelper.AddGasToTanksInGroup(storeTankGroup, this.GasAmount);
-                    if (this.ReputationGainOnComplete != 0)
-                    {
-                        MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
-                            this.FactionId, this.ReputationGainOnComplete, ReputationChangeReason.Contract,true);
-                    }
-                    return true;
-                }
+                itemsToRemove.Add(id, this.ItemToDeliver.AmountToDeliver);
             }
-            catch (Exception e)
+
+            List<VRage.Game.ModAPI.IMyInventory> inventories = new List<IMyInventory>();
+            foreach (var grid in playersGrids)
             {
-                Core.Log.Error($"Gas try complete error {e}");
-                return true;
+                inventories.AddRange(InventoriesHandler.GetInventoriesForContract(grid));
+            }
+
+            if (!InventoriesHandler.ConsumeComponents(inventories, itemsToRemove, player.Id.SteamId)) return false;
+
+
+            EconUtils.addMoney(this.AssignedPlayerIdentityId, this.RewardMoney + this.DistanceReward);
+            if (this.ReputationGainOnComplete != 0)
+            {
+                MySession.Static.Factions.AddFactionPlayerReputation(this.AssignedPlayerIdentityId,
+                    this.FactionId, this.ReputationGainOnComplete, ReputationChangeReason.Contract, true);
+            }
+
+            inventories.Clear();
+
+            if (this.PlaceItemsInTargetStation)
+            {
+                var foundCargo = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyCubeGrid>()
+                    .Where(x => x.BlocksCount > 0).ToList();
+                if (foundCargo.Any())
+                {
+                    foreach (var cargo in foundCargo)
+                    {
+
+                        var owner = FacUtils.GetOwner(cargo);
+                        var fac = MySession.Static.Factions.TryGetPlayerFaction(owner);
+
+                        if (fac != null && fac.FactionId == this.DeliveryFactionId)
+                        {
+                            inventories.AddRange(GetStationInventories(cargo));
+                        }
+                    }
+
+                    InventoriesHandler.SpawnItems(id, this.ItemToDeliver.AmountToDeliver, inventories);
+                }
             }
 
             return true;
         }
-
-        public long GasAmount { get; set; }
-        public string GasName { get; set; }
+        public ItemToDeliver ItemToDeliver { get; set; }
+        public bool PlaceItemsInTargetStation { get; set; }
+        public List<string> CargoNames = new List<string>();
     }
 
-    public class GiveGasContractConfig : IContractConfig
+
+    public class ItemHaulingContractConfig : IContractConfig
     {
-        //check the discord for documentation on what each thing in the interface does 
-        //https://discord.gg/cQFJeKvVAA
         public void Setup()
         {
             DeliveryGPSes = new List<string>() { "Put a gps here" };
+            ItemsAvailable = new List<ItemHaul>()
+            {
+                new ItemHaul()
+                {
+                    TypeId = "MyObjectBuilder_Ingot",
+                    SubTypeId = "Iron",
+                    AmountMax = 50000,
+                    AmountMin = 25000
+                }
+            };
         }
 
         public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
@@ -211,45 +232,45 @@ namespace CrunchEconContractModels.Contracts
                 {
                     return null;
                 }
+                this.CargoNames = new List<string>() { "Cargo1", "Cargo2" };
             }
+            var contract = new ProzonItemHeistContract();
+
             var description = new StringBuilder();
-            var contract = new CrunchGiveGasContractImplementation();
-            contract.GasAmount = CrunchEconV3.Core.random.Next((int)this.AmountInLitresMin, (int)this.AmountInLitresMax);
-            contract.RewardMoney = contract.GasAmount * (CrunchEconV3.Core.random.Next((int)this.PricePerLitreMin, (int)this.PricePerLitreMax));
-            contract.ContractType = "CrunchGiveGasHauling";
+            contract.ContractType = "ProzonHeistContract";
             contract.BlockId = idUsedForDictionary;
-            contract.GasName = this.GasSubType;
-            contract.ReputationGainOnComplete = CrunchEconV3.Core.random.Next(this.ReputationGainOnCompleteMin, this.ReputationGainOnCompleteMax);
+            contract.ItemToDeliver = (ItemToDeliver)this.ItemsAvailable.GetRandomItemFromList();
+            contract.RewardMoney = contract.ItemToDeliver.Pay;
+
+            contract.ReputationGainOnComplete = Core.random.Next(this.ReputationGainOnCompleteMin, this.ReputationGainOnCompleteMax);
             contract.ReputationLossOnAbandon = this.ReputationLossOnAbandon;
             contract.SecondsToComplete = this.SecondsToComplete;
             contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver";
-            contract.Name = $"{contract.GasName} Delivery";
-            var planetName = "";
-            contract.Name = $"{planetName} Item Delivery";
+            contract.Name = this.ContractName;
             contract.ReputationRequired = this.ReputationRequired;
-            contract.ReadyToDeliver = true;
-            contract.CollateralToTake = (CrunchEconV3.Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));
-            description.AppendLine($"You must deliver {contract.GasAmount:##,###}L {contract.GasName} in none stockpile tanks.");
-            if (this.ReputationRequired != 0)
-            {
-                description.AppendLine($" ||| Reputation with owner required: {this.ReputationRequired}");
-            }
+            contract.CollateralToTake = (Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));
             var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
             contract.DeliverLocation = result.Item1;
             contract.DeliveryFactionId = result.Item2;
+            contract.CargoNames = this.CargoNames;
+            contract.PlaceItemsInTargetStation = this.PlaceItemsInTargetStation;
             if (contract.DeliverLocation == null || contract.DeliverLocation.Equals(Vector3.Zero))
             {
                 return null;
             }
-            var distance = Vector3.Distance(contract.DeliverLocation, __instance != null ? __instance.PositionComp.GetPosition() : keenstation.Position);
-            description.AppendLine($" ||| Distance to target: {Math.Round(distance) / 1000} KM");
+            description.AppendLine($"Deliver {contract.ItemToDeliver.AmountToDeliver} {contract.ItemToDeliver.TypeId.Replace("MyObjectBuilder_", "")} {contract.ItemToDeliver.SubTypeId}");
+
+
+            if (this.ReputationRequired != 0)
+            {
+                description.AppendLine($" ||| Reputation with owner required: {this.ReputationRequired}");
+            }
 
             contract.Description = description.ToString();
             return contract;
         }
 
-        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
-            long idUsedForDictionary)
+        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {
             if (keenstation != null)
             {
@@ -269,24 +290,22 @@ namespace CrunchEconContractModels.Contracts
                 }
             }
 
-
-            if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())
+            if (this.DeliveryGPSes.Any())
             {
-                var random = this.DeliveryGPSes.GetRandomItemFromList();
-                var GPS = GPSHelper.ScanChat(random);
-                if (GPS != null)
+                if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())
                 {
-                    return Tuple.Create(GPS.Coords, 0l);
+                    var random = this.DeliveryGPSes.GetRandomItemFromList();
+                    var GPS = GPSHelper.ScanChat(random);
+                    if (GPS != null)
+                    {
+                        return Tuple.Create(GPS.Coords, 0l);
+                    }
                 }
             }
-
             var thisStation = StationHandler.GetStationNameForBlock(idUsedForDictionary);
-            if (thisStation == null)
-            {
-                return Tuple.Create(Vector3D.Zero, 0l);
-            }
             for (int i = 0; i < 10; i++)
             {
+
                 var station = Core.StationStorage.GetAll().Where(x => x.UseAsDeliveryLocation).ToList().GetRandomItemFromList();
                 if (station.FileName == thisStation)
                 {
@@ -309,20 +328,26 @@ namespace CrunchEconContractModels.Contracts
             return Tuple.Create(Vector3D.Zero, 0l);
         }
 
-        public int AmountOfContractsToGenerate { get; set; } = 2;
+        public int AmountOfContractsToGenerate { get; set; } = 3;
+        public string ContractName { get; set; } = "Heist Contract";
+        public float ChanceToAppear { get; set; } = 0.5f;
+        public long CollateralMin { get; set; } = 1;
+        public long CollateralMax { get; set; } = 3;
+        [JsonIgnore]
+        public List<string> DeliveryGPSes { get; set; }
+        public List<string> TargetLocations { get; set; }
+
+        public string CommandToRun { get; set; }
+
         public long SecondsToComplete { get; set; } = 1200;
+        public int ReputationRequired { get; set; } = 0;
         public int ReputationGainOnCompleteMin { get; set; } = 1;
         public int ReputationGainOnCompleteMax { get; set; } = 3;
         public int ReputationLossOnAbandon { get; set; } = 5;
-        public int ReputationRequired { get; set; } = 0;
-        public float ChanceToAppear { get; set; } = 1;
-        public long CollateralMin { get; set; } = 1000;
-        public long CollateralMax { get; set; } = 5000;
-        public List<string> DeliveryGPSes { get; set; }
-        public string GasSubType { get; set; } = "Hydrogen";
-        public long AmountInLitresMin { get; set; } = 200 * 1000;
-        public long AmountInLitresMax { get; set; } = 480 * 1000;
-        public long PricePerLitreMin { get; set; } = 50;
-        public long PricePerLitreMax { get; set; } = 75;
+        public List<ItemHaul> ItemsAvailable { get; set; }
+        public bool PlaceItemsInTargetStation { get; set; }
+        public List<string> CargoNames = new List<string>();
     }
+
+   
 }

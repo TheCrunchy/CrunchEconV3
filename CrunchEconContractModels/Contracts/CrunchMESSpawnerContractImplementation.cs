@@ -32,6 +32,10 @@ namespace CrunchEconContractModels.Contracts.MES
 {
     public class CrunchMESSpawnerContractImplementation : ContractAbstract
     {
+        public override string GetStatus()
+        {
+            return $"{this.Name}";
+        }
         private bool HasPower(VRage.Game.ModAPI.IMyCubeGrid grid)
         {
             var blocks = new List<IMySlimBlock>();

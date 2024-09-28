@@ -31,6 +31,10 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
         public int BlocksToRepair { get; set; }
 
         public DateTime NextMessage = DateTime.Now;
+        public override string GetStatus()
+        {
+            return $"{this.Name} - {BlocksToRepair} to repair. ";
+        }
         public override MyObjectBuilder_Contract BuildAssignedContract()
         {
             var contractDescription = $"You must repair the grid found at the Repair location GPS.";
