@@ -123,6 +123,7 @@
     <Compile Include="ProductionBuffs\RefineryPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Prozon\ProzonItemHeistContract.cs" />
+    <Compile Include="Prozon\ReputationLogging.cs" />
     <Compile Include="Random Stuff\BlockBuyingButton.cs" />
     <Compile Include="Random Stuff\ButtonOpenUrl.cs" />
     <Compile Include="Random Stuff\DebtPatch.cs" />
