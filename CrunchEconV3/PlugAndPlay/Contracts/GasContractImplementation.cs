@@ -121,7 +121,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
             gpsRef.GPSColor = Color.Orange;
             gpsRef.ShowOnHud = true;
             gpsRef.AlwaysVisible = true;
-            gpsRef.DiscardAt = TimeSpan.FromSeconds(6000);
+            gpsRef.DiscardAt = new TimeSpan?();
             gpsRef.Description = sb.ToString();
             gpscol.SendAddGpsRequest(AssignedPlayerIdentityId, ref gpsRef);
 
