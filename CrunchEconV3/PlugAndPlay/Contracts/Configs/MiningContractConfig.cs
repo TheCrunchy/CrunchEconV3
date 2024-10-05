@@ -58,7 +58,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             if (this.ReputationRequired != 0)
             {
                 description.AppendLine(
-                    $" ||| Reputation with owner required: {this.ReputationRequired}".PadRight(69, '_'));
+                    $" ||| Reputation with owner required: {this.ReputationRequired}");
             }
 
             contract.Description = description.ToString();
