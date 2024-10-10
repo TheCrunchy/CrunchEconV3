@@ -128,6 +128,9 @@ namespace CrunchEconContractModels.Prozon
             GpsId = gpsRef.Hash;
         }
 
+        public bool HasStarted = false;
+        public string CommandToExecute;
+        public Vector3 SpawnLocation { get; set; }
         public override bool Update100(Vector3 PlayersCurrentPosition)
         {
             if (DateTime.Now > ExpireAt)
@@ -136,6 +139,23 @@ namespace CrunchEconContractModels.Prozon
                 return true;
             }
 
+            if (HasStarted)
+            {
+
+                return TryCompleteContract(this.AssignedPlayerSteamId, PlayersCurrentPosition);
+            }
+            
+            var distance = Vector3.Distance(PlayersCurrentPosition, SpawnLocation);
+            if (distance <= 15000)
+            {
+
+                if (MySession.Static.Players.TryGetPlayerBySteamId(this.AssignedPlayerSteamId, out var player))
+                {
+                    Core.MesAPI.ChatCommand(CommandToExecute, player.Character.WorldMatrix, AssignedPlayerIdentityId,
+                        AssignedPlayerSteamId);
+                    HasStarted = true;
+                }
+            }
             return false;
         }
         public override bool TryCompleteContract(ulong steamId, Vector3D? currentPosition)
@@ -200,9 +220,11 @@ namespace CrunchEconContractModels.Prozon
 
             return true;
         }
+
         public ItemToDeliver ItemToDeliver { get; set; }
         public bool PlaceItemsInTargetStation { get; set; }
         public List<string> CargoNames = new List<string>();
+
     }
 
 
@@ -249,11 +271,14 @@ namespace CrunchEconContractModels.Prozon
             contract.Name = this.ContractName;
             contract.ReputationRequired = this.ReputationRequired;
             contract.CollateralToTake = (Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));
-            var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
-            contract.DeliverLocation = result.Item1;
+            var result = GetLocation(__instance, keenstation, idUsedForDictionary);
+            var result2 = GetLocation(__instance, keenstation, idUsedForDictionary);
+            contract.SpawnLocation = result.Item1;
+            contract.DeliverLocation = result2.Item1;
             contract.DeliveryFactionId = result.Item2;
             contract.CargoNames = this.CargoNames;
             contract.PlaceItemsInTargetStation = this.PlaceItemsInTargetStation;
+            contract.CommandToExecute = this.CommandToRun.Split(',').GetRandomItem();
             if (contract.DeliverLocation == null || contract.DeliverLocation.Equals(Vector3.Zero))
             {
                 return null;
@@ -269,27 +294,43 @@ namespace CrunchEconContractModels.Prozon
             contract.Description = description.ToString();
             return contract;
         }
-
         public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
         {
-            if (keenstation != null)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    //this will only pick stations from the same faction
-                    //var found = StationHandler.KeenStations.Where(x => x.FactionId == keenstation.FactionId).ToList().GetRandomItemFromList();
-                    var found = StationHandler.KeenStations.GetRandomItemFromList();
-                    var foundFaction = MySession.Static.Factions.TryGetFactionById(found.FactionId);
-                    if (foundFaction == null)
-                    {
-                        i++;
-                        continue;
-                    }
+            List<Tuple<Vector3D, long>> availablePositions = new List<Tuple<Vector3D, long>>();
 
-                    return Tuple.Create(found.Position, foundFaction.FactionId);
+            // If it's not a custom station, get random keen ones
+            var thisStation = StationHandler.GetStationNameForBlock(idUsedForDictionary);
+            if (thisStation != null)
+            {
+                var stations = Core.StationStorage.GetAll()
+                    .Where(x => x.UseAsDeliveryLocation && !string.Equals(x.FileName, thisStation))
+                    .ToList();
+
+                foreach (var station in stations)
+                {
+                    var foundFaction = MySession.Static.Factions.TryGetFactionByTag(station.FactionTag);
+                    var GPS = GPSHelper.ScanChat(station.LocationGPS);
+                    availablePositions.Add(Tuple.Create(GPS.Coords, foundFaction.FactionId));
                 }
             }
 
+            if (MySession.Static.Settings.EnableEconomy)
+            {
+                var positions = MySession.Static.Factions.GetNpcFactions()
+                    .Where(x => x.Stations.Any())
+                    .SelectMany(x => x.Stations)
+                    .Where(x => x.StationEntityId != keenstation?.StationEntityId)
+                    .Select(x => Tuple.Create(x.Position, x.FactionId))
+                    .ToList();
+                availablePositions.AddRange(positions);
+            }
+
+
+            return availablePositions.GetRandomItemFromList() ?? Tuple.Create(Vector3D.Zero, 0l);
+        }
+
+        public Tuple<Vector3D, long> GetLocation(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        {
             if (this.DeliveryGPSes.Any())
             {
                 if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())
@@ -300,29 +341,6 @@ namespace CrunchEconContractModels.Prozon
                     {
                         return Tuple.Create(GPS.Coords, 0l);
                     }
-                }
-            }
-            var thisStation = StationHandler.GetStationNameForBlock(idUsedForDictionary);
-            for (int i = 0; i < 10; i++)
-            {
-
-                var station = Core.StationStorage.GetAll().Where(x => x.UseAsDeliveryLocation).ToList().GetRandomItemFromList();
-                if (station.FileName == thisStation)
-                {
-                    i++;
-                    continue;
-                }
-                var foundFaction = MySession.Static.Factions.TryGetFactionByTag(station.FactionTag);
-                var GPS = GPSHelper.ScanChat(station.LocationGPS);
-                return Tuple.Create(GPS.Coords, foundFaction.FactionId);
-            }
-            var keenEndResult = StationHandler.KeenStations.GetRandomItemFromList();
-            if (keenEndResult != null)
-            {
-                var foundFaction = MySession.Static.Factions.TryGetFactionById(keenEndResult.FactionId);
-                if (foundFaction != null)
-                {
-                    return Tuple.Create(keenEndResult.Position, foundFaction.FactionId);
                 }
             }
             return Tuple.Create(Vector3D.Zero, 0l);
