@@ -303,10 +303,18 @@ namespace CrunchEconContractModels.StationLogics
                 return Task.FromResult(true);
             }
 
+            if (DebugMessages)
+            {
+                Core.Log.Error("Store Management running");
+            }
             if (this.DeleteItemsPeriodically)
             {
                 if (DateTime.Now >= NextDelete)
                 {
+                    if (DebugMessages)
+                    {
+                        Core.Log.Error("Running delete");
+                    }
                     NextDelete = DateTime.Now.AddMinutes(MinutesBetweenDeletes);
                     ClearInventories(grid);
                 }
@@ -315,15 +323,29 @@ namespace CrunchEconContractModels.StationLogics
             var Station = Core.StationStorage.GetAll().FirstOrDefault(x => x.GetGrid() == grid);
             if (Station == null)
             {
+                if (DebugMessages)
+                {
+                    Core.Log.Error("Station grid is null");
+                }
                 return Task.FromResult(true);
             }
-
+            if (DebugMessages)
+            {
+                Core.Log.Error("beginning store loop");
+            }
             var gridOwnerFac = FacUtils.GetOwner(grid);
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == gridOwnerFac))
             {
-
+                if (DebugMessages)
+                {
+                    Core.Log.Error($"{store.DisplayNameText}");
+                }
                 ClearStoreOfPlayersBuyingOffers(store);
                 var items = StoreItemsHandler.GetByBlockName(store.DisplayNameText);
+                if (DebugMessages)
+                {
+                    Core.Log.Error($"Checking {items.Count} entries");
+                }
                 foreach (var item in items)
                 {
                     if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id))
@@ -344,6 +366,10 @@ namespace CrunchEconContractModels.StationLogics
                     }
 
                 }
+            }
+            if (DebugMessages)
+            {
+                Core.Log.Error($"Ending store loop");
             }
 
             return Task.FromResult(true);
@@ -549,6 +575,8 @@ namespace CrunchEconContractModels.StationLogics
         public bool OnlyAllowToBuyOrSellNotBoth = false;
         public DateTime NextRefresh { get; set; }
         public int SecondsBetweenRefresh = 600;
+
+        public bool DebugMessages { get; set; }= false;
 
         public static MyObjectBuilder_Datapad BuildDataPad(string subtype)
         {
