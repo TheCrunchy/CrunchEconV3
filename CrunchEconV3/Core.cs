@@ -37,6 +37,7 @@ using CrunchEconV3.PlugAndPlay.Models;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Screens.Helpers;
+using Sandbox.Game.WorldEnvironment;
 using Sandbox.ModAPI;
 using Torch.Commands;
 using VRage.Game;

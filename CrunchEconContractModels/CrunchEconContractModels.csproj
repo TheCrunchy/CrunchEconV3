@@ -111,6 +111,7 @@
     <Compile Include="Contracts\Quests\Stages.cs" />
     <Compile Include="Contracts\SearchContractImplementation.cs" />
     <Compile Include="Contracts\testing.cs" />
+    <Compile Include="Patches\ChatPatch.cs" />
     <Compile Include="ProductionBuffs\AssemblerPatch.cs" />
     <Compile Include="ProductionBuffs\DrillYieldPatch.cs" />
     <Compile Include="ProductionBuffs\ProductionContractLogger.cs" />

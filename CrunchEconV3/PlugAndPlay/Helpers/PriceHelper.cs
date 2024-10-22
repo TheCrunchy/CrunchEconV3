@@ -25,6 +25,13 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
             if (File.Exists(path))
             {
                 _prices = Reader.ReadFromJsonFile<Dictionary<string, PriceModel>>(path);
+                _fileSystemWatcher = new FileSystemWatcher
+                {
+                    Path = Path.GetDirectoryName(path),
+                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size
+                };
+                _fileSystemWatcher.Changed += OnChanged;
+                return;
             }
             var oxy = $"MyObjectBuilder_GasProperties/Oxygen";
             if (!_prices.TryGetValue(oxy, out var oxymodel))
@@ -52,14 +59,11 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
          //   Core.Log.Error($"{test.Any()}");
             foreach (MyDefinitionBase def in defs)
             {
-
                 if (def as MyFactionTypeDefinition != null)
                 {
                     Core.Log.Info("Faction definition");
                     var fac = def as MyFactionTypeDefinition;
                 }
-
-                
 
                 if ((def as MyComponentDefinition) != null)
                 {
@@ -83,6 +87,7 @@ namespace CrunchEconV3.PlugAndPlay.Helpers
                     _prices[model.Id] = model;
                 }
             }
+       
             Reader.WriteToJsonFile(path, _prices);
             _fileSystemWatcher = new FileSystemWatcher
             {

@@ -178,7 +178,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
                 return true;
             }
 
-            return true;
+            return false;
         }
         public long GasAmount { get; set; }
         public string GasName { get; set; }
