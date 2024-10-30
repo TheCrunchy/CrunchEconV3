@@ -31,6 +31,7 @@ using CrunchEconContractModels.PlugAndPlay.Helpers;
 using CrunchEconV3.APIs;
 using CrunchEconV3.Patches;
 using CrunchEconV3.PlugAndPlay;
+using CrunchEconV3.PlugAndPlay.Contracts;
 using CrunchEconV3.PlugAndPlay.Contracts.Configs;
 using CrunchEconV3.PlugAndPlay.Helpers;
 using CrunchEconV3.PlugAndPlay.Models;
@@ -138,6 +139,17 @@ namespace CrunchEconV3
                 {
                     StationStorage = new JsonStationStorageHandler(path);
                     PlayerStorage = new JsonPlayerStorageHandler(path);
+
+                    var hasDefault = StationStorage.GetAll().Any(x =>
+                        x.GetConfigs().Any(x => x.GetType() == typeof(MiningContractConfig)));
+
+                    if (config.UseDefaultSetup || StationStorage.GetAll().Any(x => x.UsesDefault) || hasDefault)
+                    {
+                        var patchManager = Session.Managers.GetManager<PatchManager>();
+                        var patchContext = patchManager.AcquireContext();
+                        DrillPatch.Patch(patchContext);
+                        patchManager.Commit();
+                    }
                     Session.Managers.GetManager<IMultiplayerManagerBase>().PlayerJoined += PlayerStorage.LoadLogin;
                     GenerateDefaults();
                     var patches = Core.Session.Managers.GetManager<PatchManager>();
@@ -365,6 +377,7 @@ namespace CrunchEconV3
                         PriceHelper.Patch(patchContext);
                         PrefabHelper.Patch(patchContext);
                         KeenStoreManagement.Patch(patchContext);
+              
                         Core.Log.Error("Patching defaults");
 
                         break;

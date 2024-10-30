@@ -197,13 +197,12 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
         public bool SpawnOreInStation { get; set; }
     }
 
-    [PatchShim]
     public static class DrillPatch
     {
 
         public static void Patch(PatchContext ctx)
         {
-            ctx.GetPattern(update).Suffixes.Add(updatePatch);
+            ctx.GetPattern(update).Prefixes.Add(updatePatch);
         }
 
         public static Dictionary<ulong, DateTime> messageCooldown = new Dictionary<ulong, DateTime>();
