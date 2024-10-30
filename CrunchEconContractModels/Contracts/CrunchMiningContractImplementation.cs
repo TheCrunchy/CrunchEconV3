@@ -216,7 +216,7 @@ namespace CrunchEconContractModels.Contracts
             }
 
             PatchCount++;
-            CrunchEconV3.Core.Log.Error("PATCHING DRILL");
+            CrunchEconV3.Core.Log.Error("PATCHING DRILL 1");
             ctx.GetPattern(update).Suffixes.Add(updatePatch);
         }
 
@@ -243,7 +243,7 @@ namespace CrunchEconContractModels.Contracts
             bool collectOre,
             Action<bool> OnDrillingPerformed = null)
         {
-            if (PatchCount >= 1)
+            if (PatchCount > 1)
             {
                 Core.Log.Info("Patch count above 1, returning, you should probably restart");
                 return;

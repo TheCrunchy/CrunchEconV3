@@ -202,7 +202,8 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
 
         public static void Patch(PatchContext ctx)
         {
-            ctx.GetPattern(update).Prefixes.Add(updatePatch);
+            ctx.GetPattern(update).Suffixes.Add(updatePatch);
+            CrunchEconV3.Core.Log.Error("PATCHING DRILL 2");
         }
 
         public static Dictionary<ulong, DateTime> messageCooldown = new Dictionary<ulong, DateTime>();
