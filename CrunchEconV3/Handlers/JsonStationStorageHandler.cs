@@ -50,75 +50,89 @@ namespace CrunchEconV3.Handlers
 
         public void LoadAll()
         {
-            Configs.Clear();
-            MappedConfigs.Clear();
-            MappedKeenConfigs.Clear();
-            //   Thread.Sleep(Core.random.next);
-            foreach (var fake in Core.Fakes)
+            try
             {
-                SetupContracts(fake);
-            }
-
-            foreach (var item in Directory.GetFiles(BasePath))
-            {
-                var loaded = FileUtils.ReadFromJsonFile<StationConfig>(item);
-                loaded.FileName = Path.GetFileName(item);
-                var gps = GPSHelper.ScanChat(loaded.LocationGPS);
-                if (gps == null)
+                Configs.Clear();
+                MappedConfigs.Clear();
+                MappedKeenConfigs.Clear();
+                //   Thread.Sleep(Core.random.next);
+                foreach (var fake in Core.Fakes)
                 {
-                    Core.Log.Error($"GPS for station {loaded.FileName} is not valid, station not loaded");
-                    continue;
+                    SetupContracts(fake);
                 }
-                SetupContracts(loaded);
-                foreach (var substation in loaded.SubstationGpsStrings)
-                {
-                    var station = loaded.Clone();
-                    station.FileName = $"{station.FileName} clone";
-                    gps = GPSHelper.ScanChat(substation);
-                    if (gps == null)
-                    {
-                        Core.Log.Error($"GPS for station {loaded.FileName} is not valid, station not loaded");
-                        continue;
-                    }
-                    station.LocationGPS = substation;
-                    station.SetFake();
-                    station.SetFirstLoad(true);
-                    station.UsesDefault = loaded.UsesDefault;
-                    SetupContracts(station);
-                }
-            }
 
-            foreach (var NPC in Core.config.KeenNPCContracts)
-            {
-                foreach (var item in NPC.NPCFactionTags)
+                foreach (var item in Directory.GetFiles(BasePath))
                 {
-                    MappedKeenConfigs.Remove(item);
-                    foreach (var con in NPC.ContractFiles)
+                    try
                     {
-                        if (!MappedConfigs.ContainsKey(con))
+                        var loaded = FileUtils.ReadFromJsonFile<StationConfig>(item);
+                        loaded.FileName = Path.GetFileName(item);
+                        var gps = GPSHelper.ScanChat(loaded.LocationGPS);
+                        if (gps == null)
                         {
-                            try
+                            Core.Log.Error($"GPS for station {loaded.FileName} is not valid, station not loaded");
+                            continue;
+                        }
+                        SetupContracts(loaded);
+                        foreach (var substation in loaded.SubstationGpsStrings)
+                        {
+                            var station = loaded.Clone();
+                            station.FileName = $"{station.FileName} clone";
+                            gps = GPSHelper.ScanChat(substation);
+                            if (gps == null)
                             {
-                                MappedConfigs.Add(con, FileUtils.ReadFromJsonFile<List<IContractConfig>>($"{BasePath.Replace("/Stations", "")}/{con}"));
-                            }
-                            catch (Exception e)
-                            {
-                                Core.Log.Error(e);
+                                Core.Log.Error($"GPS for station {loaded.FileName} is not valid, station not loaded");
                                 continue;
                             }
+                            station.LocationGPS = substation;
+                            station.SetFake();
+                            station.SetFirstLoad(true);
+                            station.UsesDefault = loaded.UsesDefault;
+                            SetupContracts(station);
                         }
+                    }
+                    catch (Exception exception)
+                    {
+                        Core.Log.Error($"Error reading file {item} {exception.ToString()}");
+                    }
+                }
 
-                        if (MappedKeenConfigs.TryGetValue(item, out var cons))
+                foreach (var NPC in Core.config.KeenNPCContracts)
+                {
+                    foreach (var item in NPC.NPCFactionTags)
+                    {
+                        MappedKeenConfigs.Remove(item);
+                        foreach (var con in NPC.ContractFiles)
                         {
-                            cons.AddRange(MappedConfigs[con]);
-                            MappedKeenConfigs[item] = cons;
-                        }
-                        else
-                        {
-                            MappedKeenConfigs.Add(item, MappedConfigs[con]);
+                            if (!MappedConfigs.ContainsKey(con))
+                            {
+                                try
+                                {
+                                    MappedConfigs.Add(con, FileUtils.ReadFromJsonFile<List<IContractConfig>>($"{BasePath.Replace("/Stations", "")}/{con}"));
+                                }
+                                catch (Exception e)
+                                {
+                                    Core.Log.Error(e);
+                                    continue;
+                                }
+                            }
+
+                            if (MappedKeenConfigs.TryGetValue(item, out var cons))
+                            {
+                                cons.AddRange(MappedConfigs[con]);
+                                MappedKeenConfigs[item] = cons;
+                            }
+                            else
+                            {
+                                MappedKeenConfigs.Add(item, MappedConfigs[con]);
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                Core.Log.Error(e);
             }
         }
 

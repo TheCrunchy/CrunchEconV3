@@ -43,12 +43,40 @@ namespace CrunchEconContractModels.StationLogics
 {
     public class ExampleCommand : CommandModule
     {
+        [Command("easystore", "export the orders and offers in a store block to store file")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void EasyStore(string stationName, string ownerTag)
+        {
+            var station = new StationConfig();
+            station.FileName = stationName + ".json";
+            station.LocationGPS = GPSHelper.CreateGps(Context.Player.GetPosition(), Color.Orange, "Station", "").ToString();
+            station.Enabled = true;
+            station.FactionTag = ownerTag;
+            station.Logics = new List<IStationLogic>();
+            station.Logics.Add(new StoreManagementLogic());
+            station.ContractFiles = new List<string>();
+
+            Core.StationStorage.Save(station);
+
+            var items = new Dictionary<string, Dictionary<string, StoreEntryModel>>();
+            ConcurrentBag<MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group> gridWithSubGrids = GridFinder.FindLookAtGridGroup(Context.Player.Character);
+            ReadAndSaveStores(gridWithSubGrids, items);
+
+            Context.Respond("Station Saved, !crunchecon reload to load it");
+        }
+
         [Command("exportstore", "export the orders and offers in a store block to store file")]
         [Permission(MyPromoteLevel.Admin)]
         public void ExportStore()
         {
             var items = new Dictionary<string, Dictionary<string, StoreEntryModel>>();
             ConcurrentBag<MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group> gridWithSubGrids = GridFinder.FindLookAtGridGroup(Context.Player.Character);
+            ReadAndSaveStores(gridWithSubGrids, items);
+            Context.Respond("Store block exported!");
+        }
+
+        private void ReadAndSaveStores(ConcurrentBag<MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group> gridWithSubGrids, Dictionary<string, Dictionary<string, StoreEntryModel>> items)
+        {
             List<MyCubeGrid> grids = new List<MyCubeGrid>();
             foreach (var item in gridWithSubGrids)
             {
@@ -61,7 +89,8 @@ namespace CrunchEconContractModels.StationLogics
                         {
                             if (items.TryGetValue(store.DisplayNameText, out var savedItems))
                             {
-                                if (savedItems.TryGetValue($"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}", out var stored))
+                                if (savedItems.TryGetValue($"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}",
+                                        out var stored))
                                 {
                                     stored = MapItem(thing, stored);
                                 }
@@ -81,7 +110,6 @@ namespace CrunchEconContractModels.StationLogics
                             }
                         }
                     }
-
                 }
             }
 
@@ -100,11 +128,13 @@ namespace CrunchEconContractModels.StationLogics
                         {
                             continue;
                         }
+
                         try
                         {
                             if (items.TryGetValue(faction.Value.Tag, out var savedItems))
                             {
-                                if (savedItems.TryGetValue($"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}", out var stored))
+                                if (savedItems.TryGetValue($"{thing?.Item?.TypeIdString}/{thing?.Item?.SubtypeId}",
+                                        out var stored))
                                 {
                                     stored = MapItem(thing, stored);
                                 }
@@ -138,14 +168,12 @@ namespace CrunchEconContractModels.StationLogics
                 {
                     Context.Respond($"File name {item.Key} existed, overwriting");
                 }
+
                 FileUtils utils = new FileUtils();
                 var values = item.Value.Select(x => x.Value).ToList();
 
                 utils.WriteToJsonFile(path, values);
             }
-
-
-            Context.Respond("Store block exported!");
         }
 
         private static StoreEntryModel MapItem(MyStoreItem thing, StoreEntryModel stored)
@@ -156,8 +184,8 @@ namespace CrunchEconContractModels.StationLogics
                 stored.AmountToBuyMin = thing.Amount;
                 stored.Type = thing.Item.Value.TypeIdString;
                 stored.Subtype = thing.Item.Value.SubtypeId;
-                stored.BuyFromPlayerPriceMax = thing.PricePerUnit;
-                stored.BuyFromPlayerPriceMin = thing.PricePerUnit;
+                stored.SellToPlayerPriceMax = thing.PricePerUnit;
+                stored.SellToPlayerPriceMax = thing.PricePerUnit;
                 stored.SpawnIfBelowThisQuantity = thing.Amount;
                 stored.SpawnItemsIfMissing = true;
                 stored.BuyFromChanceToAppear = 1;
@@ -170,8 +198,8 @@ namespace CrunchEconContractModels.StationLogics
                 stored.AmountToSellMin = thing.Amount;
                 stored.Type = thing.Item.Value.TypeIdString;
                 stored.Subtype = thing.Item.Value.SubtypeId;
-                stored.SellToPlayerPriceMax = thing.PricePerUnit;
-                stored.SellToPlayerPriceMin = thing.PricePerUnit;
+                stored.BuyFromPlayerPriceMax = thing.PricePerUnit;
+                stored.BuyFromPlayerPriceMax = thing.PricePerUnit;
                 stored.SpawnIfBelowThisQuantity = thing.Amount;
                 stored.BuyFromChanceToAppear = 1;
                 stored.SellToPlayers = true;

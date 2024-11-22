@@ -162,6 +162,7 @@
     <Compile Include="StationLogics\StationCraftingLogic.cs" />
     <Compile Include="Random Stuff\KeenStoreManagement.cs" />
     <Compile Include="StationLogics\StoreLogging.cs" />
+    <Compile Include="StationLogics\LocationUpdateLogic.cs" />
     <Compile Include="StationLogics\StoreManagementLogic.cs" />
     <Compile Include="Random Stuff\SpawnPatch.cs" />
     <Compile Include="Random Stuff\GridTracking.cs" />
