@@ -113,7 +113,7 @@ namespace CrunchEconV3.PlugAndPlay
                             }
                         }
 
-                        MapStores(storesToUse, station);
+                        FillTheStores(storesToUse, station);
 
                     }
 
@@ -148,7 +148,7 @@ namespace CrunchEconV3.PlugAndPlay
             return true;
         }
 
-        private static void MapStores(List<StoreEntryModel> storesToUse, MyStation station)
+        private static void FillTheStores(List<StoreEntryModel> storesToUse, MyStation station)
         {
             station.StoreItems.Clear();
             foreach (var item in storesToUse)
