@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CrunchEconV3.Abstracts;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Models;
+using CrunchEconV3.PlugAndPlay.Extensions;
 using CrunchEconV3.Utils;
 using EmptyKeys.UserInterface.Generated.PlayerTradeView_Bindings;
 using Sandbox.Definitions;
@@ -20,6 +21,7 @@ using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
 using VRage;
 using VRage.Game;
+using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRage.ObjectBuilder;
@@ -260,6 +262,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
             }
 
             var owner = shipDrill.OwnerId;
+
             var data = Core.PlayerStorage.GetData(MySession.Static.Players.TryGetSteamId(owner));
             if (data == null)
             {

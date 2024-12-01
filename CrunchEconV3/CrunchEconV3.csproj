@@ -275,6 +275,7 @@
     <Compile Include="PlugAndPlay\Contracts\ItemHaulingContractImplementation.cs" />
     <Compile Include="PlugAndPlay\Contracts\MiningContractImplementation.cs" />
     <Compile Include="PlugAndPlay\Contracts\RepairContractImplementation.cs" />
+    <Compile Include="PlugAndPlay\Extensions\CubeGridExtensions.cs" />
     <Compile Include="PlugAndPlay\Extensions\MyStoreItemExtensions.cs" />
     <Compile Include="PlugAndPlay\Helpers\PrefabHelper.cs" />
     <Compile Include="PlugAndPlay\Helpers\PriceHelper.cs" />
