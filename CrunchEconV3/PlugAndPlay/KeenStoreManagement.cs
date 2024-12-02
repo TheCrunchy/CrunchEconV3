@@ -325,7 +325,7 @@ namespace CrunchEconV3.PlugAndPlay
                 stored.Type = thing.Item?.TypeIdString;
                 stored.Subtype = thing.Item?.SubtypeId;
             }
-
+            
             return stored;
         }
 

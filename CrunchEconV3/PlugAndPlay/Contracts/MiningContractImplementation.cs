@@ -248,13 +248,12 @@ namespace CrunchEconV3.PlugAndPlay.Contracts
                 Core.Log.Info("Drill base entity is null");
                 return;
             }
-
             if (!(__instance.OutputInventory.Owner.GetBaseEntity() is MyShipDrill shipDrill)) return;
             if (drill == null)
             {
                 drill = __instance.GetType();
             }
-
+            
             if (drill == null)
             {
                 Core.Log.Info("Drill reflection still null");

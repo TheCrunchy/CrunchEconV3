@@ -13,6 +13,7 @@ using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
 using NLog.Fluent;
+using Sandbox.Common.ObjectBuilders;
 using Sandbox.Common.ObjectBuilders.Definitions;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
@@ -74,6 +75,30 @@ namespace CrunchEconContractModels.StationLogics
             ReadAndSaveStores(gridWithSubGrids, items);
             Context.Respond("Store block exported!");
         }
+
+        [Command("addsafezone", "add a safezone at players current location")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void addSafeZone(long safezoneSize = 500)
+        {
+            MyObjectBuilder_SafeZone objectBuilderSafeZone = new MyObjectBuilder_SafeZone();
+            objectBuilderSafeZone.PositionAndOrientation = new MyPositionAndOrientation?(new MyPositionAndOrientation(Context.Player.Character.PositionComp.GetPosition(), Vector3.Forward, Vector3.Up));
+            objectBuilderSafeZone.PersistentFlags = MyPersistentEntityFlags2.InScene;
+            objectBuilderSafeZone.Shape = MySafeZoneShape.Sphere;
+            objectBuilderSafeZone.Radius = (float)safezoneSize;
+            objectBuilderSafeZone.Enabled = true;
+            objectBuilderSafeZone.DisplayName = $"Store Safezone";
+            objectBuilderSafeZone.AccessTypeGrids = MySafeZoneAccess.Blacklist;
+            objectBuilderSafeZone.AccessTypeFloatingObjects = MySafeZoneAccess.Blacklist;
+            objectBuilderSafeZone.AccessTypeFactions = MySafeZoneAccess.Blacklist;
+            objectBuilderSafeZone.AccessTypePlayers = MySafeZoneAccess.Blacklist;
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+            {
+                MyEntity ent =
+                    Sandbox.Game.Entities.MyEntities.CreateFromObjectBuilderAndAdd(
+                        (MyObjectBuilder_EntityBase)objectBuilderSafeZone, true);
+            });
+        }
+
 
         private void ReadAndSaveStores(ConcurrentBag<MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group> gridWithSubGrids, Dictionary<string, Dictionary<string, StoreEntryModel>> items)
         {
