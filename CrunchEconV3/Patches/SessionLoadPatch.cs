@@ -12,6 +12,7 @@ using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.SessionComponents;
 using Sandbox.Game.Weapons;
 using Sandbox.Game.World;
+using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
 using VRage;
 using VRage.Game;
@@ -59,12 +60,23 @@ namespace CrunchEconV3.Patches
                Core.AIEnabledAPI = new RemoteBotAPI();
                Core.WaterAPI = new WaterModAPI();
                Core.WaterAPI.Register();
-            //   Core.WeaponcoreAPI = new WcApi();
-           //    Core.WeaponcoreAPI.Load();
-               Loaded = true;
+               Core.NexusGlobalAPI = new NexusGlobalAPI(SetupNetworking);
+                //   Core.WeaponcoreAPI = new WcApi();
+                //    Core.WeaponcoreAPI.Load();
+                Loaded = true;
             }
         }
 
+        public static void SetupNetworking()
+        {
+            Core.Log.Info("Registering Nexus Global");
+            MyAPIGateway.Utilities.RegisterMessageHandler(4199, ReceiveData);
+        }
+
+        private static void ReceiveData(object obj)
+        {
+           Core.Log.Info("This does literally nothing");
+        }
 
         public static void YeetKeenLimit(ref int __result)
         {

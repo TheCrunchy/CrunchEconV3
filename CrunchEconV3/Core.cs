@@ -93,6 +93,7 @@ namespace CrunchEconV3
 
         public DateTime NextContractGps = DateTime.Now;
         public DateTime NextKeenMap = DateTime.Now;
+        public static NexusGlobalAPI NexusGlobalAPI;
 
         public void InitNexus()
         {

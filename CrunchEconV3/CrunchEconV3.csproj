@@ -243,6 +243,7 @@
   <ItemGroup>
     <Compile Include="Abstracts\ContractConfigAbstract.cs" />
     <Compile Include="APIs\MESApi.cs" />
+    <Compile Include="APIs\NexusGlobalAPI.cs" />
     <Compile Include="APIs\RemoteBotAPI.cs" />
     <Compile Include="APIs\Weaponcore\CoreSystemsApiBase.cs" />
     <Compile Include="APIs\Weaponcore\CoreSystemsApiDefs.cs" />
@@ -267,6 +268,7 @@
     <Compile Include="Patches\ContractPatches.cs" />
     <Compile Include="Patches\SessionLoadPatch.cs" />
     <Compile Include="PlugAndPlayV2\Helpers\KeenStationPrefabHelper.cs" />
+    <Compile Include="PlugAndPlayV2\StationLogics\StoreLogic.cs" />
     <Compile Include="PlugAndPlay\BuyGasFixes.cs" />
     <Compile Include="PlugAndPlay\Contracts\Configs\GasContractConfig.cs" />
     <Compile Include="PlugAndPlay\Contracts\Configs\ItemHaulingConfig.cs" />

@@ -152,7 +152,7 @@ namespace CrunchEconV3.Patches
                     }
                 }
 
-                if (Core.NexusInstalled)
+                if (Core.NexusInstalled || Core.NexusGlobalAPI.Enabled)
                 {
                     foreach (var item in __result.Where(x => x is MyObjectBuilder_ContractDeliver))
                     {

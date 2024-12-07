@@ -31,7 +31,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Helpers
             }
         }
 
-        public static string GetRandomStationName(MyStationsListDefinition stationsListDef)
+        private static string GetRandomStationName(MyStationsListDefinition stationsListDef)
         {
             if (stationsListDef == null)
                 return "Economy_SpaceStation_1";
