@@ -4,11 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Models;
+using Sandbox.Game.World;
 
 namespace CrunchEconV3.PlugAndPlayV2.Interfaces
 {
     public interface IStationSpawnStrategy
     {
-        public List<StationConfig> SpawnStations(string templateName, int maximumToSpawn);
+        public List<StationConfig> SpawnStations(List<MyFaction> AvailableFactions,string templateName, int maximumToSpawn);
     }
 }

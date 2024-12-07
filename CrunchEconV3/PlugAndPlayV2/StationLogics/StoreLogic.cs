@@ -9,6 +9,7 @@ using CrunchEconV3.Models;
 using CrunchEconV3.PlugAndPlay;
 using CrunchEconV3.PlugAndPlayV2.Helpers;
 using CrunchEconV3.Utils;
+using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Planet;
 using Sandbox.Game.Multiplayer;
@@ -16,10 +17,12 @@ using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Torch.Commands;
 using Torch.Commands.Permissions;
+using VRage;
 using VRage.Game;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.Groups;
+using VRage.ObjectBuilders;
 using VRage.Utils;
 using VRageMath;
 
@@ -62,9 +65,28 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 ownerId: Context.Player.IdentityId, spawningOptions: SpawningOptions.SetAuthorship | SpawningOptions.UseOnlyWorldMatrix | SpawningOptions.SpawnRandomCargo);
             var gps = GPSHelper.CreateGps(surfacePosition.Item1, Color.MediumAquamarine, "SPAWNED POSITION", "Reason");
 
-            //MyPlanetEnvironmentSessionComponent component = MySession.Static.GetComponent<MyPlanetEnvironmentSessionComponent>();
-            //BoundingBoxD worldBBox = new BoundingBoxD(surfacePosition.Item1 - (double)250 , surfacePosition.Item1  + 250);
-            //component.ClearEnvironmentItems((MyEntity)safeZone, worldBBox);
+            MyObjectBuilder_SafeZone objectBuilderSafeZone = new MyObjectBuilder_SafeZone();
+            objectBuilderSafeZone.PositionAndOrientation = new MyPositionAndOrientation?(new MyPositionAndOrientation(surfacePosition.Item1, Vector3.Forward, Vector3.Up));
+            objectBuilderSafeZone.PersistentFlags = MyPersistentEntityFlags2.InScene;
+            objectBuilderSafeZone.Shape = MySafeZoneShape.Sphere;
+            objectBuilderSafeZone.Radius = (float)500;
+            objectBuilderSafeZone.Enabled = true;
+            objectBuilderSafeZone.DisplayName = $"Store Safezone";
+            objectBuilderSafeZone.AccessTypeGrids = MySafeZoneAccess.Blacklist;
+            objectBuilderSafeZone.AccessTypeFloatingObjects = MySafeZoneAccess.Blacklist;
+            objectBuilderSafeZone.AccessTypeFactions = MySafeZoneAccess.Blacklist;
+            objectBuilderSafeZone.AccessTypePlayers = MySafeZoneAccess.Blacklist;
+            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+            {
+                MyEntity ent =
+                    Sandbox.Game.Entities.MyEntities.CreateFromObjectBuilderAndAdd(
+                        (MyObjectBuilder_EntityBase)objectBuilderSafeZone, true);
+
+                MyPlanetEnvironmentSessionComponent component = MySession.Static.GetComponent<MyPlanetEnvironmentSessionComponent>();
+                BoundingBoxD worldBBox = new BoundingBoxD(surfacePosition.Item1 - (double)500, surfacePosition.Item1 + 500);
+                component.ClearEnvironmentItems((MyEntity)ent, worldBBox);
+            });
+
             MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
         }

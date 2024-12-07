@@ -272,6 +272,7 @@
     <Compile Include="PlugAndPlayV2\Helpers\KeenStationPrefabHelper.cs" />
     <Compile Include="PlugAndPlayV2\Interfaces\IStationSpawnStrategy.cs" />
     <Compile Include="PlugAndPlayV2\StationLogics\StoreLogic.cs" />
+    <Compile Include="PlugAndPlayV2\StationSpawnStrategies\PlanetSpawnStrategy.cs" />
     <Compile Include="PlugAndPlay\BuyGasFixes.cs" />
     <Compile Include="PlugAndPlay\Contracts\Configs\GasContractConfig.cs" />
     <Compile Include="PlugAndPlay\Contracts\Configs\ItemHaulingConfig.cs" />

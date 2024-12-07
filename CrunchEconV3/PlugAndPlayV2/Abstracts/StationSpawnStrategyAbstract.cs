@@ -7,13 +7,14 @@ using CrunchEconV3.Models;
 using CrunchEconV3.PlugAndPlayV2.Interfaces;
 using CrunchEconV3.PlugAndPlayV2.StationLogics;
 using CrunchEconV3.Utils;
+using Sandbox.Game.World;
 using VRageMath;
 
 namespace CrunchEconV3.PlugAndPlayV2.Abstracts
 {
     public abstract class StationSpawnStrategyAbstract : IStationSpawnStrategy
     {
-        public abstract List<StationConfig> SpawnStations(string templateName,int maximumToSpawn);
+        public abstract List<StationConfig> SpawnStations(List<MyFaction> AvailableFactions,string TemplateName, int MaximumToSpawn);
 
         protected virtual StationConfig GenerateAtLocation(Vector3D location, string npcFacTag, string templateName)
         {
