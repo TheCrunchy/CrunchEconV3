@@ -42,7 +42,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
                     new StoreLogic()
                 };
 
-                utils.WriteToJsonFile($"{path}//BaseTemplate.Json", template);
+                utils.WriteToJsonFile($"{path}//BaseTemplate.json", template);
                 //make a template with store logic and default setup contracts 
             }
 
