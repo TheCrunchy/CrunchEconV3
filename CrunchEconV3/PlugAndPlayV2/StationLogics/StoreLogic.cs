@@ -17,6 +17,7 @@ using Sandbox.ModAPI;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game;
+using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.Groups;
 using VRage.Utils;
@@ -58,9 +59,12 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
             var surfacePosition = GetSurfacePositionWithForward(lowestDistancePlanet);
             MyPrefabManager.Static.SpawnPrefab(stationName, surfacePosition.Item1, surfacePosition.Item3, surfacePosition.Item2, 
-                ownerId: Context.Player.IdentityId, spawningOptions: SpawningOptions.SetAuthorship | SpawningOptions.UseOnlyWorldMatrix);
+                ownerId: Context.Player.IdentityId, spawningOptions: SpawningOptions.SetAuthorship | SpawningOptions.UseOnlyWorldMatrix | SpawningOptions.SpawnRandomCargo);
             var gps = GPSHelper.CreateGps(surfacePosition.Item1, Color.MediumAquamarine, "SPAWNED POSITION", "Reason");
 
+            //MyPlanetEnvironmentSessionComponent component = MySession.Static.GetComponent<MyPlanetEnvironmentSessionComponent>();
+            //BoundingBoxD worldBBox = new BoundingBoxD(surfacePosition.Item1 - (double)250 , surfacePosition.Item1  + 250);
+            //component.ClearEnvironmentItems((MyEntity)safeZone, worldBBox);
             MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
         }

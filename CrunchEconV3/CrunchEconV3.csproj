@@ -267,7 +267,10 @@
     <Compile Include="Patches\ContractPatchesDefaultSetup.cs" />
     <Compile Include="Patches\ContractPatches.cs" />
     <Compile Include="Patches\SessionLoadPatch.cs" />
+    <Compile Include="PlugAndPlayV2\Abstracts\StationSpawnStrategyAbstract.cs" />
+    <Compile Include="PlugAndPlayV2\Handlers\TemplateHandler.cs" />
     <Compile Include="PlugAndPlayV2\Helpers\KeenStationPrefabHelper.cs" />
+    <Compile Include="PlugAndPlayV2\Interfaces\IStationSpawnStrategy.cs" />
     <Compile Include="PlugAndPlayV2\StationLogics\StoreLogic.cs" />
     <Compile Include="PlugAndPlay\BuyGasFixes.cs" />
     <Compile Include="PlugAndPlay\Contracts\Configs\GasContractConfig.cs" />
