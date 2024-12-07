@@ -26,10 +26,10 @@ namespace CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies
 {
     public class PlanetSpawnStrategy : StationSpawnStrategyAbstract
     {
-        public override List<StationConfig> SpawnStations(List<MyFaction> availableFactions,string templateName, int maximumToSpawn)
+        public override List<StationConfig> SpawnStations(List<MyFaction> availableFactions, string templateName, int maximumToSpawn)
         {
             var planets = MyPlanets.GetPlanets();
-
+            var endStations = new List<StationConfig>();
             foreach (var planet in planets)
             {
                 for (int i = 0; i >= maximumToSpawn; i++)
@@ -43,7 +43,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies
                     objectBuilderSafeZone.PositionAndOrientation = new MyPositionAndOrientation?(new MyPositionAndOrientation(surfacePosition.Item1, Vector3.Forward, Vector3.Up));
                     objectBuilderSafeZone.PersistentFlags = MyPersistentEntityFlags2.InScene;
                     objectBuilderSafeZone.Shape = MySafeZoneShape.Sphere;
-                    objectBuilderSafeZone.Radius = (float)500;
+                    objectBuilderSafeZone.Radius = (float)250;
                     objectBuilderSafeZone.Enabled = true;
                     objectBuilderSafeZone.DisplayName = $"Store Safezone";
                     objectBuilderSafeZone.AccessTypeGrids = MySafeZoneAccess.Blacklist;
@@ -57,14 +57,17 @@ namespace CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies
                                 (MyObjectBuilder_EntityBase)objectBuilderSafeZone, true);
 
                         MyPlanetEnvironmentSessionComponent component = MySession.Static.GetComponent<MyPlanetEnvironmentSessionComponent>();
-                        BoundingBoxD worldBBox = new BoundingBoxD(surfacePosition.Item1 -(double)500, surfacePosition.Item1 + 500);
+                        BoundingBoxD worldBBox = new BoundingBoxD(surfacePosition.Item1 - (double)250, surfacePosition.Item1 + 250);
                         component.ClearEnvironmentItems((MyEntity)ent, worldBBox);
                     });
-    
+                    var generated = GenerateAtLocation(surfacePosition.Item1, faction.Tag, templateName);
+                    endStations.Add(generated);
+                    Core.StationStorage.Save(generated);
+
                 }
             }
 
-            return new List<StationConfig>();
+            return endStations;
         }
 
         public Tuple<Vector3D, Vector3D, Vector3D> GetSurfacePositionWithForward(MyPlanet planet)
