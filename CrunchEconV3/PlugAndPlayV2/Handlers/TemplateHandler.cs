@@ -26,7 +26,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
             return Templates.TryGetValue(templateName, out var templated) ? templated : null;
         }
 
-        private static void LoadTemplates()
+        public static void LoadTemplates()
         {
             FileUtils utils = new FileUtils();
             var path = $"{Core.path}//TemplateStations";
@@ -36,6 +36,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
                 var template = new StationConfig();
                 template.FileName = "BaseTemplate.json";
                 template.Enabled = true;
+                template.UsesDefault = true;
                 template.Logics = new List<IStationLogic>()
                 {
                     new StoreLogic()
@@ -44,7 +45,19 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
                 utils.WriteToJsonFile($"{path}//BaseTemplate.Json", template);
                 //make a template with store logic and default setup contracts 
             }
-          
+
+            foreach (var file in Directory.GetFiles(path))
+            {
+                try
+                {
+                    var read = utils.ReadFromJsonFile<StationConfig>(file);
+                    Templates[read.FileName.Replace(".json", "")] = read;
+                }
+                catch (Exception e)
+                {
+                    Core.Log.Error($"Error reading file {file} {e}");
+                }
+            }
         }
     }
 }
