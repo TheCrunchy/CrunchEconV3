@@ -61,7 +61,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 }
             }
 
-            var strategy = new OrbitalSpawnStrategy();
+            var strategy = new FurtherOrbitalSpawnStrategy();
            var spawned = strategy.SpawnStations(
                 new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
                 "BaseTemplate", 5, new List<MyPlanet>() { lowestDistancePlanet });
@@ -73,6 +73,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                gps.Name = "SPAWNED LOCATION";
                gps.GPSColor = Color.Cyan;
                gps.AlwaysVisible = true;
+               gps.ShowOnHud = true;
                MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
                gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
             }
