@@ -135,7 +135,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
         public double MaximumModifier { get; set; } = 0.15;
         public int Priority { get; set; }
         public int DaysBetweenModifierResets { get; set; } = 7;
-
+        public bool MaintainBalance { get; set; } = true;
         public int SecondsBetweenRefresh { get; set; } = 120;
         public int SecondsBetweenInventoryRefresh { get; set; } = 3600;
 
@@ -197,7 +197,23 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 //clear items that the store doesnt sell 
             }
 
-            foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == grid.GetGridOwner()))
+            var owner = grid.GetGridOwner();
+            if (MaintainBalance)
+            {
+                var balance = EconUtils.getBalance(owner);
+                if (balance < 1000000000000)
+                {
+                    EconUtils.addMoney(owner, 1000000000000 - balance);
+                }
+            }
+
+            foreach (var battery in grid.GetFatBlocks().OfType<MyBatteryBlock>()
+                         .Where(x => x.OwnerId == owner))
+            {
+                battery.CurrentStoredPower = battery.MaxStoredPower;
+            }
+
+            foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == owner))
             {
  
                 ClearStoreOfPlayersBuyingOffers(store);
@@ -211,16 +227,16 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     };
                     var inventories = GetInventories(grid);
                     var quantity = CrunchEconV3.Handlers.InventoriesHandler.CountComponents(inventories, id);
-                    var itemsInInventory = InventoriesHandler.CountComponents()
-                    try
-                    {
-                        DoBuy(item, store, quantity, inventories);
-                        DoSell(item, store, quantity, inventories);
-                    }
-                    catch (Exception e)
-                    {
-                        CrunchEconV3.Core.Log.Error(e);
-                    }
+                    //var itemsInInventory = InventoriesHandler.CountComponents();
+                    //try
+                    //{
+                    //    DoBuy(item, store, quantity, inventories);
+                    //    DoSell(item, store, quantity, inventories);
+                    //}
+                    //catch (Exception e)
+                    //{
+                    //    CrunchEconV3.Core.Log.Error(e);
+                    //}
 
                 }
             }
