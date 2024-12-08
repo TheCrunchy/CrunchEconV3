@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Models;
+using CrunchEconV3.PlugAndPlayV2.Handlers;
 using CrunchEconV3.PlugAndPlayV2.Interfaces;
 using CrunchEconV3.PlugAndPlayV2.StationLogics;
 using CrunchEconV3.Utils;
@@ -51,16 +52,27 @@ namespace CrunchEconV3.PlugAndPlayV2.Abstracts
             }
         }
 
+        protected virtual bool DoesTemplateExist(string templateName)
+        {
+            var templateStation = TemplateHandler.GetTemplateFromName(templateName);
+            return templateStation != null;
+        }
+
         protected virtual StationConfig GenerateAtLocation(Vector3D location, string npcFacTag, string templateName)
         {
             var gps = GPSHelper.CreateGps(location, Color.Orange, "Economy Station", "");
-            var templateStation = new StationConfig();
 
+            var templateStation = TemplateHandler.GetTemplateFromName(templateName);
+            if (templateStation == null)
+            {
+                return null;
+            }
             var cloned = templateStation.Clone();
             cloned.LocationGPS = gps.ToString();
             cloned.Enabled = true;
             cloned.FactionTag = npcFacTag;
             cloned.FileName = $"{Guid.NewGuid()}.json";
+            cloned.UsedTemplate = templateName;
             return cloned;
         }
     }

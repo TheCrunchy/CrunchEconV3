@@ -41,7 +41,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
                 {
                     new StoreLogic()
                 };
-
+                template.ContractFiles = new List<string>();
                 utils.WriteToJsonFile($"{path}//BaseTemplate.json", template);
                 //make a template with store logic and default setup contracts 
             }

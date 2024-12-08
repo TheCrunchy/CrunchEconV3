@@ -26,6 +26,11 @@ namespace CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies
     {
         public override List<StationConfig> SpawnStations(List<MyFaction> availableFactions, string templateName, int maximumToSpawn, List<MyPlanet> planets = null)
         {
+            if (!DoesTemplateExist(templateName))
+            {
+                Core.Log.Error("Template does not exist");
+                return new List<StationConfig>();
+            }
             if (planets == null)
             {
                 planets = MyPlanets.GetPlanets();

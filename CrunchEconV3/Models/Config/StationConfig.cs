@@ -49,7 +49,7 @@ namespace CrunchEconV3.Models
 
         private bool IsFakeStation { get; set; } = false;
         public bool UsesDefault = false;
-
+        public string? UsedTemplate = null;
         public bool GetUsesDefault()
         {
             return UsesDefault;
