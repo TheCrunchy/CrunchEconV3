@@ -36,16 +36,13 @@ namespace CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies
             var endStations = new List<StationConfig>();
             foreach (var planet in planets)
             {
-                Core.Log.Info("Checking planet");
                 for (int i = 0; i < maximumToSpawn; i++)
                 {
-                    Core.Log.Info($"{i}");
                     var faction = availableFactions.GetRandomItemFromList();
                     var station = KeenStationPrefabHelper.GetRandomStationPrefabName(MyStationTypeEnum.Outpost);
                     var surfacePosition = GetSurfacePositionWithForward(planet);
                     if (surfacePosition == null)
                     {
-                        Core.Log.Info("Wasnt flat");
                         i--;
                         continue;
                     }
