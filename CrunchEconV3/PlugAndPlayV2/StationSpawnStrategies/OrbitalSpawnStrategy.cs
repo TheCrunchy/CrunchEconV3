@@ -38,10 +38,10 @@ namespace CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies
             var endStations = new List<StationConfig>();
             foreach (var planet in planets)
             {
-                for (int i = 0; i >= maximumToSpawn; i++)
+                for (int i = 0; i < maximumToSpawn; i++)
                 {
                     var faction = availableFactions.GetRandomItemFromList();
-                    var station = KeenStationPrefabHelper.GetRandomStationPrefabName(MyStationTypeEnum.Outpost);
+                    var station = KeenStationPrefabHelper.GetRandomStationPrefabName(MyStationTypeEnum.OrbitalStation);
                     var minDistanceFromPlanet = 25000;
 
                     if (minDistanceFromPlanet < planet.AtmosphereRadius)

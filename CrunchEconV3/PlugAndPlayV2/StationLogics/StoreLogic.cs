@@ -61,10 +61,10 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 }
             }
 
-            var strategy = new PlanetSpawnStrategy();
+            var strategy = new OrbitalSpawnStrategy();
            var spawned = strategy.SpawnStations(
                 new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-                "BaseTemplate", 3, new List<MyPlanet>() { lowestDistancePlanet });
+                "BaseTemplate", 5, new List<MyPlanet>() { lowestDistancePlanet });
 
            foreach (var item in spawned)
            {
@@ -72,6 +72,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 var gps = GPSHelper.ScanChat(item.LocationGPS);
                gps.Name = "SPAWNED LOCATION";
                gps.GPSColor = Color.Cyan;
+               gps.AlwaysVisible = true;
                MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
                gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
             }
