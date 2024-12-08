@@ -271,6 +271,7 @@
     <Compile Include="PlugAndPlayV2\Handlers\TemplateHandler.cs" />
     <Compile Include="PlugAndPlayV2\Helpers\KeenStationPrefabHelper.cs" />
     <Compile Include="PlugAndPlayV2\Interfaces\IStationSpawnStrategy.cs" />
+    <Compile Include="PlugAndPlayV2\Models\StoreEntryModel.cs" />
     <Compile Include="PlugAndPlayV2\StationLogics\StoreLogic.cs" />
     <Compile Include="PlugAndPlayV2\StationSpawnStrategies\FurtherOrbitalSpawnStrategy.cs" />
     <Compile Include="PlugAndPlayV2\StationSpawnStrategies\OrbitalSpawnStrategy.cs" />

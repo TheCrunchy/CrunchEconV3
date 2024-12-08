@@ -76,6 +76,34 @@ namespace CrunchEconV3.Handlers
                 });
             return true;
         }
+        public static Dictionary<MyDefinitionId, int> CountAllComponents(IEnumerable<VRage.Game.ModAPI.IMyInventory> inventories)
+        {
+            var itemCounts = new Dictionary<MyDefinitionId, int>();
+
+            foreach (var inv in inventories)
+            {
+                var items = new List<MyInventoryItem>();
+                inv.GetItems(items); // Get all items in the inventory
+
+                foreach (var item in items)
+                {
+                    var itemId = MyDefinitionId.Parse($"{item.Type.TypeId}/{item.Type.SubtypeId}");
+                    var amount = (int)item.Amount;
+
+                    if (itemCounts.TryGetValue(itemId, out var storedAmount))
+                    {
+                        storedAmount += amount;
+                    }
+                    else
+                    {
+                        itemCounts[itemId] = amount;
+                    }
+                }
+            }
+
+            return itemCounts;
+        }
+
         public static MyFixedPoint CountComponentsTwo(IEnumerable<VRage.Game.ModAPI.IMyInventory> inventories, MyDefinitionId id, int amount, ICollection<MyTuple<VRage.Game.ModAPI.IMyInventory, VRage.Game.ModAPI.IMyInventoryItem, MyFixedPoint>> items)
         {
             MyFixedPoint targetAmount = amount;
