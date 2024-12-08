@@ -7,6 +7,7 @@ using CrunchEconV3.Models;
 using CrunchEconV3.PlugAndPlayV2.Abstracts;
 using CrunchEconV3.PlugAndPlayV2.Helpers;
 using Sandbox.Common.ObjectBuilders;
+using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Planet;
 using Sandbox.Game.GameSystems;
 using Sandbox.Game.World;
@@ -23,9 +24,12 @@ namespace CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies
 {
     public class OrbitalSpawnStrategy : StationSpawnStrategyAbstract
     {
-        public override List<StationConfig> SpawnStations(List<MyFaction> availableFactions, string templateName, int maximumToSpawn)
+        public override List<StationConfig> SpawnStations(List<MyFaction> availableFactions, string templateName, int maximumToSpawn, List<MyPlanet> planets = null)
         {
-            var planets = MyPlanets.GetPlanets();
+            if (planets == null)
+            {
+                planets = MyPlanets.GetPlanets();
+            }
             var endStations = new List<StationConfig>();
             foreach (var planet in planets)
             {
@@ -61,8 +65,8 @@ namespace CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies
                         newPosition = planet.PositionComp.GetPosition() + randomDirection * randomDistance;
                         inGrav = MyGravityProviderSystem.IsPositionInNaturalGravity(newPosition);
                     }
-
-                    MyPrefabManager.Static.SpawnPrefab(station, newPosition,Vector3.Forward,Vector3.Up, ownerId: faction.FounderId, spawningOptions: SpawningOptions.SetAuthorship | SpawningOptions.UseOnlyWorldMatrix | SpawningOptions.SpawnRandomCargo);
+                    MyPrefabManager.Static.SpawnPrefab(station, newPosition,Vector3.Forward,Vector3.Up, ownerId: faction.FounderId, 
+                        spawningOptions: SpawningOptions.SetAuthorship | SpawningOptions.UseOnlyWorldMatrix | SpawningOptions.SpawnRandomCargo | SpawningOptions.ReplaceColor);
                     MyObjectBuilder_SafeZone objectBuilderSafeZone = new MyObjectBuilder_SafeZone();
                     objectBuilderSafeZone.PositionAndOrientation = new MyPositionAndOrientation?(new MyPositionAndOrientation(newPosition, Vector3.Forward, Vector3.Up));
                     objectBuilderSafeZone.PersistentFlags = MyPersistentEntityFlags2.InScene;
