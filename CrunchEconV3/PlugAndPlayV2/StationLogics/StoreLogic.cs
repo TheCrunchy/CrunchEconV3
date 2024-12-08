@@ -8,6 +8,7 @@ using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.PlugAndPlay;
 using CrunchEconV3.PlugAndPlayV2.Helpers;
+using CrunchEconV3.PlugAndPlayV2.Interfaces;
 using CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies;
 using CrunchEconV3.Utils;
 using Sandbox.Common.ObjectBuilders;
@@ -38,7 +39,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
         {
             var stationName = KeenStationPrefabHelper.GetRandomStationPrefabName(MyStationTypeEnum.Outpost);
             Core.Log.Info(stationName);
-  
+
 
 
             var planets = MyPlanets.GetPlanets();
@@ -61,22 +62,61 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 }
             }
 
-            var strategy = new FurtherOrbitalSpawnStrategy();
-           var spawned = strategy.SpawnStations(
+            IStationSpawnStrategy strategy = null;
+            strategy = new PlanetSpawnStrategy();
+            var spawned = strategy.SpawnStations(
                 new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-                "BaseTemplate", 5, new List<MyPlanet>() { lowestDistancePlanet });
+                "BaseTemplate", 4);
 
-           foreach (var item in spawned)
-           {
-               Context.Respond("Prefab Spawned?");
+            foreach (var item in spawned)
+            {
                 var gps = GPSHelper.ScanChat(item.LocationGPS);
-               gps.Name = "SPAWNED LOCATION";
-               gps.GPSColor = Color.Cyan;
-               gps.AlwaysVisible = true;
-               gps.ShowOnHud = true;
-               MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
-               gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
+                gps.Name = "Planetary Spawn";
+                gps.GPSColor = Color.Cyan;
+                gps.AlwaysVisible = true;
+                gps.ShowOnHud = true;
+                MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+                gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
             }
+            Context.Respond($"{spawned.Count} Planet Stations Spawned");
+            strategy = new FurtherOrbitalSpawnStrategy();
+            spawned = strategy.SpawnStations(
+                 new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                 "BaseTemplate", 4);
+
+            foreach (var item in spawned)
+            {
+                var gps = GPSHelper.ScanChat(item.LocationGPS);
+                gps.Name = "Deep Space Spawn";
+                gps.GPSColor = Color.Cyan;
+                gps.AlwaysVisible = true;
+                gps.ShowOnHud = true;
+                MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+                gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
+            }
+
+            Context.Respond($"{spawned.Count} Deep Space Stations Spawned");
+
+            strategy = new OrbitalSpawnStrategy();
+            spawned = strategy.SpawnStations(
+               new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+               "BaseTemplate", 3);
+
+            foreach (var item in spawned)
+            {
+  
+                var gps = GPSHelper.ScanChat(item.LocationGPS);
+                gps.Name = "Orbital Spawn";
+                gps.GPSColor = Color.Cyan;
+                gps.AlwaysVisible = true;
+                gps.ShowOnHud = true;
+                MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+                gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
+            }
+
+
+            Context.Respond($"{spawned.Count} Orbital Space Stations Spawned");
+
         }
 
     }
