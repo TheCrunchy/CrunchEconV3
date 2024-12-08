@@ -14,7 +14,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Abstracts
 {
     public abstract class StationSpawnStrategyAbstract : IStationSpawnStrategy
     {
-        public abstract List<StationConfig> SpawnStations(List<MyFaction> AvailableFactions,string TemplateName, int MaximumToSpawn);
+        public abstract List<StationConfig> SpawnStations(List<MyFaction> availableFactions,string templateName, int maximumToSpawn);
 
         protected virtual StationConfig GenerateAtLocation(Vector3D location, string npcFacTag, string templateName)
         {

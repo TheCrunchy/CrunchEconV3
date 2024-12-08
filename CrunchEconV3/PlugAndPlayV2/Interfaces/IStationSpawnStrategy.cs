@@ -10,6 +10,6 @@ namespace CrunchEconV3.PlugAndPlayV2.Interfaces
 {
     public interface IStationSpawnStrategy
     {
-        public List<StationConfig> SpawnStations(List<MyFaction> AvailableFactions,string templateName, int maximumToSpawn);
+        public List<StationConfig> SpawnStations(List<MyFaction> availableFactions,string templateName, int maximumToSpawn);
     }
 }
