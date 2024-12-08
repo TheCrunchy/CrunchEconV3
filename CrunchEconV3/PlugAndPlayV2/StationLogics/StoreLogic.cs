@@ -66,7 +66,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             strategy = new PlanetSpawnStrategy();
             var spawned = strategy.SpawnStations(
                 new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-                "BaseTemplate", 4);
+                "BaseTemplate", 3);
 
             foreach (var item in spawned)
             {
