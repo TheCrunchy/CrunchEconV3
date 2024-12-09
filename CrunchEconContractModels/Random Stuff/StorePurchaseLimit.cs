@@ -136,27 +136,30 @@ namespace CrunchEconContractModels.Random_Stuff
 
             if (__instance is MyStoreBlock store)
             {
-                //Add some differentiation here to only apply to your NPCs if they arent setup as keen stations 
-                MyStoreItem storeItem = (MyStoreItem)null;
-                foreach (MyStoreItem playerItem in store.PlayerItems)
+                if (Core.StationStorage.GetAll().Any(x =>
+                        x.GetGrid() != null && x.GetGrid().EntityId == __instance.CubeGrid.EntityId))
                 {
-                    if (playerItem.Id == id)
+                    MyStoreItem storeItem = (MyStoreItem)null;
+                    foreach (MyStoreItem playerItem in store.PlayerItems)
                     {
-                        storeItem = playerItem;
-                        break;
+                        if (playerItem.Id == id)
+                        {
+                            storeItem = playerItem;
+                            break;
+                        }
                     }
-                }
-                if (storeItem == null)
-                {
+                    if (storeItem == null)
+                    {
 
-                    return true;
+                        return true;
+                    }
+                    if (storeItem.IsCustomStoreItem)
+                    {
+                        return true;
+                    }
+                    var itemid = $"{storeItem.Item.Value.TypeIdString}/{storeItem.Item.Value.SubtypeId}";
+                    return DoLimitChecks(id, ref amount, player, storeItem, itemid);
                 }
-                if (storeItem.IsCustomStoreItem)
-                {
-                    return true;
-                }
-                var itemid = $"{storeItem.Item.Value.TypeIdString}/{storeItem.Item.Value.SubtypeId}";
-               return DoLimitChecks(id, ref amount, player, storeItem, itemid);
             }
             return true;
         }
