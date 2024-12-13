@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using CrunchEconV3.PlugAndPlayV2.Models;
 using CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies;
 using CrunchEconV3.Utils;
 using Sandbox.Common.ObjectBuilders;
+using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Entities.Planet;
@@ -25,6 +27,7 @@ using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage;
 using VRage.Game;
+using VRage.Game.Definitions.SessionComponents;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.GameServices;
@@ -38,6 +41,19 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
     [Category("econv3")]
     public class StoreLogicCommands : CommandModule
     {
+        [Command("store", "testing faction definitions")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void Easy()
+        {
+            List<MyFactionTypeDefinition> list = MyDefinitionManager.Static.GetAllDefinitions<MyFactionTypeDefinition>().ToList<MyFactionTypeDefinition>();
+            Context.Respond($"{list.Count}");
+            foreach (var item in list)
+            {
+                Context.Respond($"{item.OrdersList.Length}");
+                Context.Respond($"{item.OffersList.Length}");
+            }
+        }
+
         [Command("prefab", "spawn a random prefab for testing")]
         [Permission(MyPromoteLevel.Admin)]
         public void EasyStore()
@@ -128,6 +144,8 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
     public class StoreLogic : IStationLogic
     {
+        public string StoreFileName;
+        public bool IsFirstRun { get; set; } = true;
         public DateTime NextModifierReset { get; set; }
         public DateTime NextStoreRefresh { get; set; }
         public DateTime NextInventoryRefresh { get; set; }
@@ -180,6 +198,32 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
         public Task<bool> DoLogic(MyCubeGrid grid)
         {
+            if (IsFirstRun)
+            {
+                List<MyFactionTypeDefinition> list = MyDefinitionManager.Static.GetAllDefinitions<MyFactionTypeDefinition>().ToList<MyFactionTypeDefinition>();
+                var listToUse = list.GetRandomItemFromList();
+                var randomInt = Core.random.Next(1, 4);
+                StoreFileName = $"{listToUse.TypeDescription}-{randomInt}.json";
+                if (!File.Exists($"{Core.path}/BaseStores/{StoreFileName}"))
+                {
+                    //file doesnt exist, lets generate it 
+                    foreach (var item in listToUse.OffersList)
+                    {
+
+                        if (Core.random.Next(0, 2) == 1)
+                        {
+                            continue;
+                        }
+                        if (!MyDefinitionId.TryParse(item.TypeIdString, item.SubtypeId, out MyDefinitionId id)) continue;
+                        var definition = MyDefinitionManager.Static.GetDefinition(id);
+                        if (definition is MyPhysicalItemDefinition physicalItem)
+                        {
+                           
+                        }
+                    }
+
+                }
+            }
             if (DateTime.Now >= NextModifierReset)
             {
                 NextModifierReset = DateTime.Now.AddDays(DaysBetweenModifierResets);
