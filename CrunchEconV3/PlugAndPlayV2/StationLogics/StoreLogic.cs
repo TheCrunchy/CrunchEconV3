@@ -204,29 +204,24 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 var listToUse = list.GetRandomItemFromList();
                 var randomInt = Core.random.Next(1, 4);
                 StoreFileName = $"{listToUse.TypeDescription}-{randomInt}.json";
-                if (!File.Exists($"{Core.path}/BaseStores/{StoreFileName}"))
+                var path = $"{Core.path}/TemplatedStores/{StoreFileName}";
+                if (!File.Exists(path))
                 {
+                    var newStoreList = new StoreLists();
                     //file doesnt exist, lets generate it 
-                    foreach (var item in listToUse.OffersList)
-                    {
-
-                        if (Core.random.Next(0, 2) == 1)
-                        {
-                            continue;
-                        }
-                        if (!MyDefinitionId.TryParse(item.TypeIdString, item.SubtypeId, out MyDefinitionId id)) continue;
-                        var definition = MyDefinitionManager.Static.GetDefinition(id);
-                        if (definition is MyPhysicalItemDefinition physicalItem)
-                        {
-                           
-                        }
-                    }
-
+                    CreateSellingItems(listToUse, newStoreList);
+                    CreateBuyingItems(listToUse, newStoreList);
+                    Directory.CreateDirectory($"{Core.path}/TemplatedStores");
+                    FileUtils.WriteToJsonFile(path, newStoreList);
                 }
             }
             if (DateTime.Now >= NextModifierReset)
             {
                 NextModifierReset = DateTime.Now.AddDays(DaysBetweenModifierResets);
+                var minimum = MaximumModifier * -1;
+
+                double randomNumber = minimum + (Core.random.NextDouble() * (MaximumModifier - minimum));
+                Modifier = randomNumber;
             }
 
             if (DateTime.Now < NextStoreRefresh)
@@ -285,6 +280,62 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 }
             }
             throw new NotImplementedException();
+        }
+
+        private static void CreateBuyingItems(MyFactionTypeDefinition listToUse, StoreLists newStoreList)
+        {
+            foreach (var item in listToUse.OrdersList)
+            {
+                if (Core.random.Next(0, 2) == 1)
+                {
+                    continue;
+                }
+
+                if (!MyDefinitionId.TryParse(item.TypeIdString, item.SubtypeId, out MyDefinitionId id)) continue;
+                var definition = MyDefinitionManager.Static.GetDefinition(id);
+                var chanceToAppear = 0.3f + (float)Core.random.NextDouble();
+
+                if (definition is MyPhysicalItemDefinition physicalItem)
+                {
+                    var model = new StoreEntryModel()
+                    {
+                        AmountMax = physicalItem.MaximumOrderAmount,
+                        AmountMin = physicalItem.MinimumOrderAmount,
+                        ChanceToAppear = chanceToAppear > 1 ? (chanceToAppear - 0.3f) : chanceToAppear,
+                        Type = item.TypeIdString,
+                        Subtype = item.SubtypeId
+                    };
+                    newStoreList.BuyingFromPlayers.Add(model);
+                }
+            }
+        }
+
+        private static void CreateSellingItems(MyFactionTypeDefinition listToUse, StoreLists newStoreList)
+        {
+            foreach (var item in listToUse.OffersList)
+            {
+                if (Core.random.Next(0, 2) == 1)
+                {
+                    continue;
+                }
+
+                if (!MyDefinitionId.TryParse(item.TypeIdString, item.SubtypeId, out MyDefinitionId id)) continue;
+                var definition = MyDefinitionManager.Static.GetDefinition(id);
+                var chanceToAppear = 0.3f + (float)Core.random.NextDouble();
+
+                if (definition is MyPhysicalItemDefinition physicalItem)
+                {
+                    var model = new StoreEntryModel()
+                    {
+                        AmountMax = physicalItem.MaximumOfferAmount,
+                        AmountMin = physicalItem.MinimumOfferAmount,
+                        ChanceToAppear = chanceToAppear > 1 ? (chanceToAppear - 0.3f) : chanceToAppear,
+                        Type = item.TypeIdString,
+                        Subtype = item.SubtypeId
+                    };
+                    newStoreList.SellingToPlayers.Add(model);
+                }
+            }
         }
 
         public List<StoreEntryModel> GetStoreItems(MyStoreBlock store)

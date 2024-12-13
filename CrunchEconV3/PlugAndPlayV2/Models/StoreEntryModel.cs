@@ -17,7 +17,6 @@ namespace CrunchEconV3.PlugAndPlayV2.Models
         public float ChanceToAppear = 0.5f;
         public int AmountMin { get; set; } = 100;
         public int AmountMax { get; set; } = 150;
-        public string SaleType { get; set; }
     }
 
 }
