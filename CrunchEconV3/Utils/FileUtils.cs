@@ -8,10 +8,10 @@ using Newtonsoft.Json.Serialization;
 
 namespace CrunchEconV3.Utils
 {
-    public static class FileUtils
+    public class FileUtils
     {
 
-        public static void WriteToJsonFile<T>(string filePath, T objectToWrite, bool append = false) where T : new()
+        public void WriteToJsonFile<T>(string filePath, T objectToWrite, bool append = false) where T : new()
         {
             try
             {
@@ -44,7 +44,7 @@ namespace CrunchEconV3.Utils
             }
         }
 
-        public static T ReadFromJsonFile<T>(string filePath) where T : new()
+        public T ReadFromJsonFile<T>(string filePath) where T : new()
         {
             try
             {
@@ -74,7 +74,7 @@ namespace CrunchEconV3.Utils
         }
 
 
-        public static void WriteToXmlFile<T>(string filePath, T objectToWrite, bool append = false) where T : new()
+        public void WriteToXmlFile<T>(string filePath, T objectToWrite, bool append = false) where T : new()
         {
             TextWriter writer = null;
             try
@@ -90,7 +90,7 @@ namespace CrunchEconV3.Utils
             }
         }
 
-        public static T ReadFromXmlFile<T>(string filePath) where T : new()
+        public T ReadFromXmlFile<T>(string filePath) where T : new()
         {
             TextReader reader = null;
             try

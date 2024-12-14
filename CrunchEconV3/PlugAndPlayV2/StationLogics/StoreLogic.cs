@@ -10,12 +10,14 @@ using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.PlugAndPlay;
 using CrunchEconV3.PlugAndPlay.Extensions;
+using CrunchEconV3.PlugAndPlay.Helpers;
 using CrunchEconV3.PlugAndPlayV2.Helpers;
 using CrunchEconV3.PlugAndPlayV2.Interfaces;
 using CrunchEconV3.PlugAndPlayV2.Models;
 using CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies;
 using CrunchEconV3.Utils;
 using Sandbox.Common.ObjectBuilders;
+using Sandbox.Common.ObjectBuilders.Definitions;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
@@ -23,6 +25,7 @@ using Sandbox.Game.Entities.Planet;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using Sandbox.ModAPI.Ingame;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage;
@@ -30,17 +33,29 @@ using VRage.Game;
 using VRage.Game.Definitions.SessionComponents;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
+using VRage.Game.ModAPI.Ingame;
+using VRage.Game.ObjectBuilders.Definitions;
 using VRage.GameServices;
 using VRage.Groups;
 using VRage.ObjectBuilders;
 using VRage.Utils;
 using VRageMath;
+using IMyInventory = VRage.Game.ModAPI.IMyInventory;
 
 namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 {
     [Category("econv3")]
     public class StoreLogicCommands : CommandModule
     {
+        [Command("reloadstores", "export the orders and offers in a store block to store file")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void ReloadStores()
+        {
+            Context.Respond("Loading the files");
+            StoreFileHelper.LoadTheFiles();
+            Context.Respond("Loaded the files");
+        }
+
         [Command("store", "testing faction definitions")]
         [Permission(MyPromoteLevel.Admin)]
         public void Easy()
@@ -103,7 +118,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             strategy = new FurtherOrbitalSpawnStrategy();
             spawned = strategy.SpawnStations(
                  new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-                 "BaseTemplate", 4);
+                 "MiningTemplate", 2);
 
             foreach (var item in spawned)
             {
@@ -121,11 +136,11 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             strategy = new OrbitalSpawnStrategy();
             spawned = strategy.SpawnStations(
                new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-               "BaseTemplate", 3);
+               "BaseTemplate", 2);
 
             foreach (var item in spawned)
             {
-  
+
                 var gps = GPSHelper.ScanChat(item.LocationGPS);
                 gps.Name = "Orbital Spawn";
                 gps.GPSColor = Color.Cyan;
@@ -137,7 +152,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
 
             Context.Respond($"{spawned.Count} Orbital Space Stations Spawned");
-
+            Core.StationStorage.LoadAll();
         }
 
     }
@@ -154,12 +169,11 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
         public int Priority { get; set; }
         public int DaysBetweenModifierResets { get; set; } = 7;
         public bool MaintainBalance { get; set; } = true;
-        public int SecondsBetweenRefresh { get; set; } = 120;
-        public int SecondsBetweenInventoryRefresh { get; set; } = 3600;
+        public int SecondsBetweenRefresh { get; set; } = 3600;
 
         public void Setup()
         {
-            throw new NotImplementedException();
+
         }
 
         public static List<VRage.Game.ModAPI.IMyInventory> GetInventories(MyCubeGrid grid)
@@ -188,22 +202,15 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             return inventories;
         }
 
-        public void ClearInventoriesOfThingsItDoesntSell(MyCubeGrid grid, Dictionary<MyDefinitionId, int> itemsToRemove)
-        {
-            List<VRage.Game.ModAPI.IMyInventory> inventories = GetInventories(grid);
-
-            InventoriesHandler.ConsumeComponents(inventories, itemsToRemove, 0l);
-
-        }
-
         public Task<bool> DoLogic(MyCubeGrid grid)
         {
             if (IsFirstRun)
             {
+                FileUtils utils = new FileUtils();
                 List<MyFactionTypeDefinition> list = MyDefinitionManager.Static.GetAllDefinitions<MyFactionTypeDefinition>().ToList<MyFactionTypeDefinition>();
                 var listToUse = list.GetRandomItemFromList();
                 var randomInt = Core.random.Next(1, 4);
-                StoreFileName = $"{listToUse.TypeDescription}-{randomInt}.json";
+                StoreFileName = $"{listToUse.Id.SubtypeName}-{randomInt}.json";
                 var path = $"{Core.path}/TemplatedStores/{StoreFileName}";
                 if (!File.Exists(path))
                 {
@@ -211,8 +218,8 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     //file doesnt exist, lets generate it 
                     CreateSellingItems(listToUse, newStoreList);
                     CreateBuyingItems(listToUse, newStoreList);
-                    Directory.CreateDirectory($"{Core.path}/TemplatedStores");
-                    FileUtils.WriteToJsonFile(path, newStoreList);
+                    StoreFileHelper.SaveFile(newStoreList, StoreFileName);
+
                 }
             }
             if (DateTime.Now >= NextModifierReset)
@@ -230,11 +237,6 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             }
 
             NextStoreRefresh = DateTime.Now.AddSeconds(SecondsBetweenRefresh);
-            if (DateTime.Now >= NextInventoryRefresh)
-            {
-                NextInventoryRefresh = DateTime.Now.AddSeconds(SecondsBetweenInventoryRefresh);
-                //clear items that the store doesnt sell 
-            }
 
             var owner = grid.GetGridOwner();
             if (MaintainBalance)
@@ -252,37 +254,266 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 battery.CurrentStoredPower = battery.MaxStoredPower;
             }
 
+            var inventories = GetInventories(grid);
+            ClearInventories(grid);
+
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == owner))
             {
- 
                 ClearStoreOfPlayersBuyingOffers(store);
                 var items = GetStoreItems(store);
-                foreach (var item in items)
+                if (items == null)
+                {
+                    continue;
+                }
+                foreach (var item in items.SellingToPlayers)
                 {
                     if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id))
                     {
                         CrunchEconV3.Core.Log.Error($"{item.Type} {item.Subtype} not a valid id");
                         continue;
                     };
-                    var inventories = GetInventories(grid);
-                    var quantity = CrunchEconV3.Handlers.InventoriesHandler.CountComponents(inventories, id);
-                    //var itemsInInventory = InventoriesHandler.CountComponents();
-                    //try
-                    //{
-                    //    DoBuy(item, store, quantity, inventories);
-                    //    DoSell(item, store, quantity, inventories);
-                    //}
-                    //catch (Exception e)
-                    //{
-                    //    CrunchEconV3.Core.Log.Error(e);
-                    //}
+
+                    try
+                    {
+                        DoSell(item, store, inventories);
+                        if (items.SellHydrogen)
+                        {
+                            //add later 
+                        }
+
+                        if (items.SellOxygn)
+                        {
+                            //add later 
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        CrunchEconV3.Core.Log.Error(e);
+                    }
 
                 }
+                foreach (var item in items.BuyingFromPlayers)
+                {
+                    if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id))
+                    {
+                        CrunchEconV3.Core.Log.Error($"{item.Type} {item.Subtype} not a valid id");
+                        continue;
+                    };
+
+                    try
+                    {
+                        DoBuy(item, store, inventories);
+                    }
+                    catch (Exception e)
+                    {
+                        CrunchEconV3.Core.Log.Error(e);
+                    }
+
+                }
+
             }
-            throw new NotImplementedException();
+            return Task.FromResult(true);
         }
 
-        private static void CreateBuyingItems(MyFactionTypeDefinition listToUse, StoreLists newStoreList)
+        private StoreLists? GetStoreItems(MyStoreBlock Store)
+        {
+            if (Store.CustomData.Any())
+            {
+                var name = Store.CustomData;
+                var attempted = StoreFileHelper.GetList(name);
+                if (attempted != null)
+                {
+                    return attempted;
+                }
+            }
+
+            var fromFile = StoreFileHelper.GetList(StoreFileName);
+            if (fromFile != null)
+            {
+                return fromFile;
+            }
+
+            return null;
+
+
+        }
+
+        private void DoSell(StoreEntryModel Item, MyStoreBlock Store, List<IMyInventory> Inventories)
+        {
+            if (Item.ChanceToAppear < 1 && CrunchEconV3.Core.random.NextDouble() > Item.ChanceToAppear)
+            {
+                return;
+            }
+
+            if (!MyDefinitionId.TryParse(Item.Type, Item.Subtype, out MyDefinitionId id)) return;
+
+            SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, Item.Subtype);
+
+            var pricing = PriceHelper.GetPriceModel($"{Item.Type}/{Item.Subtype}");
+            if (pricing.NotFound)
+            {
+                Core.Log.Info("Price not found");
+                return;
+            }
+
+            var actualPrice = pricing.GetBuyMinAndMaxPrice();
+            int calcedPrice = Core.random.Next((int)actualPrice.Item1, (int)actualPrice.Item2);
+            var modifier = calcedPrice * Modifier;
+            calcedPrice += (int)modifier;
+            if (Modifier > 0)
+            {
+                calcedPrice += (int)modifier;
+            }
+            else
+            {
+                calcedPrice -= (int)modifier;
+            }
+            int amount = CrunchEconV3.Core.random.Next((int)Item.AmountMin,
+                (int)Item.AmountMax);
+            int notSpawnedAmount = 0;
+
+            var amountToSpawn = amount;
+            var used = new HashSet<String>();
+            if (id.TypeId.ToString() == "MyObjectBuilder_Datapad")
+            {
+                for (int i = 0; i < amountToSpawn; i++)
+                {
+                    var datapadBuilder = BuildDataPad(id.SubtypeName);
+                    if (used.Contains(datapadBuilder.Data))
+                    {
+                        notSpawnedAmount += 1;
+                        continue;
+                    }
+                    used.Add(datapadBuilder.Data);
+                    var inventory = Inventories.FirstOrDefault(x =>
+                        x.CanItemsBeAdded(1, new MyItemType(id.TypeId, id.SubtypeId)));
+                    if (inventory != null)
+                    {
+                        inventory.AddItems(1, datapadBuilder);
+                    }
+
+                }
+                amountToSpawn -= notSpawnedAmount;
+            }
+            else
+            {
+                if (amountToSpawn < 0)
+                {
+                    Core.Log.Info($"Quantity to spawn is below 0, the fuck?");
+                    return;
+                }
+                if (!CrunchEconV3.Handlers.InventoriesHandler.SpawnItems(id, amountToSpawn, Inventories))
+                {
+                    CrunchEconV3.Core.Log.Error(
+                        $"Unable to spawn items for offer in grid {Item.Type} {Item.Subtype}");
+                }
+            }
+
+            if (amount <= 0)
+            {
+                return;
+            }
+
+            MyStoreItemData itemInsert =
+                new MyStoreItemData(itemId, amount, calcedPrice,
+                    null, null);
+
+            MyStoreInsertResults result =
+                Store.InsertOffer(itemInsert,
+                    out long notUsingThis);
+            if (result != MyStoreInsertResults.Success)
+            {
+                if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum || result == MyStoreInsertResults.Fail_StoreLimitReached)
+                {
+                    long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+                    MyStoreItem myStoreItem = new MyStoreItem(newid, amount, calcedPrice, StoreItemTypes.Offer, ItemTypes.PhysicalItem);
+                    myStoreItem.Item = itemId;
+                    Store.PlayerItems.Add(myStoreItem);
+                }
+                else
+                {
+                    CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {Item.Type} {Item.Subtype} Amount:{itemInsert.Amount} Price:{itemInsert.PricePerUnit} {result.ToString()}");
+                }
+
+            }
+
+
+        }
+
+        private void DoBuy(StoreEntryModel Item, MyStoreBlock Store, List<IMyInventory> Inventories)
+        {
+            if (Item.ChanceToAppear < 1 && CrunchEconV3.Core.random.NextDouble() > Item.ChanceToAppear)
+            {
+                return;
+            }
+
+            if (!MyDefinitionId.TryParse(Item.Type, Item.Subtype, out MyDefinitionId id)) return;
+
+            SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, Item.Subtype);
+            var pricing = PriceHelper.GetPriceModel($"{Item.Type}/{Item.Subtype}");
+            if (pricing.NotFound)
+            {
+                Core.Log.Info("Price not found");
+                return;
+            }
+
+            int amount = CrunchEconV3.Core.random.Next((int)Item.AmountMin,
+                (int)Item.AmountMax);
+
+            var actualPrice = pricing.GetSellMinAndMaxPrice();
+            int calcedPrice = Core.random.Next((int)actualPrice.Item1, (int)actualPrice.Item2);
+            var modifier = calcedPrice * Modifier;
+            if (Modifier > 0)
+            {
+                calcedPrice += (int)modifier;
+            }
+            else
+            {
+                calcedPrice -= (int)modifier;
+            }
+
+
+            MyStoreItemData itemInsert =
+                new MyStoreItemData(itemId, amount, calcedPrice,
+                    null, null);
+
+            MyStoreInsertResults result =
+                Store.InsertOrder(itemInsert,
+                    out long notUsingThis);
+
+            if (result != MyStoreInsertResults.Success)
+            {
+                if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum || result == MyStoreInsertResults.Fail_StoreLimitReached)
+                {
+                    long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+                    MyStoreItem myStoreItem = new MyStoreItem(newid, amount, calcedPrice, StoreItemTypes.Order, ItemTypes.PhysicalItem);
+                    myStoreItem.Item = itemId;
+                    Store.PlayerItems.Add(myStoreItem);
+                }
+                else
+                {
+                    CrunchEconV3.Core.Log.Error($"Unable to insert this order into store {Item.Type} {Item.Subtype} Amount:{itemInsert.Amount} Price:{itemInsert.PricePerUnit} {result.ToString()}");
+                }
+            }
+        }
+
+        public static MyObjectBuilder_Datapad BuildDataPad(string subtype)
+        {
+            var station = DatapadHelper.GetRandomStation();
+            if (DatapadHelper.DatapadEntriesBySubtypes.TryGetValue(subtype, out var lists))
+            {
+                var datapadBuilder = new MyObjectBuilder_Datapad() { SubtypeName = subtype };
+                var randomStation =
+                    datapadBuilder.Data = lists.GetRandomItemFromList()
+                        .Replace("{StationGps}", station);
+                return datapadBuilder;
+            }
+            var datapadBuilder2 = new MyObjectBuilder_Datapad() { SubtypeName = "Datapad" };
+            datapadBuilder2.Data = "Subtype for datapad not found! report to admins.";
+            return datapadBuilder2;
+        }
+
+        private void CreateBuyingItems(MyFactionTypeDefinition listToUse, StoreLists newStoreList)
         {
             foreach (var item in listToUse.OrdersList)
             {
@@ -310,7 +541,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             }
         }
 
-        private static void CreateSellingItems(MyFactionTypeDefinition listToUse, StoreLists newStoreList)
+        private void CreateSellingItems(MyFactionTypeDefinition listToUse, StoreLists newStoreList)
         {
             foreach (var item in listToUse.OffersList)
             {
@@ -338,11 +569,6 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             }
         }
 
-        public List<StoreEntryModel> GetStoreItems(MyStoreBlock store)
-        {
-            return new List<StoreEntryModel>();
-        }
-
         public void ClearStoreOfPlayersBuyingOffers(MyStoreBlock store)
         {
 
@@ -358,7 +584,5 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
 
         }
-
-
     }
 }
