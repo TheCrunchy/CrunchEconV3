@@ -82,10 +82,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
         [Permission(MyPromoteLevel.Admin)]
         public void EasyStore()
         {
-            var stationName = KeenStationPrefabHelper.GetRandomStationPrefabName(MyStationTypeEnum.Outpost);
-            Core.Log.Info(stationName);
-
-
+            TemplateHandler.LoadTemplates();
 
             var planets = MyPlanets.GetPlanets();
             MyPlanet lowestDistancePlanet = null;
