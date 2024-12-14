@@ -11,6 +11,7 @@ using CrunchEconV3.Models;
 using CrunchEconV3.PlugAndPlay;
 using CrunchEconV3.PlugAndPlay.Extensions;
 using CrunchEconV3.PlugAndPlay.Helpers;
+using CrunchEconV3.PlugAndPlayV2.Handlers;
 using CrunchEconV3.PlugAndPlayV2.Helpers;
 using CrunchEconV3.PlugAndPlayV2.Interfaces;
 using CrunchEconV3.PlugAndPlayV2.Models;
@@ -47,6 +48,14 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
     [Category("econv3")]
     public class StoreLogicCommands : CommandModule
     {
+        [Command("template", "export the orders and offers in a store block to store file")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void Template()
+        {
+           TemplateHandler.LoadTemplates();
+           Context.Respond("Done");
+        }
+
         [Command("reloadstores", "export the orders and offers in a store block to store file")]
         [Permission(MyPromoteLevel.Admin)]
         public void ReloadStores()
@@ -99,26 +108,61 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             }
 
             IStationSpawnStrategy strategy = null;
-            strategy = new PlanetSpawnStrategy();
-            var spawned = strategy.SpawnStations(
-                new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-                "BaseTemplate", 3);
+            //strategy = new PlanetSpawnStrategy();
+            //var spawned = strategy.SpawnStations(
+            //    new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+            //    "BaseTemplate", 3);
 
-            foreach (var item in spawned)
-            {
-                var gps = GPSHelper.ScanChat(item.LocationGPS);
-                gps.Name = "Planetary Spawn";
-                gps.GPSColor = Color.Cyan;
-                gps.AlwaysVisible = true;
-                gps.ShowOnHud = true;
-                MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
-                gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
-            }
-            Context.Respond($"{spawned.Count} Planet Stations Spawned");
+            //foreach (var item in spawned)
+            //{
+            //    var gps = GPSHelper.ScanChat(item.LocationGPS);
+            //    gps.Name = "Planetary Spawn";
+            //    gps.GPSColor = Color.Cyan;
+            //    gps.AlwaysVisible = true;
+            //    gps.ShowOnHud = true;
+            //    MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+            //    gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
+            //}
+            //Context.Respond($"{spawned.Count} Planet Stations Spawned");
+            //strategy = new FurtherOrbitalSpawnStrategy();
+            //spawned = strategy.SpawnStations(
+            //     new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+            //     "MiningTemplate", 2);
+
+            //foreach (var item in spawned)
+            //{
+            //    var gps = GPSHelper.ScanChat(item.LocationGPS);
+            //    gps.Name = "Deep Space Spawn";
+            //    gps.GPSColor = Color.Cyan;
+            //    gps.AlwaysVisible = true;
+            //    gps.ShowOnHud = true;
+            //    MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+            //    gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
+            //}
+
+            //Context.Respond($"{spawned.Count} Deep Space Stations Spawned");
+
+            //strategy = new OrbitalSpawnStrategy();
+            //spawned = strategy.SpawnStations(
+            //   new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+            //   "BaseTemplate", 2);
+
+            //foreach (var item in spawned)
+            //{
+
+            //    var gps = GPSHelper.ScanChat(item.LocationGPS);
+            //    gps.Name = "Orbital Spawn";
+            //    gps.GPSColor = Color.Cyan;
+            //    gps.AlwaysVisible = true;
+            //    gps.ShowOnHud = true;
+            //    MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+            //    gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
+            //}
+
             strategy = new FurtherOrbitalSpawnStrategy();
-            spawned = strategy.SpawnStations(
+            var spawned = strategy.SpawnStations(
                  new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-                 "MiningTemplate", 2);
+                 "MiningTemplate", 1, new List<MyPlanet>() { lowestDistancePlanet});
 
             foreach (var item in spawned)
             {
@@ -130,26 +174,6 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
                 gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
             }
-
-            Context.Respond($"{spawned.Count} Deep Space Stations Spawned");
-
-            strategy = new OrbitalSpawnStrategy();
-            spawned = strategy.SpawnStations(
-               new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-               "BaseTemplate", 2);
-
-            foreach (var item in spawned)
-            {
-
-                var gps = GPSHelper.ScanChat(item.LocationGPS);
-                gps.Name = "Orbital Spawn";
-                gps.GPSColor = Color.Cyan;
-                gps.AlwaysVisible = true;
-                gps.ShowOnHud = true;
-                MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
-                gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
-            }
-
 
             Context.Respond($"{spawned.Count} Orbital Space Stations Spawned");
             Core.StationStorage.LoadAll();
@@ -176,8 +200,9 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
         }
 
-        public static List<VRage.Game.ModAPI.IMyInventory> GetInventories(MyCubeGrid grid)
+        public static List<VRage.Game.ModAPI.IMyInventory> GetInventories(MyCubeGrid grid, MyStoreBlock store)
         {
+          
             List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();
             var gridOwnerFac = FacUtils.GetOwner(grid);
 
@@ -186,15 +211,24 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 for (int i = 0; i < block.InventoryCount; i++)
                 {
                     VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)block).GetInventory(i);
-                    inventories.Add(inv);
+                    for (int j = 0; j < store.InventoryCount; j++)
+                    {
+                        VRage.Game.ModAPI.IMyInventory storeInv = ((VRage.Game.ModAPI.IMyCubeBlock)store).GetInventory(i);
+                        if (inv.CanTransferItemTo(storeInv, MyItemType.MakeOre("Iron")))
+                        {
+                            inventories.Add(inv);
+                            break;
+                        }
+                    }
+          
                 }
             }
             return inventories;
         }
-        public List<VRage.Game.ModAPI.IMyInventory> ClearInventories(MyCubeGrid grid)
+        public List<VRage.Game.ModAPI.IMyInventory> ClearInventories(MyCubeGrid grid, MyStoreBlock store)
         {
-            List<VRage.Game.ModAPI.IMyInventory> inventories = GetInventories(grid);
-
+            List<VRage.Game.ModAPI.IMyInventory> inventories = GetInventories(grid, store);
+            
             foreach (var inv in inventories)
             {
                 inv.Clear();
@@ -221,6 +255,8 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     StoreFileHelper.SaveFile(newStoreList, StoreFileName);
 
                 }
+                StoreFileHelper.LoadTheFiles();
+                IsFirstRun = false;
             }
             if (DateTime.Now >= NextModifierReset)
             {
@@ -254,19 +290,29 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 battery.CurrentStoredPower = battery.MaxStoredPower;
             }
 
-            var inventories = GetInventories(grid);
-            ClearInventories(grid);
+            foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == owner))
+            {
+                var inventories = GetInventories(grid, store);
+                ClearInventories(grid, store);
+            }
 
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == owner))
             {
+              
                 ClearStoreOfPlayersBuyingOffers(store);
                 var items = GetStoreItems(store);
                 if (items == null)
                 {
+                    Core.Log.Info($"items null, skipping");
                     continue;
                 }
                 foreach (var item in items.SellingToPlayers)
                 {
+                    var inventories = GetInventories(grid, store);
+                    if (inventories.Count == 0)
+                    {
+                        break;
+                    }
                     if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id))
                     {
                         CrunchEconV3.Core.Log.Error($"{item.Type} {item.Subtype} not a valid id");
@@ -294,6 +340,11 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 }
                 foreach (var item in items.BuyingFromPlayers)
                 {
+                    var inventories = GetInventories(grid, store);
+                    if (inventories.Count == 0)
+                    {
+                        break;
+                    }
                     if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id))
                     {
                         CrunchEconV3.Core.Log.Error($"{item.Type} {item.Subtype} not a valid id");
@@ -312,6 +363,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 }
 
             }
+            Core.Log.Info($"loop done");
             return Task.FromResult(true);
         }
 
@@ -352,7 +404,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             var pricing = PriceHelper.GetPriceModel($"{Item.Type}/{Item.Subtype}");
             if (pricing.NotFound)
             {
-                Core.Log.Info("Price not found");
+                Core.Log.Info($"{StoreFileName} {Item.Type}/{Item.Subtype} Price not found");
                 return;
             }
 
@@ -409,13 +461,13 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 }
             }
 
-            if (amount <= 0)
+            if (amountToSpawn <= 0)
             {
                 return;
             }
 
             MyStoreItemData itemInsert =
-                new MyStoreItemData(itemId, amount, calcedPrice,
+                new MyStoreItemData(itemId, amountToSpawn, calcedPrice,
                     null, null);
 
             MyStoreInsertResults result =
@@ -426,7 +478,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 if (result == MyStoreInsertResults.Fail_PricePerUnitIsLessThanMinimum || result == MyStoreInsertResults.Fail_StoreLimitReached)
                 {
                     long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-                    MyStoreItem myStoreItem = new MyStoreItem(newid, amount, calcedPrice, StoreItemTypes.Offer, ItemTypes.PhysicalItem);
+                    MyStoreItem myStoreItem = new MyStoreItem(newid, amountToSpawn, calcedPrice, StoreItemTypes.Offer, ItemTypes.PhysicalItem);
                     myStoreItem.Item = itemId;
                     Store.PlayerItems.Add(myStoreItem);
                 }
@@ -453,7 +505,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             var pricing = PriceHelper.GetPriceModel($"{Item.Type}/{Item.Subtype}");
             if (pricing.NotFound)
             {
-                Core.Log.Info("Price not found");
+                Core.Log.Info($"{StoreFileName} {Item.Type}/{Item.Subtype} Price not found");
                 return;
             }
 
@@ -472,6 +524,10 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 calcedPrice -= (int)modifier;
             }
 
+            if (amount <= 0)
+            {
+                return;
+            }
 
             MyStoreItemData itemInsert =
                 new MyStoreItemData(itemId, amount, calcedPrice,

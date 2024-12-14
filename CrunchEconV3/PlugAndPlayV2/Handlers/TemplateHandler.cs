@@ -31,7 +31,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
 
         public static void LoadTemplates()
         {
-          
+
             var path = $"{Core.path}//TemplateStations";
             if (!Directory.Exists(path))
             {
@@ -45,7 +45,11 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
                     new StoreLogic()
                 };
                 template.ContractFiles = new List<string>();
+                template.SecondsBetweenContractRefresh = 1200;
                 utils.WriteToJsonFile($"{path}//BaseTemplate.json", template);
+
+                CreateMining(path);
+
                 //make a template with store logic and default setup contracts 
             }
 
@@ -69,13 +73,14 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
             template.FileName = "MiningTemplate.json";
             template.Enabled = true;
             template.UsesDefault = false;
+            template.SecondsBetweenContractRefresh = 1200;
             template.Logics = new List<IStationLogic>()
             {
                 new StoreLogic()
             };
             Directory.CreateDirectory($"{Core.path}/Stations/BaseSetup");
-   
-            template.ContractFiles = new List<string>() { "/Stations/BaseSetup/BasicMining.json" , "/Stations/BaseSetup/AdvancedMining.json" };
+
+            template.ContractFiles = new List<string>() { "/BaseSetup/BasicMining.json", "/BaseSetup/AdvancedMining.json" };
             utils.WriteToJsonFile($"{path}//MiningTemplate.json", template);
 
             var basicMining = new List<IContractConfig>();
@@ -156,6 +161,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
                 SecondsToComplete = 4800,
             });
 
+            Directory.CreateDirectory($"{Core.path}/Stations/BaseSetup/");
             utils.WriteToJsonFile($"{Core.path}/Stations/BaseSetup/BasicMining.json", basicMining);
             utils.WriteToJsonFile($"{Core.path}/Stations/BaseSetup/AdvancedMining.json", advancedMining);
         }

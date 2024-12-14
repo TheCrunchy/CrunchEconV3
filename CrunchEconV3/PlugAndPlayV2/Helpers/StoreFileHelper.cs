@@ -36,6 +36,11 @@ namespace CrunchEconV3.PlugAndPlayV2.Helpers
 
         public static StoreLists? GetList(string name)
         {
+            name = name.Replace(".json", "").Replace(".Json", "");
+            if (!MappedBlockNames.Any())
+            {
+                LoadTheFiles();
+            }
             if (MappedBlockNames.TryGetValue(name, out var item))
             {
                 return item;
