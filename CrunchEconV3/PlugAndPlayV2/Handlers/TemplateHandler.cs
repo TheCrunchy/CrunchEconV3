@@ -44,7 +44,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
                 {
                     new StoreLogic()
                 };
-                template.ContractFiles = new List<string>();
+                template.ContractFiles = new List<string>() { "/BaseSetup/IceMining.json" };
                 template.SecondsBetweenContractRefresh = 1200;
                 utils.WriteToJsonFile($"{path}//BaseTemplate.json", template);
 
@@ -80,9 +80,34 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
             };
             Directory.CreateDirectory($"{Core.path}/Stations/BaseSetup");
 
-            template.ContractFiles = new List<string>() { "/BaseSetup/BasicMining.json", "/BaseSetup/AdvancedMining.json" };
+            template.ContractFiles = new List<string>() { "/BaseSetup/IceMining.json", "/BaseSetup/BasicMining.json", "/BaseSetup/AdvancedMining.json" };
             utils.WriteToJsonFile($"{path}//MiningTemplate.json", template);
 
+            var ice = new List<IContractConfig>();
+            ice.Add(new MiningContractConfig()
+            {
+                OresToPickFrom = new List<string>() { "Ice" },
+                ReputationLossOnAbandon = 15,
+                ReputationGainOnCompleteMax = 10,
+                ReputationGainOnCompleteMin = 5,
+                AmountToMineThenDeliverMin = 5000,
+                AmountToMineThenDeliverMax = 25000,
+                AmountOfContractsToGenerate = 5,
+                ChanceToAppear = 0.8f,
+                SecondsToComplete = 4800,
+            });
+            ice.Add(new MiningContractConfig()
+            {
+                OresToPickFrom = new List<string>() { "Ice" },
+                ReputationLossOnAbandon = 15,
+                ReputationGainOnCompleteMax = 10,
+                ReputationGainOnCompleteMin = 5,
+                AmountToMineThenDeliverMin = 10000,
+                AmountToMineThenDeliverMax = 45000,
+                AmountOfContractsToGenerate = 3,
+                ChanceToAppear = 0.2f,
+                SecondsToComplete = 4800,
+            });
             var basicMining = new List<IContractConfig>();
             var advancedMining = new List<IContractConfig>();
             basicMining.Add(new MiningContractConfig()
@@ -164,6 +189,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
             Directory.CreateDirectory($"{Core.path}/Stations/BaseSetup/");
             utils.WriteToJsonFile($"{Core.path}/Stations/BaseSetup/BasicMining.json", basicMining);
             utils.WriteToJsonFile($"{Core.path}/Stations/BaseSetup/AdvancedMining.json", advancedMining);
+            utils.WriteToJsonFile($"{Core.path}/Stations/BaseSetup/IceMining.json", ice);
         }
     }
 }
