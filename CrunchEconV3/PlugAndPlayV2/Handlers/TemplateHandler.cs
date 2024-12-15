@@ -8,6 +8,7 @@ using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.PlugAndPlay.Contracts.Configs;
+using CrunchEconV3.PlugAndPlay.Models;
 using CrunchEconV3.PlugAndPlayV2.StationLogics;
 using CrunchEconV3.Utils;
 using EmptyKeys.UserInterface.Generated;
@@ -44,7 +45,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
                 {
                     new StoreLogic()
                 };
-                template.ContractFiles = new List<string>() { "/BaseSetup/IceMining.json" };
+                template.ContractFiles = new List<string>() { "/BaseSetup/IceMining.json", "/BaseSetup/GasHauling.json", "/BaseSetup/BasicHauling.json" };
                 template.SecondsBetweenContractRefresh = 1200;
                 utils.WriteToJsonFile($"{path}//BaseTemplate.json", template);
 
@@ -80,7 +81,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
             };
             Directory.CreateDirectory($"{Core.path}/Stations/BaseSetup");
 
-            template.ContractFiles = new List<string>() { "/BaseSetup/IceMining.json", "/BaseSetup/BasicMining.json", "/BaseSetup/AdvancedMining.json" };
+            template.ContractFiles = new List<string>() { "/BaseSetup/IceMining.json", "/BaseSetup/BasicMining.json", "/BaseSetup/AdvancedMining.json", "/BaseSetup/GasHauling.json" };
             utils.WriteToJsonFile($"{path}//MiningTemplate.json", template);
 
             var ice = new List<IContractConfig>();
@@ -190,6 +191,159 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
             utils.WriteToJsonFile($"{Core.path}/Stations/BaseSetup/BasicMining.json", basicMining);
             utils.WriteToJsonFile($"{Core.path}/Stations/BaseSetup/AdvancedMining.json", advancedMining);
             utils.WriteToJsonFile($"{Core.path}/Stations/BaseSetup/IceMining.json", ice);
+        }
+
+        public static void CreateHauling(string path)
+        {
+            var template = new StationConfig();
+            template.FileName = "HaulingTemplate.json";
+            template.Enabled = true;
+            template.UsesDefault = false;
+            template.SecondsBetweenContractRefresh = 1200;
+            template.Logics = new List<IStationLogic>()
+            {
+                new StoreLogic()
+            };
+            Directory.CreateDirectory($"{Core.path}/Stations/BaseSetup");
+
+            template.ContractFiles = new List<string>() { "/BaseSetup/GasHauling.json", "/BaseSetup/BasicHauling.json", "/BaseSetup/AdvancedHauling.json" };
+            utils.WriteToJsonFile($"{path}//HaulingTemplate.json", template);
+
+            var gases = new List<IContractConfig>();
+            gases.Add(new GasContractConfig()
+            {
+                GasSubType = "Oxygen",
+                ReputationLossOnAbandon = 10,
+                ReputationGainOnCompleteMax = 5,
+                ReputationGainOnCompleteMin = 1,
+                AmountOfContractsToGenerate = 3,
+                ChanceToAppear = 0.7f,
+                SecondsToComplete = 4800,
+                AmountInLitresMax = 2000000,
+                AmountInLitresMin = 1000000,
+            });
+            gases.Add(new GasContractConfig()
+            {
+                GasSubType = "Hydrogen",
+                ReputationLossOnAbandon = 10,
+                ReputationGainOnCompleteMax = 5,
+                ReputationGainOnCompleteMin = 1,
+                AmountOfContractsToGenerate = 3,
+                ChanceToAppear = 0.7f,
+                SecondsToComplete = 4800,
+                AmountInLitresMax = 2000000,
+                AmountInLitresMin = 1000000,
+            });
+            var basic = new List<IContractConfig>();
+            var advanced = new List<IContractConfig>();
+            basic.Add(new ItemHaulingConfig()
+            {
+                ReputationLossOnAbandon = 10,
+                ReputationGainOnCompleteMax = 5,
+                ReputationGainOnCompleteMin = 1,
+                AmountOfContractsToGenerate = 5,
+                ChanceToAppear = 0.8f,
+                SecondsToComplete = 4800,
+                ItemsAvailable = new List<ItemHaul>()
+                {
+                    new ItemHaul()
+                    {
+                        AmountMax = 100000,
+                        AmountMin = 30000,
+                        TypeId = "MyObjectBuilder_Ore",
+                        SubTypeId = "Ice"
+                    },
+                    new ItemHaul()
+                    {
+                        AmountMax = 10000,
+                        AmountMin = 3000,
+                        TypeId = "MyObjectBuilder_Ore",
+                        SubTypeId = "Iron"
+                    },   
+                    new ItemHaul()
+                    {
+                        AmountMax = 10000,
+                        AmountMin = 3000,
+                        TypeId = "MyObjectBuilder_Ore",
+                        SubTypeId = "Nickel"
+                    },
+                    new ItemHaul()
+                    {
+                        AmountMax = 10000,
+                        AmountMin = 3000,
+                        TypeId = "MyObjectBuilder_Ore",
+                        SubTypeId = "Silicon"
+                    },
+
+                }
+            });
+            advanced.Add(new ItemHaulingConfig()
+            {
+                ReputationLossOnAbandon = 10,
+                ReputationGainOnCompleteMax = 5,
+                ReputationGainOnCompleteMin = 1,
+                AmountOfContractsToGenerate = 5,
+                ChanceToAppear = 0.25f,
+                SecondsToComplete = 4800,
+                ItemsAvailable = new List<ItemHaul>()
+                    {
+                        new ItemHaul()
+                        {
+                            AmountMax = 100000,
+                            AmountMin = 10000,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "Girder"
+                        },
+                        new ItemHaul()
+                        {
+                            AmountMax = 100000,
+                            AmountMin = 10000,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "Construction"
+                        },
+                        new ItemHaul()
+                        {
+                            AmountMax = 5000,
+                            AmountMin = 1000,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "MetalGrid"
+                        },
+                        new ItemHaul()
+                        {
+                            AmountMax = 100000,
+                            AmountMin = 10000,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "InteriorPlate"
+                        },
+                        new ItemHaul()
+                        {
+                            AmountMax = 100000,
+                            AmountMin = 10000,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "SteelPlate"
+                        },
+                        new ItemHaul()
+                        {
+                            AmountMax = 1000,
+                            AmountMin = 100,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "GravityGenerator"
+                        },
+                        new ItemHaul()
+                        {
+                            AmountMax = 1000,
+                            AmountMin = 100,
+                            TypeId = "MyObjectBuilder_Component",
+                            SubTypeId = "Thrust"
+                        }
+                    }
+            });
+
+
+            Directory.CreateDirectory($"{Core.path}/Stations/BaseSetup/");
+            utils.WriteToJsonFile($"{Core.path}/Stations/BaseSetup/BasicHauling.json", basic);
+            utils.WriteToJsonFile($"{Core.path}/Stations/BaseSetup/AdvancedHauling.json", advanced);
+            utils.WriteToJsonFile($"{Core.path}/Stations/BaseSetup/GasHauling.json", gases);
         }
     }
 }

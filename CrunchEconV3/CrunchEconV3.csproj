@@ -276,7 +276,8 @@
     <Compile Include="PlugAndPlayV2\Models\StoreEntryModel.cs" />
     <Compile Include="PlugAndPlayV2\Models\StoreLists.cs" />
     <Compile Include="PlugAndPlayV2\StationLogics\StoreLogic.cs" />
-    <Compile Include="PlugAndPlayV2\StationSpawnStrategies\FurtherOrbitalSpawnStrategy.cs" />
+    <Compile Include="PlugAndPlayV2\StationSpawnStrategies\HaulingSpawnStrategy.cs" />
+    <Compile Include="PlugAndPlayV2\StationSpawnStrategies\MiningSpawnStrategy.cs" />
     <Compile Include="PlugAndPlayV2\StationSpawnStrategies\OrbitalSpawnStrategy.cs" />
     <Compile Include="PlugAndPlayV2\StationSpawnStrategies\PlanetSpawnStrategy.cs" />
     <Compile Include="PlugAndPlay\BuyGasFixes.cs" />

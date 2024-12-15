@@ -49,15 +49,8 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
     [Category("econv3")]
     public class StoreLogicCommands : CommandModule
     {
-        [Command("template", "export the orders and offers in a store block to store file")]
-        [Permission(MyPromoteLevel.Admin)]
-        public void Template()
-        {
-            TemplateHandler.LoadTemplates();
-            Context.Respond("Done");
-        }
 
-        [Command("reapply", "export the orders and offers in a store block to store file")]
+        [Command("reapply", "reapply all templates to their stations")]
         [Permission(MyPromoteLevel.Admin)]
         public void ReApply()
         {
@@ -90,22 +83,45 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             Context.Respond("Loaded the files");
         }
 
-        [Command("store", "testing faction definitions")]
+        [Command("fullgeneration", "fully generate the economy")]
         [Permission(MyPromoteLevel.Admin)]
-        public void Easy()
+        public void FullGeneration()
         {
-            List<MyFactionTypeDefinition> list = MyDefinitionManager.Static.GetAllDefinitions<MyFactionTypeDefinition>().ToList<MyFactionTypeDefinition>();
-            Context.Respond($"{list.Count}");
-            foreach (var item in list)
-            {
-                Context.Respond($"{item.OrdersList.Length}");
-                Context.Respond($"{item.OffersList.Length}");
-            }
-        }
+            TemplateHandler.LoadTemplates();
 
-        [Command("prefab", "spawn a random prefab for testing")]
+            IStationSpawnStrategy strategy = null;
+            strategy = new PlanetSpawnStrategy();
+            var spawned = strategy.SpawnStations(
+                new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                "BaseTemplate", 2);
+
+            Context.Respond($"{spawned.Count} Planet Stations Spawned");
+            strategy = new MiningSpawnStrategy();
+            spawned = strategy.SpawnStations(
+                 new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                 "MiningTemplate", 2);
+
+            Context.Respond($"{spawned.Count} Mining Stations Spawned");
+
+            strategy = new HaulingSpawnStrategy();
+            spawned = strategy.SpawnStations(
+                new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                "HaulingTemplate", 2);
+
+            Context.Respond($"{spawned.Count} Hauling Stations Spawned");
+
+            strategy = new OrbitalSpawnStrategy();
+            spawned = strategy.SpawnStations(
+               new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+               "BaseTemplate", 3);
+
+            Context.Respond($"{spawned.Count} Orbital Space Stations Spawned");
+
+            Core.StationStorage.LoadAll();
+        }
+        [Command("planetgeneration", "generate the economy around the closest planet to the players suit")]
         [Permission(MyPromoteLevel.Admin)]
-        public void EasyStore()
+        public void PlanetGeneration()
         {
             TemplateHandler.LoadTemplates();
 
@@ -130,77 +146,35 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             }
 
             IStationSpawnStrategy strategy = null;
-            //strategy = new PlanetSpawnStrategy();
-            //var spawned = strategy.SpawnStations(
-            //    new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-            //    "BaseTemplate", 3);
-
-            //foreach (var item in spawned)
-            //{
-            //    var gps = GPSHelper.ScanChat(item.LocationGPS);
-            //    gps.Name = "Planetary Spawn";
-            //    gps.GPSColor = Color.Cyan;
-            //    gps.AlwaysVisible = true;
-            //    gps.ShowOnHud = true;
-            //    MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
-            //    gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
-            //}
-            //Context.Respond($"{spawned.Count} Planet Stations Spawned");
-            //strategy = new FurtherOrbitalSpawnStrategy();
-            //spawned = strategy.SpawnStations(
-            //     new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-            //     "MiningTemplate", 2);
-
-            //foreach (var item in spawned)
-            //{
-            //    var gps = GPSHelper.ScanChat(item.LocationGPS);
-            //    gps.Name = "Deep Space Spawn";
-            //    gps.GPSColor = Color.Cyan;
-            //    gps.AlwaysVisible = true;
-            //    gps.ShowOnHud = true;
-            //    MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
-            //    gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
-            //}
-
-            //Context.Respond($"{spawned.Count} Deep Space Stations Spawned");
-
-            //strategy = new OrbitalSpawnStrategy();
-            //spawned = strategy.SpawnStations(
-            //   new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-            //   "BaseTemplate", 2);
-
-            //foreach (var item in spawned)
-            //{
-
-            //    var gps = GPSHelper.ScanChat(item.LocationGPS);
-            //    gps.Name = "Orbital Spawn";
-            //    gps.GPSColor = Color.Cyan;
-            //    gps.AlwaysVisible = true;
-            //    gps.ShowOnHud = true;
-            //    MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
-            //    gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
-            //}
-
-            strategy = new FurtherOrbitalSpawnStrategy();
+            strategy = new PlanetSpawnStrategy();
             var spawned = strategy.SpawnStations(
-                 new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-                 "MiningTemplate", 1, new List<MyPlanet>() { lowestDistancePlanet });
+                new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                "BaseTemplate", 2, new List<MyPlanet>() { lowestDistancePlanet});
 
-            foreach (var item in spawned)
-            {
-                var gps = GPSHelper.ScanChat(item.LocationGPS);
-                gps.Name = "Deep Space Spawn";
-                gps.GPSColor = Color.Cyan;
-                gps.AlwaysVisible = true;
-                gps.ShowOnHud = true;
-                MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
-                gpscol.SendAddGpsRequest(Context.Player.IdentityId, ref gps);
-            }
+            Context.Respond($"{spawned.Count} Planet Stations Spawned");
+            strategy = new MiningSpawnStrategy();
+            spawned = strategy.SpawnStations(
+                 new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                 "MiningTemplate", 2, new List<MyPlanet>() { lowestDistancePlanet });
+
+            Context.Respond($"{spawned.Count} Mining Stations Spawned");
+
+            strategy = new HaulingSpawnStrategy();
+            spawned = strategy.SpawnStations(
+                new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                "HaulingTemplate", 2, new List<MyPlanet>() { lowestDistancePlanet });
+
+            Context.Respond($"{spawned.Count} Hauling Stations Spawned");
+
+            strategy = new OrbitalSpawnStrategy();
+            spawned = strategy.SpawnStations(
+               new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+               "BaseTemplate", 3, new List<MyPlanet>() { lowestDistancePlanet });
 
             Context.Respond($"{spawned.Count} Orbital Space Stations Spawned");
+
             Core.StationStorage.LoadAll();
         }
-
     }
 
     public class StoreLogic : IStationLogic

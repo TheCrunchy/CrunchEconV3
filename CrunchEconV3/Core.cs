@@ -378,7 +378,6 @@ namespace CrunchEconV3
                         ContractPatchesDefaultSetup.Patch(patchContext);
                         KeenStoreManagement.Patch(patchContext);
                         Core.Log.Error("Patching defaults");
-
                         break;
                     default:
                         Core.Log.Error("Patching regular");

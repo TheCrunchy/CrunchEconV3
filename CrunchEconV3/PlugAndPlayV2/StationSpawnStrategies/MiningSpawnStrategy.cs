@@ -22,7 +22,7 @@ using VRageMath;
 
 namespace CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies
 {
-    public class FurtherOrbitalSpawnStrategy : StationSpawnStrategyAbstract
+    public class HaulingSpawnStrategy : StationSpawnStrategyAbstract
     {
         public override List<StationConfig> SpawnStations(List<MyFaction> availableFactions, string templateName, int maximumToSpawn, List<MyPlanet> planets = null)
         {
@@ -41,7 +41,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationSpawnStrategies
                 for (int i = 0; i < maximumToSpawn; i++)
                 {
                     var faction = availableFactions.GetRandomItemFromList();
-                    var station = KeenStationPrefabHelper.GetRandomStationPrefabName(MyStationTypeEnum.MiningStation);
+                    var station = KeenStationPrefabHelper.GetRandomStationPrefabName(MyStationTypeEnum.SpaceStation);
                     var distanceFromPlanet = 250000;
                     var minDistanceFromPlanet = distanceFromPlanet;
 
