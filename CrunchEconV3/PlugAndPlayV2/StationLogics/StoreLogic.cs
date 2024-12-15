@@ -45,6 +45,7 @@ using IMyInventory = VRage.Game.ModAPI.IMyInventory;
 
 namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 {
+
     [Category("econv3")]
     public class StoreLogicCommands : CommandModule
     {
@@ -54,6 +55,30 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
         {
            TemplateHandler.LoadTemplates();
            Context.Respond("Done");
+        }
+
+        [Command("reapply", "export the orders and offers in a store block to store file")]
+        [Permission(MyPromoteLevel.Admin)]
+        public void ReApply()
+        {
+            TemplateHandler.LoadTemplates();
+            foreach (var station in Core.StationStorage.GetAll().Where(x => !string.IsNullOrEmpty(x.UsedTemplate)))
+            {
+                var template = TemplateHandler.GetTemplateFromName(station.UsedTemplate);
+                if (template != null)
+                {
+                    station.Logics = template.CloneLogics();
+                    station.ContractFiles = template.ContractFiles;
+                }
+                else
+                {
+                    Context.Respond($"{station.UsedTemplate} Template not found.");
+                }
+            }
+
+            Core.StationStorage.LoadAll();
+
+            Context.Respond("Done");
         }
 
         [Command("reloadstores", "export the orders and offers in a store block to store file")]

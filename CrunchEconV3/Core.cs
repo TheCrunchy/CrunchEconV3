@@ -370,15 +370,13 @@ namespace CrunchEconV3
                 Session = session;
                 var patchManager = session.Managers.GetManager<PatchManager>();
                 var patchContext = patchManager.AcquireContext();
-
+                PriceHelper.Patch(patchContext);
+                PrefabHelper.Patch(patchContext);
                 switch (config.UseDefaultSetup)
                 {
                     case true:
                         ContractPatchesDefaultSetup.Patch(patchContext);
-                        PriceHelper.Patch(patchContext);
-                        PrefabHelper.Patch(patchContext);
                         KeenStoreManagement.Patch(patchContext);
-              
                         Core.Log.Error("Patching defaults");
 
                         break;

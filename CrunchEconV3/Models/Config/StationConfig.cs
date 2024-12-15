@@ -27,24 +27,31 @@ namespace CrunchEconV3.Models
                 Logics = new List<IStationLogic>(),
                 FirstLoad = this.FirstLoad
             };
-            
-                var json = JsonConvert.SerializeObject(this.Logics, new JsonSerializerSettings()
-                {
-                    TypeNameHandling = TypeNameHandling.Auto,
-                    Binder = new MySerializationBinder(),
-                    Formatting = Newtonsoft.Json.Formatting.Indented
-                });
 
-                var asItem = JsonConvert.DeserializeObject<List<IStationLogic>>(json, new JsonSerializerSettings()
-                {
-                    TypeNameHandling = TypeNameHandling.Auto,
-                    Binder = new MySerializationBinder(),
-                    Formatting = Newtonsoft.Json.Formatting.Indented
-                });
 
-                clonedConfig.Logics = asItem;
-            
-                return clonedConfig;
+
+            clonedConfig.Logics = CloneLogics();
+
+            return clonedConfig;
+        }
+
+        public List<IStationLogic> CloneLogics()
+        {
+            var json = JsonConvert.SerializeObject(this.Logics, new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+                Binder = new MySerializationBinder(),
+                Formatting = Newtonsoft.Json.Formatting.Indented
+            });
+
+            var asItem = JsonConvert.DeserializeObject<List<IStationLogic>>(json, new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.Auto,
+                Binder = new MySerializationBinder(),
+                Formatting = Newtonsoft.Json.Formatting.Indented
+            });
+
+            return asItem;
         }
 
         private bool IsFakeStation { get; set; } = false;

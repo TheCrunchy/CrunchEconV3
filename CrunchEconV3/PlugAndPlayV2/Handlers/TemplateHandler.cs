@@ -58,7 +58,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
                 try
                 {
                     var read = utils.ReadFromJsonFile<StationConfig>(file);
-                    Templates[read.FileName.Replace(".json", "")] = read;
+                    Templates[read.FileName.Replace(".json", "").Replace(".Json", "")] = read;
                 }
                 catch (Exception e)
                 {
