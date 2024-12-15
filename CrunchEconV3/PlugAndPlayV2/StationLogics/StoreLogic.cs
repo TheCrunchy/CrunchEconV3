@@ -53,8 +53,8 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
         [Permission(MyPromoteLevel.Admin)]
         public void Template()
         {
-           TemplateHandler.LoadTemplates();
-           Context.Respond("Done");
+            TemplateHandler.LoadTemplates();
+            Context.Respond("Done");
         }
 
         [Command("reapply", "export the orders and offers in a store block to store file")]
@@ -184,7 +184,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             strategy = new FurtherOrbitalSpawnStrategy();
             var spawned = strategy.SpawnStations(
                  new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-                 "MiningTemplate", 1, new List<MyPlanet>() { lowestDistancePlanet});
+                 "MiningTemplate", 1, new List<MyPlanet>() { lowestDistancePlanet });
 
             foreach (var item in spawned)
             {
@@ -224,7 +224,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
         public static List<VRage.Game.ModAPI.IMyInventory> GetInventories(MyCubeGrid grid, MyStoreBlock store)
         {
-          
+
             List<VRage.Game.ModAPI.IMyInventory> inventories = new List<VRage.Game.ModAPI.IMyInventory>();
             var gridOwnerFac = FacUtils.GetOwner(grid);
 
@@ -242,7 +242,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                             break;
                         }
                     }
-          
+
                 }
             }
             return inventories;
@@ -250,7 +250,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
         public List<VRage.Game.ModAPI.IMyInventory> ClearInventories(MyCubeGrid grid, MyStoreBlock store)
         {
             List<VRage.Game.ModAPI.IMyInventory> inventories = GetInventories(grid, store);
-            
+
             foreach (var inv in inventories)
             {
                 inv.Clear();
@@ -320,7 +320,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == owner))
             {
-              
+
                 ClearStoreOfPlayersBuyingOffers(store);
                 var items = GetStoreItems(store);
                 if (items == null)
@@ -346,12 +346,12 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                         DoSell(item, store, inventories);
                         if (items.SellHydrogen)
                         {
-                            //add later 
+                          InsertGasOffer(store, ItemTypes.Hydrogen);
                         }
 
                         if (items.SellOxygn)
                         {
-                            //add later 
+                            InsertGasOffer(store, ItemTypes.Hydrogen);
                         }
                     }
                     catch (Exception e)
@@ -387,6 +387,67 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
             }
             Core.Log.Info($"loop done");
             return Task.FromResult(true);
+        }
+
+        private void InsertGasOffer(MyStoreBlock store, ItemTypes type)
+        {
+            var price = 0;
+            var amountToSpawn = Core.random.Next(10000,100000);
+            switch (type)
+            {
+                case ItemTypes.Hydrogen:
+                    {
+                        var foundPrice = PriceHelper.GetPriceModel($"MyObjectBuilder_GasProperties/Hydrogen");
+
+                        if (foundPrice.NotFound)
+                        {
+                            return;
+                        }
+
+                        var temp = foundPrice.GetBuyMinAndMaxPrice();
+                        var calcedPrice = Core.random.Next((int)temp.Item1, (int)temp.Item2);
+                        var modifier = calcedPrice * Modifier;
+                        calcedPrice += (int)modifier;
+                        if (Modifier > 0)
+                        {
+                            calcedPrice += (int)modifier;
+                        }
+                        else
+                        {
+                            calcedPrice -= (int)modifier;
+                        }
+
+                        price = calcedPrice;
+                    }
+                    break;
+                case ItemTypes.Oxygen:
+                    {
+                        var foundPrice = PriceHelper.GetPriceModel($"MyObjectBuilder_GasProperties/Oxygen");
+                        if (foundPrice.NotFound)
+                        {
+                            return;
+                        }
+                        var temp = foundPrice.GetBuyMinAndMaxPrice();
+                        var calcedPrice = Core.random.Next((int)temp.Item1, (int)temp.Item2);
+                        var modifier = calcedPrice * Modifier;
+                        calcedPrice += (int)modifier;
+                        if (Modifier > 0)
+                        {
+                            calcedPrice += (int)modifier;
+                        }
+                        else
+                        {
+                            calcedPrice -= (int)modifier;
+                        }
+
+                        price = calcedPrice;
+                    }
+                    break;
+            }
+            long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+            MyStoreItem myStoreItem = new MyStoreItem(newid, amountToSpawn, price, StoreItemTypes.Offer, ItemTypes.PhysicalItem);
+            myStoreItem.IsCustomStoreItem = true;
+            store.PlayerItems.Add(myStoreItem);
         }
 
         private StoreLists? GetStoreItems(MyStoreBlock Store)
