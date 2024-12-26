@@ -125,7 +125,6 @@ namespace CrunchEconV3.Patches
             if (Core.NexusInstalled)
             {
                 MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
-
                 foreach (var item in __result.Where(x => x is MyObjectBuilder_ContractDeliver))
                 {
                     component.RemoveContract(item.Id);
