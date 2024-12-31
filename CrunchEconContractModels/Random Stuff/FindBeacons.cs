@@ -20,8 +20,7 @@ namespace CrunchEconContractModels.Random_Stuff
             ticks++;
             if (ticks % 20 == 0)
             {
-                _beacon.RadioBroadcaster.ChangeBroadcastRadius(500);
-                _beacon.RaisePropertiesChanged();
+          
             }
 
         }

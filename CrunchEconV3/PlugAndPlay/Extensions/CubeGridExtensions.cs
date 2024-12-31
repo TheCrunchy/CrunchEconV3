@@ -7,6 +7,7 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Character;
 using Sandbox.Game.World;
 using Sandbox.ModAPI.Ingame;
+using VRage.Game.ModAPI;
 
 namespace CrunchEconV3.PlugAndPlay.Extensions
 {
@@ -41,18 +42,23 @@ namespace CrunchEconV3.PlugAndPlay.Extensions
             return faction;
         }
 
-        public static List<MyCharacter> GetControllingPlayers(this MyCubeGrid grid)
+        public static List<MyCharacter> GetControllingPlayers(this IMyCubeGrid grid)
         {
             var returnItems = new List<MyCharacter?>();
-            foreach (var cockpit in grid.GetFatBlocks().OfType<IMyCockpit>())
+            var controller = grid.ControlSystem.CurrentShipController;
+            if (controller is MyCockpit cockpit and not null)
             {
-                if (!cockpit.IsUnderControl) continue;
-                var asCockpit = cockpit as MyCockpit;
-                if (asCockpit?.Pilot != null)
-                {
-                    returnItems.Add(asCockpit.Pilot);
-                }
+                returnItems.Add(cockpit.Pilot);
             }
+            //foreach (var cockpit in grid.GetFatBlocks().OfType<IMyCockpit>())
+            //{
+            //    if (!cockpit.IsUnderControl) continue;
+            //    var asCockpit = cockpit as MyCockpit;
+            //    if (asCockpit?.Pilot != null)
+            //    {
+            //        returnItems.Add(asCockpit.Pilot);
+            //    }
+            //}
 
             return returnItems;
         }
