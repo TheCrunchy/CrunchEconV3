@@ -142,7 +142,7 @@ namespace CrunchEconV3
                     PlayerStorage = new JsonPlayerStorageHandler(path);
 
                     var hasDefault = StationStorage.GetAll().Any(x =>
-                        x.GetConfigs().Any(x => x.GetType() == typeof(MiningContractConfig)));
+                        x.GetConfigs().Any(x => x.GetType().Namespace == "CrunchEconV3.PlugAndPlay.Contracts.Configs"));
 
                     if (config.UseDefaultSetup || StationStorage.GetAll().Any(x => x.UsesDefault) || hasDefault)
                     {

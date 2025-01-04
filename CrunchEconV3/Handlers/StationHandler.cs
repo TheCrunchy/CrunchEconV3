@@ -67,12 +67,14 @@ namespace CrunchEconV3.Handlers
                         && FacUtils.GetPlayersFaction(FacUtils.GetOwner(x as MyCubeGrid)).FactionId == faction.FactionId).ToList();
                     if (storeGrid.Any())
                     {
-                        grid = storeGrid.FirstOrDefault(x => x.GetFatBlocks().OfType<MyStoreBlock>().Any());
+                        grid = storeGrid.FirstOrDefault(x => x.GetFatBlocks().OfType<MyStoreBlock>().Any()) ?? storeGrid.FirstOrDefault(x => x.GetFatBlocks().OfType<MyContractBlock>().Any());
                     }
+
                 }
 
                 if (grid == null)
                 {
+                    DoDebugMessage($"{station.FileName} grid not found within 2km of GPS.");
                     //   Core.Log.Error($"{station.FileName} grid not found");
                     continue;
                 }
@@ -144,15 +146,17 @@ namespace CrunchEconV3.Handlers
             var stationName = GetStationNameForBlock(blockId);
             if (stationName == null)
             {
-                Core.Log.Info("Station name not found");
+                Core.Log.Info($"Station name not found {blockId}");
                 return false;
             }
+            DoDebugMessage($"A station name was found {stationName}");
             var foundStation = Core.StationStorage.GetAll().FirstOrDefault(x => x.FileName == stationName);
             if (foundStation == null)
             {
-                Core.Log.Info("FoundStation name not found");
+                Core.Log.Info($"FoundStation name not found {blockId}");
                 return false;
             }
+            DoDebugMessage($"Refreshing contracts for {stationName}");
 
             RefreshAt.Remove(blockId);
             RefreshAt.Add(blockId, DateTime.Now.AddSeconds(foundStation.SecondsBetweenContractRefresh));
@@ -165,10 +169,19 @@ namespace CrunchEconV3.Handlers
             MyContractBlock location = (MyContractBlock)MyAPIGateway.Entities.GetEntityById(blockId);
             if (location == null)
             {
+                DoDebugMessage($"Couldnt get the contract blocks entity by its Id");
                 return null;
             }
+            var factionOwner = FacUtils.GetPlayersFaction(FacUtils.GetOwner(location.CubeGrid));
+            if (factionOwner == null)
+            {
+                Core.Log.Info($"{blockId} cannot find a valid faction owner.");
+                return null;
+            }
+            DoDebugMessage($"Checking {Core.StationStorage.GetAll().Count} Stations");
             foreach (var station in Core.StationStorage.GetAll())
             {
+                DoDebugMessage($"Checking stationGetGrid for {station.LocationGPS}");
                 if (station.GetGrid() != null && station.GetGrid().EntityId == location.CubeGrid.GetBiggestGridInGroup().EntityId)
                 {
                     if (location.OwnerId == FacUtils.GetOwner(station.GetGrid()))
@@ -177,20 +190,22 @@ namespace CrunchEconV3.Handlers
                         return station.FileName;
                     }
                 }
-
+                DoDebugMessage("Scanning GPS");
                 var gps = GPSHelper.ScanChat(station.LocationGPS);
                 if (gps == null)
                 {
+                    DoDebugMessage($"GPS Invalid, skipping {station.LocationGPS}");
                     continue;
                 }
-
+                DoDebugMessage($"Searching for contract blocks owned by {station.FactionTag} within 2km");
                 var sphere = new BoundingSphereD(gps.Coords, 1000 * 2);
                 if (MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyContractBlock>()
-                    .Where(x => !x.Closed).Any(block => block.EntityId == blockId && block.GetOwnerFactionTag() == station.FactionTag))
+                    .Where(x => !x.Closed).Any(block => block.EntityId == blockId && factionOwner.Tag == station.FactionTag))
                 {
                     MappedContractBlocks.Add(blockId, station.FileName);
                     return station.FileName;
                 }
+                DoDebugMessage($"No blocks found.");
 
                 var test = MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere).OfType<MyContractBlock>()
                     .Where(x => !x.Closed).FirstOrDefault(block => block.EntityId == blockId);
@@ -201,6 +216,14 @@ namespace CrunchEconV3.Handlers
 
             }
             return null;
+        }
+
+        private static void DoDebugMessage(string message)
+        {
+            if (Core.config.DebugMode)
+            {
+                Core.Log.Error($"ECON DEBUG {message}");
+            }
         }
 
         private static MethodInfo GetByStationId;

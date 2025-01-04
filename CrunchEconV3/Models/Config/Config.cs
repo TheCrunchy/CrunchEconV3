@@ -15,5 +15,7 @@ namespace CrunchEconV3.Models.Config
         public HashSet<KeenStoreFileEntry> KeenNPCStoresOverrides { get; set; } = new HashSet<KeenStoreFileEntry>();
 
         public float GravityPriceModifier = 1;
+
+        public bool DebugMode = false;
     }
 }
