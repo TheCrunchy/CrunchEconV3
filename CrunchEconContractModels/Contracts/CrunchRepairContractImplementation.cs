@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
@@ -13,6 +14,7 @@ using CrunchEconV3.Utils;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Entities.Cube;
+using Sandbox.Game.Entities.Planet;
 using Sandbox.Game.GameSystems;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
@@ -198,7 +200,7 @@ namespace CrunchEconContractModels.Contracts
             }
 
             var distance = Vector3.Distance(PlayersCurrentPosition, DeliverLocation);
-            if (distance > 5000)
+            if (distance > 50000)
             {
                 return false;
             }
@@ -208,24 +210,11 @@ namespace CrunchEconContractModels.Contracts
                 Core.Log.Info($"{this.FactionId} faction not found");
                 return false;
             }
-            Vector3 Position = new Vector3D(PlayersCurrentPosition);
-
-            //Position.Add(new Vector3(Core.random.Next(-5000, 5000),
-            //    Core.random.Next(-5000, 5000),
-            //    Core.random.Next(-5000, 5000)));
 
             if (!File.Exists($"{Core.path}//Grids//{this.PrefabToSpawn}")) return false;
 
-            if (MyGravityProviderSystem.IsPositionInNaturalGravity(DeliverLocation))
-            {
-                var surfacePosition = PlanetHelper.GetSurfacePositionWithForward(planet);
-                if (surfacePosition == null)
-                {
-
-                }
-            }
             var Ids = GridManagerUpdated.LoadGrid($"{Core.path}//Grids//{this.PrefabToSpawn}", DeliverLocation, false,
-                (ulong)faction.Members.FirstOrDefault().Key, this.PrefabToSpawn.Replace(".sbc", ""), false);
+                (ulong)faction.Members.FirstOrDefault().Key, this.PrefabToSpawn.Replace(".sbc", ""), false, null, true);
             if (!Ids.Any())
             {
                 Core.Log.Info($"Could not load grid {this.PrefabToSpawn}");
@@ -409,8 +398,8 @@ namespace CrunchEconContractModels.Contracts
         public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
             long idUsedForDictionary)
         {
-            var min = MinSpawnRangeInKM * 1000;
-            var max = MaxSpawnRangeInKM * 1000;
+            var min = MinSpawnRangeInKM;
+            var max = MaxSpawnRangeInKM;
             if (this.DeliveryGPSes.Any())
             {
                 if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())
@@ -468,9 +457,27 @@ namespace CrunchEconContractModels.Contracts
                     Vector3D Position = __instance.CubeGrid.PositionComp.GetPosition() + randomDirection * randomDistance;
                     if (MyGravityProviderSystem.IsPositionInNaturalGravity(Position))
                     {
-                        min += 100;
-                        max += 100;
-                        continue;
+                        MyPlanet lowestDistancePlanet = null;
+                        var lowestDistance = 0f;
+                        var planets = MyPlanets.GetPlanets();
+                        foreach (var planet in planets)
+                        {
+                            var planetPosition = planet.PositionComp.GetPosition();
+                            var distance = Vector3.Distance(planetPosition, Position);
+                            if (lowestDistance == 0)
+                            {
+                                lowestDistance = distance;
+                                lowestDistancePlanet = planet;
+                            }
+
+                            if (distance < lowestDistance)
+                            {
+                                lowestDistance = distance;
+                                lowestDistancePlanet = planet;
+                            }
+                        }
+
+                        Position = lowestDistancePlanet.GetClosestSurfacePointGlobal(Position);
                     }
                     var faction = MySession.Static.Factions.TryGetFactionByTag(__instance.GetOwnerFactionTag());
                     if (faction != null)

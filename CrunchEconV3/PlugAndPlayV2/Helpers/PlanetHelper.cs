@@ -98,5 +98,57 @@ namespace CrunchEconV3.PlugAndPlayV2.Helpers
             // Return null if no flat area is found after maxRetries
             return null;
         }
+
+        public static Tuple<Vector3D, Vector3D, Vector3D> GetSurfacePositionNearPoint(MyPlanet planet, Vector3D targetPosition, double radius = 10.0, double flatnessThreshold = 5.0, double heightThreshold = 2.0, int maxRetries = 10)
+        {
+            Vector3D planetCenter = planet.PositionComp.WorldAABB.Center;
+
+            for (int attempt = 0; attempt < maxRetries; attempt++)
+            {
+
+                // Calculate direction from the planet center to the target position
+                Vector3D directionToTarget = Vector3D.Normalize(targetPosition - planetCenter);
+
+                // Slightly adjust the direction for retries to explore nearby areas
+                if (attempt > 0)
+                {
+                    directionToTarget += new Vector3D(
+                        MyUtils.GetRandomDouble(-0.1, 0.1),
+                        MyUtils.GetRandomDouble(-0.1, 0.1),
+                        MyUtils.GetRandomDouble(-0.1, 0.1));
+                    directionToTarget = Vector3D.Normalize(directionToTarget);
+                }
+
+                // Find a point on the planet's surface near the given direction
+                Vector3D surfacePoint = planet.GetClosestSurfacePointGlobal(planetCenter + (directionToTarget * 100000));
+
+                // Calculate the "up" vector (normal to the surface)
+                Vector3D upVector = Vector3D.Normalize(surfacePoint - planetCenter);
+
+                // Define a stable forward vector orthogonal to the up vector
+                Vector3D arbitraryVector = Vector3D.Forward; // Default fallback
+                if (Vector3D.IsZero(Vector3D.Cross(upVector, arbitraryVector)))
+                {
+                    arbitraryVector = Vector3D.Right; // Use a different vector if upVector is aligned with Forward
+                }
+
+                // Compute the forward vector
+                Vector3D forwardVector = Vector3D.Normalize(Vector3D.Cross(arbitraryVector, upVector));
+
+                // Ensure forward and up are orthogonal
+                Vector3D rightVector = Vector3D.Cross(forwardVector, upVector);
+                forwardVector = Vector3D.Cross(upVector, rightVector);
+
+                // Check if the area is flat
+                if (IsSurfaceFlat(planet, surfacePoint, radius, flatnessThreshold, heightThreshold))
+                {
+                    return Tuple.Create(surfacePoint, upVector, forwardVector);
+                }
+            }
+
+            // Return null if no flat area is found after maxRetries
+            return null;
+        }
+
     }
 }

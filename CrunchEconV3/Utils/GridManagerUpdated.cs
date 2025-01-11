@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CrunchEconV3.PlugAndPlayV2.Helpers;
 using NLog;
 using NLog.Targets.Wrappers;
 using Sandbox;
@@ -8,6 +9,8 @@ using Sandbox.Common.ObjectBuilders;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.Entities.Planet;
+using Sandbox.Game.GameSystems;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.SessionComponents;
@@ -225,7 +228,8 @@ namespace CrunchEconV3.Utils
 
             return null;
         }
-        public static List<MyCubeGrid> LoadGrid(string path, Vector3D playerPosition, bool keepOriginalLocation, ulong steamID, String name, bool force = false, CommandContext context = null)
+        public static List<MyCubeGrid> LoadGrid(string path, Vector3D playerPosition, bool keepOriginalLocation,
+            ulong steamID, string name, bool force = false, CommandContext context = null, bool mapToPlanet = false)
         {
             if (MyObjectBuilderSerializerKeen.DeserializeXML(path, out MyObjectBuilder_Definitions myObjectBuilder_Definitions))
             {
@@ -247,7 +251,7 @@ namespace CrunchEconV3.Utils
                 foreach (var shipBlueprint in shipBlueprints)
                 {
                     var temp = LoadShipBlueprint(shipBlueprint, playerPosition, keepOriginalLocation, (long)steamID,
-                        name, context, force);
+                        name, context, force, mapToPlanet);
                     if (!temp.Any())
                     {
 
@@ -309,7 +313,8 @@ namespace CrunchEconV3.Utils
         }
 
         public static List<MyCubeGrid> LoadShipBlueprint(MyObjectBuilder_ShipBlueprintDefinition shipBlueprint,
-            Vector3D playerPosition, bool keepOriginalLocation, long steamID, string Name, CommandContext context = null, bool force = false)
+            Vector3D playerPosition, bool keepOriginalLocation, long steamID, string Name,
+            CommandContext context = null, bool force = false, bool mapToPlanet = false)
         {
             var grids = shipBlueprint.CubeGrids;
 
@@ -365,7 +370,7 @@ namespace CrunchEconV3.Utils
                 var newPosition = pos.Value;
 
                 /* Update GridsPosition if that doesnt work get out of here. */
-                if (!UpdateGridsPosition(grids, newPosition))
+                if (!UpdateGridsPosition(grids, newPosition, mapToPlanet))
                 {
 
                     if (context != null)
@@ -475,7 +480,8 @@ namespace CrunchEconV3.Utils
             return gps;
         }
 
-        private static bool UpdateGridsPosition(MyObjectBuilder_CubeGrid[] grids, Vector3D newPosition)
+        private static bool UpdateGridsPosition(MyObjectBuilder_CubeGrid[] grids, Vector3D newPosition,
+            bool mapToPlanet = false)
         {
 
             bool firstGrid = true;
@@ -485,7 +491,7 @@ namespace CrunchEconV3.Utils
 
             foreach (var grid in grids)
             {
-
+            
                 var position = grid.PositionAndOrientation;
 
                 if (position == null)
@@ -494,6 +500,32 @@ namespace CrunchEconV3.Utils
                     Log.Warn("Position and Orientation Information missing from Grid in file.");
 
                     return false;
+                }
+
+                if (MyGravityProviderSystem.IsPositionInNaturalGravity(newPosition) && mapToPlanet)
+                {
+                    MyPlanet lowestDistancePlanet = null;
+                    var lowestDistance = 0f;
+                    var planets = MyPlanets.GetPlanets();
+                    foreach (var planet in planets)
+                    {
+                        var planetPosition = planet.PositionComp.GetPosition();
+                        var distance = Vector3.Distance(planetPosition, newPosition);
+                        if (lowestDistance == 0)
+                        {
+                            lowestDistance = distance;
+                            lowestDistancePlanet = planet;
+                        }
+
+                        if (distance < lowestDistance)
+                        {
+                            lowestDistance = distance;
+                            lowestDistancePlanet = planet;
+                        }
+                    }
+
+                    var orientation = PlanetHelper.GetSurfacePositionNearPoint(lowestDistancePlanet, newPosition);
+                    position = new MyPositionAndOrientation(orientation.Item1, orientation.Item2, orientation.Item3);
                 }
 
                 var realPosition = position.Value;
