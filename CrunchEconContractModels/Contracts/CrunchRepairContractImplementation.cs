@@ -8,6 +8,7 @@ using CrunchEconV3;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
+using CrunchEconV3.PlugAndPlayV2.Helpers;
 using CrunchEconV3.Utils;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
@@ -215,7 +216,14 @@ namespace CrunchEconContractModels.Contracts
 
             if (!File.Exists($"{Core.path}//Grids//{this.PrefabToSpawn}")) return false;
 
+            if (MyGravityProviderSystem.IsPositionInNaturalGravity(DeliverLocation))
+            {
+                var surfacePosition = PlanetHelper.GetSurfacePositionWithForward(planet);
+                if (surfacePosition == null)
+                {
 
+                }
+            }
             var Ids = GridManagerUpdated.LoadGrid($"{Core.path}//Grids//{this.PrefabToSpawn}", DeliverLocation, false,
                 (ulong)faction.Members.FirstOrDefault().Key, this.PrefabToSpawn.Replace(".sbc", ""), false);
             if (!Ids.Any())
@@ -441,12 +449,6 @@ namespace CrunchEconContractModels.Contracts
                     // Calculate the new position by adding the random direction multiplied by the random distance
                     Vector3 Position = keenstation.Position + randomDirection * randomDistance;
 
-                    if (MyGravityProviderSystem.IsPositionInNaturalGravity(Position))
-                    {
-                        min += 100;
-                        max += 100;
-                        continue;
-                    }
                     return Tuple.Create(new Vector3D(Position), keenstation.FactionId);
                 }
             }

@@ -271,6 +271,7 @@
     <Compile Include="PlugAndPlayV2\Handlers\TemplateHandler.cs" />
     <Compile Include="PlugAndPlayV2\Helpers\DataPadHelper.cs" />
     <Compile Include="PlugAndPlayV2\Helpers\KeenStationPrefabHelper.cs" />
+    <Compile Include="PlugAndPlayV2\Helpers\PlanetHelper.cs" />
     <Compile Include="PlugAndPlayV2\Helpers\StoreFileHelper.cs" />
     <Compile Include="PlugAndPlayV2\Interfaces\IStationSpawnStrategy.cs" />
     <Compile Include="PlugAndPlayV2\Models\StoreEntryModel.cs" />
