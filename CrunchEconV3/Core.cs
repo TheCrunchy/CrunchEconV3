@@ -35,6 +35,7 @@ using CrunchEconV3.PlugAndPlay.Contracts;
 using CrunchEconV3.PlugAndPlay.Contracts.Configs;
 using CrunchEconV3.PlugAndPlay.Helpers;
 using CrunchEconV3.PlugAndPlay.Models;
+using CrunchEconV3.PlugAndPlayV2.Handlers;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Screens.Helpers;
@@ -140,7 +141,7 @@ namespace CrunchEconV3
                 {
                     StationStorage = new JsonStationStorageHandler(path);
                     PlayerStorage = new JsonPlayerStorageHandler(path);
-
+                    TemplateHandler.LoadTemplates();
                     var hasDefault = StationStorage.GetAll().Any(x =>
                         x.GetConfigs().Any(x => x.GetType().Namespace == "CrunchEconV3.PlugAndPlay.Contracts.Configs"));
 

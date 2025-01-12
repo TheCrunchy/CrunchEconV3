@@ -50,7 +50,7 @@ namespace CrunchEconV3.PlugAndPlayV2.Handlers
                 utils.WriteToJsonFile($"{path}//BaseTemplate.json", template);
 
                 CreateMining(path);
-
+                CreateHauling(path);
                 //make a template with store logic and default setup contracts 
             }
 
