@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Handlers;
@@ -85,43 +86,64 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
         [Command("fullgeneration", "fully generate the economy")]
         [Permission(MyPromoteLevel.Admin)]
-        public void FullGeneration()
+        public void FullGeneration(string factionTags)
         {
             TemplateHandler.LoadTemplates();
 
+            var factions = new List<MyFaction>();
+
+            foreach (var item in factionTags.Split(','))
+            {
+                var faction = MySession.Static.Factions.TryGetFactionByTag(item);
+                if (faction != null)
+                {
+                    factions.Add(faction);
+                }
+                else
+                {
+                    Context.Respond($"{item} faction not found");
+                }
+            }
+
+            if (!factions.Any())
+            {
+                Context.Respond("No valid factions found from tags.");
+                return;
+            }
             IStationSpawnStrategy strategy = null;
             strategy = new PlanetSpawnStrategy();
             var spawned = strategy.SpawnStations(
-                new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                factions,
                 "BaseTemplate", 2);
 
             Context.Respond($"{spawned.Count} Planet Stations Spawned");
             strategy = new MiningSpawnStrategy();
             spawned = strategy.SpawnStations(
-                 new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                factions,
                  "MiningTemplate", 2);
 
             Context.Respond($"{spawned.Count} Mining Stations Spawned");
 
             strategy = new HaulingSpawnStrategy();
             spawned = strategy.SpawnStations(
-                new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                factions,
                 "HaulingTemplate", 2);
 
             Context.Respond($"{spawned.Count} Hauling Stations Spawned");
 
             strategy = new OrbitalSpawnStrategy();
             spawned = strategy.SpawnStations(
-               new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                factions,
                "BaseTemplate", 3);
 
             Context.Respond($"{spawned.Count} Orbital Space Stations Spawned");
 
             Core.StationStorage.LoadAll();
         }
+
         [Command("planetgeneration", "generate the economy around the closest planet to the players suit")]
         [Permission(MyPromoteLevel.Admin)]
-        public void PlanetGeneration()
+        public void PlanetGeneration(string factionTags)
         {
             TemplateHandler.LoadTemplates();
 
@@ -145,30 +167,50 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 }
             }
 
+            var factions = new List<MyFaction>();
+
+            foreach (var item in factionTags.Split(','))
+            {
+                var faction = MySession.Static.Factions.TryGetFactionByTag(item);
+                if (faction != null)
+                {
+                    factions.Add(faction);
+                }
+                else
+                {
+                    Context.Respond($"{item} faction not found");
+                }
+            }
+
+            if (!factions.Any())
+            {
+                Context.Respond("No valid factions found from tags.");
+                return;
+            }
             IStationSpawnStrategy strategy = null;
             strategy = new PlanetSpawnStrategy();
             var spawned = strategy.SpawnStations(
-                new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
-                "BaseTemplate", 2, new List<MyPlanet>() { lowestDistancePlanet});
+                factions,
+                "BaseTemplate", 2, new List<MyPlanet>() { lowestDistancePlanet });
 
             Context.Respond($"{spawned.Count} Planet Stations Spawned");
             strategy = new MiningSpawnStrategy();
             spawned = strategy.SpawnStations(
-                 new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                 factions,
                  "MiningTemplate", 2, new List<MyPlanet>() { lowestDistancePlanet });
 
             Context.Respond($"{spawned.Count} Mining Stations Spawned");
 
             strategy = new HaulingSpawnStrategy();
             spawned = strategy.SpawnStations(
-                new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+                factions,
                 "HaulingTemplate", 2, new List<MyPlanet>() { lowestDistancePlanet });
 
             Context.Respond($"{spawned.Count} Hauling Stations Spawned");
 
             strategy = new OrbitalSpawnStrategy();
             spawned = strategy.SpawnStations(
-               new List<MyFaction>() { MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId), MySession.Static.Factions.GetPlayerFaction(Context.Player.IdentityId) },
+               factions,
                "BaseTemplate", 3, new List<MyPlanet>() { lowestDistancePlanet });
 
             Context.Respond($"{spawned.Count} Orbital Space Stations Spawned");
@@ -320,7 +362,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                         DoSell(item, store, inventories);
                         if (items.SellHydrogen)
                         {
-                          InsertGasOffer(store, ItemTypes.Hydrogen);
+                            InsertGasOffer(store, ItemTypes.Hydrogen);
                         }
 
                         if (items.SellOxygn)
@@ -366,7 +408,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
         private void InsertGasOffer(MyStoreBlock store, ItemTypes type)
         {
             var price = 0;
-            var amountToSpawn = Core.random.Next(10000,100000);
+            var amountToSpawn = Core.random.Next(10000, 100000);
             switch (type)
             {
                 case ItemTypes.Hydrogen:
