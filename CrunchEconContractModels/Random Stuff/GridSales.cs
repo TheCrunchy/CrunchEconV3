@@ -57,7 +57,7 @@ namespace CrunchEconContractModels.Random_Stuff
                 if (actualSale == null)
                 {
                     Core.Log.Info($"No button sale found for index {index}");
-                    return false; 
+                    return false;
                 }
 
                 var path = $"{Core.path}//Grids//{actualSale.PrefabName}";
@@ -65,10 +65,13 @@ namespace CrunchEconContractModels.Random_Stuff
                 var owningFac = MySession.Static.Factions.TryGetPlayerFaction(__instance.OwnerId);
                 if (owningFac == null)
                 {
+                    Core.Log.Error($"Grid sales button not owned by a faction");
                     return false;
                 }
 
-                if (Core.StationStorage.GetAll().Any(x => x.GetGrid() != null && x.GetGrid().EntityId == __instance.CubeGrid.EntityId && owningFac.Tag.Equals(x.FactionTag)))
+                if (Core.StationStorage.GetAll().Any(x =>
+                        x.GetGrid() != null && x.GetGrid().EntityId == __instance.CubeGrid.EntityId &&
+                        owningFac.Tag.Equals(x.FactionTag)))
                 {
                     if (File.Exists(path))
                     {
@@ -81,7 +84,8 @@ namespace CrunchEconContractModels.Random_Stuff
                                 var fac = MySession.Static.Factions.TryGetFactionByTag(actualSale.FacTagForReputation);
                                 if (fac == null)
                                 {
-                                    Core.SendMessage("Grid Sales", "Faction for reputation requirement not found", Color.Red,steamId);
+                                    Core.SendMessage("Grid Sales", "Faction for reputation requirement not found",
+                                        Color.Red, steamId);
                                     return false;
                                 }
 
@@ -115,6 +119,7 @@ namespace CrunchEconContractModels.Random_Stuff
                                 }
 
                             }
+
                             if (EconUtils.getBalance(player.Identity.IdentityId) >= actualSale.Price)
                             {
                                 if (Confirms.TryGetValue(steamId, out var confirmation))
@@ -137,6 +142,7 @@ namespace CrunchEconContractModels.Random_Stuff
                                         ModCommunication.SendMessageTo(message, player.Id.SteamId);
                                         return false;
                                     }
+
                                     var pos = player.GetPosition();
                                     Vector3 Position = new Vector3((float)pos.X, (float)pos.Y, (float)pos.Z);
                                     if (!string.IsNullOrEmpty(actualSale.SpawnGps))
@@ -148,7 +154,8 @@ namespace CrunchEconContractModels.Random_Stuff
                                         Position.Add(new Vector3(
                                             Core.random.Next(actualSale.SpawnDistanceMin, actualSale.SpawnDistanceMax),
                                             Core.random.Next(actualSale.SpawnDistanceMin, actualSale.SpawnDistanceMax),
-                                            Core.random.Next(actualSale.SpawnDistanceMin, actualSale.SpawnDistanceMax)));
+                                            Core.random.Next(actualSale.SpawnDistanceMin,
+                                                actualSale.SpawnDistanceMax)));
 
                                     }
 
@@ -161,7 +168,9 @@ namespace CrunchEconContractModels.Random_Stuff
                                     }
                                     else
                                     {
-                                        Core.SendMessage("Grid Sales", $"Grid could not be spawned.", Color.Red, steamId);
+                                        Core.SendMessage("Grid Sales", $"Grid could not be spawned.", Color.Red,
+                                            steamId);
+                                        return false;
                                     }
                                 }
                                 else
@@ -175,17 +184,30 @@ namespace CrunchEconContractModels.Random_Stuff
                                     Confirms.Remove(steamId);
                                     Confirms.Add(steamId, confirm);
                                     var text = $"Press button again within 5 seconds to confirm sale.";
-                                    Core.SendMessage("Grid Sales",text , Color.Green, steamId);
+                                    Core.SendMessage("Grid Sales", text, Color.Green, steamId);
                                     var message = new NotificationMessage(text, 5000, "Green");
                                     ModCommunication.SendMessageTo(message, player.Id.SteamId);
                                 }
                             }
                             else
                             {
-                                Core.SendMessage("Grid Sales", $"You cannot afford the purchase price of {actualSale.Price:##,###}", Color.Red, steamId);
+                                Core.SendMessage("Grid Sales",
+                                    $"You cannot afford the purchase price of {actualSale.Price:##,###}", Color.Red,
+                                    steamId);
+                                return false;
                             }
                         }
                     }
+                    else
+                    {
+                        Core.Log.Error($"Grid sales file not found, is the name correct?");
+                        return false;
+                    }
+                }
+                else
+                {
+                    Core.Log.Error($"Grid sales action not on a valid station grid");
+                    return false;
                 }
             }
             catch (Exception e)
@@ -193,6 +215,7 @@ namespace CrunchEconContractModels.Random_Stuff
                 Core.Log.Error($"{e}");
                 return true;
             }
+
             return true;
         }
 
