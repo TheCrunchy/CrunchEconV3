@@ -84,6 +84,10 @@ namespace CrunchEconContractModels.Random_Stuff
                 return true;
             }
 
+            if (storeItem.IsCustomStoreItem || storeItem.Item == null)
+            {
+                return true;
+            }
             if (ItemsWithRequirements.TryGetValue(
                              $"{storeItem.Item.Value.TypeIdString}/{storeItem.Item.Value.SubtypeId}", out var requirement))
             {
@@ -160,7 +164,10 @@ namespace CrunchEconContractModels.Random_Stuff
 
                         return true;
                     }
-
+                    if (storeItem.IsCustomStoreItem || storeItem.Item == null)
+                    {
+                        return true;
+                    }
                     if (ItemsWithRequirements.TryGetValue(
                             $"{storeItem.Item.Value.TypeIdString}/{storeItem.Item.Value.SubtypeId}", out var requirement))
                     {
