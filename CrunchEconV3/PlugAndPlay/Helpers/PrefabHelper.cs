@@ -1,4 +1,5 @@
-﻿using CrunchEconV3.PlugAndPlay.Prefabs;
+﻿using CrunchEconV3;
+using CrunchEconV3.PlugAndPlay.Prefabs;
 using CrunchEconV3.PlugAndPlay.Prefabs.Helpers;
 using Torch.Managers.PatchManager;
 
@@ -13,10 +14,17 @@ namespace CrunchEconContractModels.PlugAndPlay.Helpers
 
         public static void Patch(PatchContext ctx)
         {
-            Repairs.Init();
-            CombatAttack.Init();
-            CombatEscort.Init();
-            Search.Init();
+            try
+            {
+                Repairs.Init();
+                CombatAttack.Init();
+                CombatEscort.Init();
+                Search.Init();
+            }
+            catch (System.Exception e)
+            {
+                Core.Log.Error(e);
+            }
         }
     }
 }
