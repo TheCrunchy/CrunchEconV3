@@ -152,6 +152,7 @@
     <Compile Include="Random Stuff\StoreReputationRequirement.cs" />
     <Compile Include="Random Stuff\StorePurchaseLimit.cs" />
     <Compile Include="Random Stuff\FindBeacons.cs" />
+    <Compile Include="Random Stuff\TradeOperatorsStationFakerStartupClean.cs" />
     <Compile Include="Ship Class Stuff\PCULimits.cs" />
     <Compile Include="Random Stuff\Update.cs" />
     <Compile Include="Ship Class Stuff\ShipClassV3.cs" />
