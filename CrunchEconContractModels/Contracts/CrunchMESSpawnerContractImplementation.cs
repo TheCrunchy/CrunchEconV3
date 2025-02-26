@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3;
@@ -13,6 +14,7 @@ using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.Entities.Planet;
 using Sandbox.Game.EntityComponents;
 using Sandbox.Game.GameSystems;
 using Sandbox.Game.Multiplayer;
@@ -434,9 +436,27 @@ namespace CrunchEconContractModels.Contracts.MES
 
                     if (MyGravityProviderSystem.IsPositionInNaturalGravity(Position))
                     {
-                        min += 100;
-                        max += 100;
-                        continue;
+                        var planets = MyPlanets.GetPlanets();
+                        MyPlanet lowestDistancePlanet = null;
+                        var lowestDistance = 0f;
+                        foreach (var planet in planets)
+                        {
+                            var planetPosition = planet.PositionComp.GetPosition();
+                            var distance = Vector3.Distance(planetPosition, Position);
+                            if (lowestDistance == 0)
+                            {
+                                lowestDistance = distance;
+                                lowestDistancePlanet = planet;
+                            }
+
+                            if (distance < lowestDistance)
+                            {
+                                lowestDistance = distance;
+                                lowestDistancePlanet = planet;
+                            }
+                        }
+
+                        Position = lowestDistancePlanet.GetClosestSurfacePointLocal(ref Position);
                     }
                     return Tuple.Create(new Vector3D(Position), keenstation.FactionId);
                 }
@@ -454,12 +474,30 @@ namespace CrunchEconContractModels.Contracts.MES
                     double randomDistance = MyUtils.GetRandomDouble(min, max);
 
                     // Calculate the new position by adding the random direction multiplied by the random distance
-                    Vector3D Position = __instance.CubeGrid.PositionComp.GetPosition() + randomDirection * randomDistance;
+                    Vector3 Position = __instance.CubeGrid.PositionComp.GetPosition() + randomDirection * randomDistance;
                     if (MyGravityProviderSystem.IsPositionInNaturalGravity(Position))
                     {
-                        min += 100;
-                        max += 100;
-                        continue;
+                        var planets = MyPlanets.GetPlanets();
+                        MyPlanet lowestDistancePlanet = null;
+                        var lowestDistance = 0f;
+                        foreach (var planet in planets)
+                        {
+                            var planetPosition = planet.PositionComp.GetPosition();
+                            var distance = Vector3.Distance(planetPosition, Position);
+                            if (lowestDistance == 0)
+                            {
+                                lowestDistance = distance;
+                                lowestDistancePlanet = planet;
+                            }
+
+                            if (distance < lowestDistance)
+                            {
+                                lowestDistance = distance;
+                                lowestDistancePlanet = planet;
+                            }
+                        }
+
+                        Position = lowestDistancePlanet.GetClosestSurfacePointLocal(ref Position);
                     }
                     var faction = MySession.Static.Factions.TryGetFactionByTag(__instance.GetOwnerFactionTag());
                     if (faction != null)
