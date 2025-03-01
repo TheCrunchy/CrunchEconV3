@@ -190,7 +190,14 @@ namespace CrunchEconV3.Patches
         public static void PatchGetContractForBlock(MySessionComponentContractSystem __instance, long blockId,
             ref List<MyObjectBuilder_Contract> __result)
         {
-
+            MyContractBlock location = (MyContractBlock)MyAPIGateway.Entities.GetEntityById(blockId);
+            if (location != null)
+            {
+                if ((!string.IsNullOrWhiteSpace(location.DisplayNameText) && location.DisplayNameText.Contains("!exclude")) || (!string.IsNullOrWhiteSpace(location.DisplayName) && location.DisplayName.Contains("!exclude")))
+                {
+                    return;
+                }
+            }
             var needsRefresh = StationHandler.NeedsRefresh(blockId);
             if (needsRefresh)
             {
