@@ -26,6 +26,7 @@ using Torch.Managers.PatchManager;
 using Torch.Session;
 using VRageMath;
 using System.IO.Compression;
+using System.Linq.Expressions;
 using CoreSystems.Api;
 using CrunchEconContractModels.PlugAndPlay.Helpers;
 using CrunchEconV3.APIs;
@@ -117,6 +118,15 @@ namespace CrunchEconV3
             }
         }
 
+        public static Stack<CompletionTemp> QueuedCompletions = new Stack<CompletionTemp>();
+
+        public class CompletionTemp
+        {
+            public MyPlayer Player;
+            public ICrunchContract Contract;
+            public CrunchPlayerData Data;
+        }
+
         public override void Update()
         {
             if (Paused)
@@ -124,6 +134,33 @@ namespace CrunchEconV3
                 return;
             }
 
+            if (QueuedCompletions.Any())
+            {
+                var toComplete = QueuedCompletions.Pop();
+                var contract = toComplete.Contract;
+                try
+                {
+                    var completed = contract.TryCompleteContract(toComplete.Contract.AssignedPlayerSteamId,
+                        toComplete.Player.Character.PositionComp.GetPosition());
+                    if (completed)
+                    {
+                        Core.PlayerStorage.ContractFinished?.Invoke(true, contract);
+
+                        Core.SendMessage("Contracts", $"{contract.Name} completed!, you have been paid.", Color.Green,
+                            toComplete.Player.Id.SteamId);
+                        contract.DeleteDeliveryGPS();
+                        toComplete.Data.RemoveContract(contract);
+                        Task.Run(async () => { Core.PlayerStorage.Save(toComplete.Data); });
+                    }
+                }
+                catch (Exception e)
+                {
+                    Core.Log.Error($"Error on try complete {e}");
+                    toComplete.Data.RemoveContract(contract);
+                    Task.Run(async () => { Core.PlayerStorage.Save(toComplete.Data); });
+                }
+
+            }
             if (ticks == 0)
             {
                 try
@@ -280,7 +317,7 @@ namespace CrunchEconV3
         {
             FileUtils utils = new FileUtils();
             path = StoragePath + @$"\{PluginName}";
-     
+
             basePath = StoragePath;
             Directory.CreateDirectory(path);
             path += @"\Config.xml";
@@ -405,8 +442,8 @@ namespace CrunchEconV3
                 SetupDefaults();
                 fileUtils.WriteToJsonFile(path, StationHandler.DefaultAvailables);
             }
-            
-    
+
+
         }
 
         private static void SetupDefaults()

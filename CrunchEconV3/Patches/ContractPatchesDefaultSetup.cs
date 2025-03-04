@@ -296,24 +296,30 @@ namespace CrunchEconV3.Patches
                     MySession.Static.Players.TryGetPlayerBySteamId(playerData.PlayerSteamId, out var player);
                     if (contract.ReadyToDeliver)
                     {
-                        try
+                        Core.QueuedCompletions.Push(new Core.CompletionTemp()
                         {
-                            var completed = contract.TryCompleteContract(playerData.PlayerSteamId, player.Character.PositionComp.GetPosition());
-                            if (completed)
-                            {
-                                Core.PlayerStorage.ContractFinished?.Invoke(completed, contract);
-                                deleteThese.Add(contract);
-                                Core.SendMessage("Contracts", $"{contract.Name} completed!, you have been paid.", Color.Green, player.Id.SteamId);
-                                contract.DeleteDeliveryGPS();
-                                continue;
-                            }
+                            Contract = contract,
+                            Data = playerData,
+                            Player = player
+                        });
+                        //try
+                        //{
+                        //    var completed = contract.TryCompleteContract(playerData.PlayerSteamId, player.Character.PositionComp.GetPosition());
+                        //    if (completed)
+                        //    {
+                        //        Core.PlayerStorage.ContractFinished?.Invoke(completed, contract);
+                        //        deleteThese.Add(contract);
+                        //        Core.SendMessage("Contracts", $"{contract.Name} completed!, you have been paid.", Color.Green, player.Id.SteamId);
+                        //        contract.DeleteDeliveryGPS();
+                        //        continue;
+                        //    }
 
-                        }
-                        catch (Exception exception)
-                        {
-                            Core.Log.Error($"Error on try complete {exception}");
-                            deleteThese.Add(contract);
-                        }
+                        //}
+                        //catch (Exception exception)
+                        //{
+                        //    Core.Log.Error($"Error on try complete {exception}");
+                        //    deleteThese.Add(contract);
+                        //}
                         contract.SendDeliveryGPS();
                     }
 

@@ -39,11 +39,11 @@ namespace CrunchEconV3.Patches
             ctx.GetPattern(getContractsStation).Suffixes.Add(getContractForStationPatch);
             ctx.GetPattern(minprices).Suffixes.Add(minPricesPatch);
         }
-   
-        
+
+
         internal static readonly MethodInfo minprices =
             typeof(MySessionComponentEconomy).GetMethod("GetMinimumItemPrice",
-                BindingFlags.Instance | BindingFlags.NonPublic )??
+                BindingFlags.Instance | BindingFlags.NonPublic) ??
             throw new Exception("Failed to find patch method contract");
         internal static readonly MethodInfo minPricesPatch =
             typeof(ContractPatches).GetMethod(nameof(GetMinimumItemPrice), BindingFlags.Static | BindingFlags.Public) ??
@@ -131,7 +131,7 @@ namespace CrunchEconV3.Patches
             }
         }
 
-      
+
 
         public static void PatchGetContractForStation(MySessionComponentContractSystem __instance, long stationId,
             ref List<MyObjectBuilder_Contract> __result)
@@ -141,7 +141,7 @@ namespace CrunchEconV3.Patches
             if (needsRefresh)
             {
                 MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
-               
+
 
                 if (Core.config.RemoveKeenContractsOnStations)
                 {
@@ -203,7 +203,7 @@ namespace CrunchEconV3.Patches
             if (needsRefresh)
             {
                 MySessionComponentContractSystem component = MySession.Static.GetComponent<MySessionComponentContractSystem>();
-                
+
                 foreach (var con in __result)
                 {
                     component.RemoveContract(con.Id);
@@ -297,25 +297,32 @@ namespace CrunchEconV3.Patches
                     MySession.Static.Players.TryGetPlayerBySteamId(playerData.PlayerSteamId, out var player);
                     if (contract.ReadyToDeliver)
                     {
-                        try
+                        Core.QueuedCompletions.Push(new Core.CompletionTemp()
                         {
-                            var completed = contract.TryCompleteContract(playerData.PlayerSteamId, player.Character.PositionComp.GetPosition());
-                 
-                            if (completed)
-                            {
-                                Core.PlayerStorage.ContractFinished?.Invoke(completed, contract);
-                                deleteThese.Add(contract);
-                                Core.SendMessage("Contracts", $"{contract.Name} completed!, you have been paid.", Color.Green, player.Id.SteamId);
-                                contract.DeleteDeliveryGPS();
-                                    //playerData.ContractFinished?.Invoke(true, contract);
-                                continue;
-                            }
-                        }
-                        catch (Exception exception)
-                        {
-                            Core.Log.Error($"Error on try complete {exception}");
-                            deleteThese.Add(contract);
-                        }
+                            Contract = contract,
+                            Data = playerData,
+                            Player = player
+                        });
+                        //  try
+                        //   {
+
+                        //var completed = contract.TryCompleteContract(playerData.PlayerSteamId, player.Character.PositionComp.GetPosition());
+
+                        //if (completed)
+                        //{
+                        //    Core.PlayerStorage.ContractFinished?.Invoke(completed, contract);
+                        //    deleteThese.Add(contract);
+                        //    Core.SendMessage("Contracts", $"{contract.Name} completed!, you have been paid.", Color.Green, player.Id.SteamId);
+                        //    contract.DeleteDeliveryGPS();
+                        //        //playerData.ContractFinished?.Invoke(true, contract);
+                        //    continue;
+                        //}
+                        //  }
+                        //  catch (Exception exception)
+                        //  {
+                        //    Core.Log.Error($"Error on try complete {exception}");
+                        //    deleteThese.Add(contract);
+                        //  }
                         contract.SendDeliveryGPS();
                     }
 
@@ -390,7 +397,7 @@ namespace CrunchEconV3.Patches
                     var playerData = Core.PlayerStorage.GetData(steamid);
                     if (playerData != null)
                     {
-              
+
                         contract.FactionId = faction.FactionId;
 
                         var result = ContractAcceptor.TryAcceptContract(contract, playerData, identityId, __instance, keenstation, ID);
