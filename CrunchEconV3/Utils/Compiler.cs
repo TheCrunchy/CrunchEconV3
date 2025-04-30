@@ -97,6 +97,7 @@ namespace CrunchEconV3.Utils
             {
                 foreach (var filePath in Directory.GetFiles(folder, "*", SearchOption.AllDirectories).Where(x => x.EndsWith(".cs")))
                 {
+                    Core.Log.Error($"Compiling {filePath}");
                     using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                     {
                         using (StreamReader streamReader = new StreamReader(fileStream))

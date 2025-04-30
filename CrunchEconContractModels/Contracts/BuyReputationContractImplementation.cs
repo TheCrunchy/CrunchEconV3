@@ -144,7 +144,7 @@ namespace CrunchEconContractModels.Contracts
         //https://discord.gg/cQFJeKvVAA
         public void Setup()
         {
-            FactionTagsEligible = new List<string>() { "TAG1, TAG2" };
+            FactionTagsEligible = new List<string>() { "TAG1", "TAG2" };
         }
 
         public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
