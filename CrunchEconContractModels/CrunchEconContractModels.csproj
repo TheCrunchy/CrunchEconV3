@@ -96,6 +96,7 @@
   <ItemGroup>
     <Compile Include="Contracts\BuyReputationContractImplementation.cs" />
     <Compile Include="Contracts\CrunchGiveGasContractImplementation.cs" />
+    <Compile Include="Contracts\Combat\CrunchCombatContractImplementation.cs" />
     <Compile Include="Contracts\CrunchGridDeathCombatContractImplementation.cs" />
     <Compile Include="Contracts\CrunchItemHaulingContractImplementation.cs" />
     <Compile Include="Contracts\CrunchRepairContractImplementation.cs" />
@@ -154,6 +155,7 @@
     <Compile Include="Random Stuff\StorePurchaseLimit.cs" />
     <Compile Include="Random Stuff\FindBeacons.cs" />
     <Compile Include="Random Stuff\TradeOperatorsStationFakerStartupClean.cs" />
+    <Compile Include="Ship Class Stuff\BlockReplacer.cs" />
     <Compile Include="Ship Class Stuff\PCULimits.cs" />
     <Compile Include="Random Stuff\Update.cs" />
     <Compile Include="Ship Class Stuff\ShipClassV3.cs" />
