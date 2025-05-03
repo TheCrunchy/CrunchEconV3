@@ -22,6 +22,7 @@ using Sandbox.ModAPI;
 using Torch;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
+using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
@@ -31,7 +32,11 @@ namespace CrunchEconContractModels.Contracts.Combat
     {
         public override string GetStatus()
         {
-            return this.GridsToDestroy.Any() ? $"Destroy {this.GridsToDestroy.Count} target ships." : $"Travel to target location.";
+            if (this.ReadyToDeliver && this.HasStarted)
+            {
+                return $"Bonus Pay: {this.UncollectedPay:##.###}";
+            }
+            return this.HasStarted ? $"Destroy {this.GridIdsToPay.Count} target ships, Bonus Pay: {this.UncollectedPay:##.###}" : $"Travel to target location.";
         }
 
         private bool HasPower(VRage.Game.ModAPI.IMyCubeGrid grid)
@@ -155,15 +160,6 @@ namespace CrunchEconContractModels.Contracts.Combat
                 Core.SendMessage($"{this.Name}", $"Contract ready to be completed.", Color.LightGreen, this.AssignedPlayerSteamId);
             }
 
-            //  if (ReadyToDeliver)
-            //  {
-            ////     Core.Log.Info("try complete 1");
-            //      var result = TryCompleteContract(this.AssignedPlayerSteamId, null);
-            //      if (result)
-            //      {
-            //          return true;
-            //      }
-            //  }
             if (DateTime.Now > ExpireAt)
             {
                 FailContract();
@@ -300,21 +296,7 @@ namespace CrunchEconContractModels.Contracts.Combat
                     Core.random.Next(spawn.MinDistance, spawn.MaxDistance),
                     Core.random.Next(spawn.MinDistance, spawn.MaxDistance)));
 
-                if (this.WaterModSpawn)
-                {
-                    if (WaterModAPI.Registered)
-                    {
-                        var pos = WaterModAPI.GetClosestSurfacePoint(Position, null);
-
-                        if (pos != null && !pos.Equals(Vector3D.Zero))
-                        {
-                            Position = pos;
-                        }
-                    }
-                }
-
                 if (!File.Exists($"{Core.path}//Grids//{spawnMe}")) continue;
-
 
                 var Ids = GridManagerUpdated.LoadGrid($"{Core.path}//Grids//{spawnMe}", Position, false,
                     (ulong)faction.Members.FirstOrDefault().Key, spawnMe.Replace(".sbc", ""), false);
@@ -348,7 +330,6 @@ namespace CrunchEconContractModels.Contracts.Combat
                             Core.Log.Info("How the fuck did this happen");
                         }
                     }
-
                     StartingBlockCounts.Add(main.EntityId, main.BlocksCount);
                     spawns += 1;
                 }
@@ -400,6 +381,11 @@ namespace CrunchEconContractModels.Contracts.Combat
 
             return false;
         }
+        public override void DeleteDeliveryGPS()
+        {
+            MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+            gpscol.SendDeleteGpsRequest(this.AssignedPlayerIdentityId, GpsId);
+        }
 
         public override void FailContract()
         {
@@ -440,15 +426,12 @@ namespace CrunchEconContractModels.Contracts.Combat
         public long MaximumDistanceFromLocationToCountDamage { get; set; }
         public long MaximumReward { get; set; }
         public bool SpawnAroundGps { get; set; }
-        public bool WaterModSpawn { get; set; }
 
         public List<GridDestruction> GridsToDestroy = new List<GridDestruction>();
 
-        public double PayPerDamage { get; set; }
         public long UncollectedPay = 0;
 
         public List<SpawnWave> Waves = new List<SpawnWave>();
-        public List<long> DestroyedIds = new List<long>();
     }
 
     public class CrunchCombatContractConfig : IContractConfig
@@ -488,7 +471,7 @@ namespace CrunchEconContractModels.Contracts.Combat
                     return null;
                 }
             }
-            var contract = new CrunchGridDeathCombatContractImplementation();
+            var contract = new CrunchCombatContractImplementation();
             var description = new StringBuilder();
             var contractContractType = "CrunchGridDeath";
             contract.ContractType = contractContractType;
@@ -505,15 +488,13 @@ namespace CrunchEconContractModels.Contracts.Combat
             contract.MaximumDistanceFromLocationToCountDamage = this.MaximumDistanceFromLocationToCountDamageInMetres;
             contract.DeliverLocation = result.Item1;
             contract.DeliveryFactionId = result.Item2;
-            contract.PayPerDamage = this.PayPerDamage;
+ 
             contract.MaximumReward = this.MaximumPay;
 
             if (contract.DeliverLocation == null || contract.DeliverLocation.Equals(Vector3.Zero))
             {
                 return null;
             }
-
-            contract.WaterModSpawn = this.WaterModSpawn;
             contract.SpawnAroundGps = this.SpawnAroundGps;
             contract.Waves = this.Waves;
             contract.GridsToDestroy = this.GridsToDestroy;

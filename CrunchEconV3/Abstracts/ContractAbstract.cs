@@ -183,7 +183,7 @@ namespace CrunchEconV3.Abstracts
             GpsId = gpsRef.Hash;
         }
 
-        public void DeleteDeliveryGPS()
+        public virtual void DeleteDeliveryGPS()
         {
             MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             gpscol.SendDeleteGpsRequest(this.AssignedPlayerIdentityId, GpsId);
