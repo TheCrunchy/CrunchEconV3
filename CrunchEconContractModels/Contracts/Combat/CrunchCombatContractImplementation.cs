@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CrunchEconV3;
+﻿using CrunchEconV3;
 using CrunchEconV3.Abstracts;
-using CrunchEconV3.APIs;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
@@ -19,6 +12,12 @@ using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Torch;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
@@ -38,6 +37,9 @@ namespace CrunchEconContractModels.Contracts.Combat
             }
             return this.HasStarted ? $"Destroy {this.GridIdsToPay.Count} target ships, Bonus Pay: {this.UncollectedPay:##.###}" : $"Travel to target location.";
         }
+
+        public List<int> GpsIds = new List<int>();
+        public List<MyGps> GpsToSend = new List<MyGps>();
 
         private bool HasPower(VRage.Game.ModAPI.IMyCubeGrid grid)
         {
@@ -150,6 +152,17 @@ namespace CrunchEconContractModels.Contracts.Combat
         private int ticks = 0;
         public override bool Update100(Vector3 PlayersCurrentPosition)
         {
+            if (GpsToSend.Any())
+            {
+                MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+                foreach (var item in GpsToSend)
+                {
+                    var refItem = item;
+                    gpscol.SendAddGpsRequest(AssignedPlayerIdentityId, ref refItem, entityId: refItem.EntityId);
+                }
+                GpsToSend.Clear();
+            }
+    
             ticks++;
             if (this.UncollectedPay >= this.RewardMoney)
             {
@@ -320,6 +333,8 @@ namespace CrunchEconContractModels.Contracts.Combat
                     if (grid.Payment != 0)
                     {
                         GridIdsToPay.Add(main.EntityId, grid.Payment);
+                        //send destroy gps
+                        SendDestroyGPS(main);
                     }
                     else
                     {
@@ -329,6 +344,12 @@ namespace CrunchEconContractModels.Contracts.Combat
                         {
                             Core.Log.Info("How the fuck did this happen");
                         }
+
+                        if (isPay != 0)
+                        {
+                            SendDestroyGPS(main);
+                        }
+                        //send destroy gps
                     }
                     StartingBlockCounts.Add(main.EntityId, main.BlocksCount);
                     spawns += 1;
@@ -375,7 +396,15 @@ namespace CrunchEconContractModels.Contracts.Combat
                 }
 
                 var playerData = Core.PlayerStorage.GetData(this.AssignedPlayerSteamId);
-
+                if (GpsIds.Any())
+                {
+                    MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+                    foreach (var id in GpsIds)
+                    {
+                        gpscol.SendDeleteGpsRequest(this.AssignedPlayerIdentityId, id);
+                    }
+                }
+           
                 return true;
             }
 
@@ -385,6 +414,10 @@ namespace CrunchEconContractModels.Contracts.Combat
         {
             MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
             gpscol.SendDeleteGpsRequest(this.AssignedPlayerIdentityId, GpsId);
+            foreach (var id in GpsIds)
+            {
+                gpscol.SendDeleteGpsRequest(this.AssignedPlayerIdentityId, id);
+            }
         }
 
         public override void FailContract()
@@ -397,6 +430,24 @@ namespace CrunchEconContractModels.Contracts.Combat
             Core.PlayerStorage.ContractFinished?.Invoke(false, this);
             this.DeleteDeliveryGPS();
             CrunchEconV3.Core.SendMessage("Contracts", DateTime.Now > ExpireAt ? $"{this.Name} failed, time expired." : $"{this.Name} failed.", Color.Red, this.AssignedPlayerSteamId);
+        }
+        public void SendDestroyGPS(IMyEntity entity)
+        {
+            MyGpsCollection gpscol = (MyGpsCollection)MyAPIGateway.Session?.GPS;
+            StringBuilder sb = new StringBuilder();
+            MyGps gpsRef = new MyGps();
+            gpsRef.Name = $"Destroy Target";
+            gpsRef.GPSColor = Color.Yellow;
+            gpsRef.ShowOnHud = true;
+            gpsRef.AlwaysVisible = true;
+            gpsRef.DiscardAt = new TimeSpan?();
+          
+            gpsRef.SetEntity(entity);
+
+            gpsRef.UpdateHash();
+
+            GpsToSend.Add(gpsRef);
+            GpsIds.Add(gpsRef.Hash);
         }
 
         public override void SendDeliveryGPS()
@@ -644,12 +695,12 @@ namespace CrunchEconContractModels.Contracts.Combat
         public double ChanceToSpawn = 0.5;
         public string FacTagToOwnThisGrid = "SPRT";
         public float TakenDamagerModifier = 1;
-        public long Payment = 50000;
+        public long Payment = 0;
     }
 
     public class GridDestruction
     {
         public string GridToDestroy = "pirate.sbc";
-        public long Payment = 50000;
+        public long Payment = 0;
     }
 }
