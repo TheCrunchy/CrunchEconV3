@@ -264,6 +264,7 @@
     <Compile Include="APIs\NexusAPI.cs" />
     <Compile Include="Models\PassengerBlock.cs" />
     <Compile Include="Models\TankGroup.cs" />
+    <Compile Include="Patches\ContractPatchesNoLogic.cs" />
     <Compile Include="Patches\ContractPatchesDefaultSetup.cs" />
     <Compile Include="Patches\ContractPatches.cs" />
     <Compile Include="Patches\SessionLoadPatch.cs" />
