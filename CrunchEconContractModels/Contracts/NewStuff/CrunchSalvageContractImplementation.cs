@@ -37,6 +37,7 @@ namespace CrunchEconContractModels.Contracts.NewStuff
         private MyCubeGrid Grid { get; set; }
         public long GridEntityId { get; set; }
         public bool HasSpawnedGrid { get; set; } = false;
+        private bool HasAddedBlockRemoved { get; set; } = false;
         public string PrefabToSpawn { get; set; }
         public int BlocksToSalvage { get; set; }
         public int BlocksAtStart { get; set; }
@@ -144,20 +145,20 @@ namespace CrunchEconContractModels.Contracts.NewStuff
 
         public override bool Update100(Vector3 PlayersCurrentPosition)
         {
-            if (HasSpawnedGrid && GetGrid() != null)
-            {
-                foreach (var block in GetGrid().GetFatBlocks().Where(x => !x.IsFunctional))
-                {
-                    block.SlimBlock.IncreaseMountLevel(100, block.OwnerId);
-                }
-            }
             if (GetGrid() != null && !HasSpawnedGrid)
             {
                 GetGrid().OnBlockRemoved += BlockRemoved;
                 HasSpawnedGrid = true;
+                HasAddedBlockRemoved = true;
                 return false;
             }
-
+            if (GetGrid() != null && !HasAddedBlockRemoved)
+            {
+                GetGrid().OnBlockRemoved += BlockRemoved;
+                HasSpawnedGrid = true;
+                HasAddedBlockRemoved = true;
+                return false;
+            }
             if (this.BlocksToSalvage > 0 && DateTime.Now >= NextMessage)
             {
                 NextMessage = NextMessage.AddMinutes(1);
