@@ -31,7 +31,7 @@ namespace CrunchEconContractModels.Contracts.NewStuff
         public override string GetStatus()
         {
 
-            return this.HasSpawnedGrid ? $"Salvage progress {BlocksToSalvage}/{BlocksAtStart / 2}" : $"Travel to target location.";
+            return this.HasSpawnedGrid ? $"Salvage progress {BlocksToSalvage}/{BlocksAtStart / 2}" : $"Travel to Salvage location.";
         }
         public string ContractType { get; set; }
         private MyCubeGrid Grid { get; set; }
