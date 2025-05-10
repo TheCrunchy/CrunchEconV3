@@ -8,12 +8,14 @@ using CrunchEconV3;
 using CrunchEconV3.Utils;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
+using Sandbox.Game.Multiplayer;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.Groups;
 using VRage.ObjectBuilders;
+using VRageMath;
 
 namespace CrunchEconContractModels.Ship_Class_Stuff
 {
@@ -52,6 +54,9 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
                 var blocksToReplace = new List<IMySlimBlock>();
                 var allBlocks = new List<IMySlimBlock>();
                 grid.GetBlocks(allBlocks);
+                var asMy = grid as MyCubeGrid;
+
+
                 Core.Log.Info($"{allBlocks.Count}");
                 foreach (var block in allBlocks)
                 {
@@ -67,7 +72,7 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
                         Core.Log.Info("Matches");
                     }
                 }
-
+     
                 foreach (var oldBlock in blocksToReplace)
                 {
                     var position = oldBlock.Position;
@@ -84,23 +89,54 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
                     if (newDef != null)
                     {
                         Core.Log.Info("Replacing");
+
                         var newBlockBuilder = (MyObjectBuilder_CubeBlock)MyObjectBuilderSerializer.CreateNewObject(newDef.Id);
                         newBlockBuilder.Min = position;
                         newBlockBuilder.BlockOrientation = orientation;
                         newBlockBuilder.ColorMaskHSV = colorMask;
                         newBlockBuilder.SkinSubtypeId = skinId.String;
                         newBlockBuilder.Owner = oldBlock.OwnerId;
-                        grid.AddBlock(newBlockBuilder, true);
 
+                        var visuals = new MyCubeGrid.MyBlockVisuals
+                        {
+                            ColorMaskHSV = oldBlock.ColorMaskHSV.PackHSVToUint(),
+                            SkinId = skinId
+                        };
+                        oldBlock.Orientation.GetQuaternion(out var quat);
+                        var blockLocation = new MyCubeGrid.MyBlockLocation(
+                            newDef.Id,
+                            position,        // Min
+                            position,        // Max
+                            position,        // CenterPos
+                            quat,
+                            grid.EntityId,
+                            oldBlock.OwnerId
+                        );
 
+                        long builderEntityId = oldBlock.BuiltBy;
+                        long ownerId = oldBlock.OwnerId;
+                        ulong sender = Sync.MyId;
+                        bool instantBuild = true;
+                        bool isProjection = false;
+                 
+                        asMy.BuildBlockRequestInternal(
+                            visuals,
+                            blockLocation,
+                            newBlockBuilder,
+                            builderEntityId,
+                            instantBuild,
+                            ownerId,
+                            sender,
+                            isProjection
+                        );
                     }
                     else
                     {
-                        Core.Log.Info("New defs null");
+                        Core.Log.Info("New def is null");
                     }
+
                 }
-                var asMy = grid as MyCubeGrid;
-                asMy.RaiseGridChanged();
+
 
             }
         }

@@ -99,6 +99,7 @@
     <Compile Include="Contracts\Combat\CrunchCombatContractImplementation.cs" />
     <Compile Include="Contracts\CrunchGridDeathCombatContractImplementation.cs" />
     <Compile Include="Contracts\CrunchItemHaulingContractImplementation.cs" />
+    <Compile Include="Contracts\CrunchSalvageContractImplementation.cs" />
     <Compile Include="Contracts\CrunchRepairContractImplementation.cs" />
     <Compile Include="Contracts\CrunchWaveDefenceCombatContractImplementation.cs" />
     <Compile Include="Contracts\CrunchGasContractImplementation.cs" />
