@@ -1,4 +1,10 @@
-﻿using CrunchEconV3;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CrunchEconV3;
 using CrunchEconV3.Abstracts;
 using CrunchEconV3.Handlers;
 using CrunchEconV3.Interfaces;
@@ -12,12 +18,6 @@ using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Torch;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
@@ -25,7 +25,7 @@ using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
-namespace CrunchEconContractModels.Contracts.Combat
+namespace CrunchEconContractModels.Contracts.NewStuff.Combat
 {
     public class CrunchCombatContractImplementation : ContractAbstract
     {

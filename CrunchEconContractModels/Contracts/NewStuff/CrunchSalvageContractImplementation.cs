@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using CrunchEconV3;
+using CrunchEconV3.Abstracts;
 using CrunchEconV3.Interfaces;
 using CrunchEconV3.Models;
 using CrunchEconV3.Utils;
@@ -23,10 +24,15 @@ using VRage.ObjectBuilder;
 using VRage.Utils;
 using VRageMath;
 
-namespace CrunchEconContractModels.Contracts
+namespace CrunchEconContractModels.Contracts.NewStuff
 {
-    public class CrunchSalvageContractImplementation : ICrunchContract
+    public class CrunchSalvageContractImplementation : ContractAbstract
     {
+        public override string GetStatus()
+        {
+
+            return this.HasSpawnedGrid ? $"Salvage progress {BlocksToSalvage}/{BlocksAtStart / 2}" : $"Travel to target location.";
+        }
         public string ContractType { get; set; }
         private MyCubeGrid Grid { get; set; }
         public long GridEntityId { get; set; }
@@ -70,7 +76,7 @@ namespace CrunchEconContractModels.Contracts
             return newContract;
         }
 
-        public MyObjectBuilder_Contract BuildAssignedContract()
+        public override MyObjectBuilder_Contract BuildAssignedContract()
         {
             var contractDescription = $"The {PrefabToSpawn} at Salvage Location  must be deconstructed.";
             return BuildUnassignedContract(contractDescription);
@@ -129,14 +135,14 @@ namespace CrunchEconContractModels.Contracts
             return Tuple.Create(true, MyContractResults.Fail_ActivationConditionsNotMet_InsufficientSpace);
         }
 
-        public void Start()
+        public override void Start()
         {
             ExpireAt = DateTime.Now.AddSeconds(SecondsToComplete);
             this.ReadyToDeliver = false;
             SendDeliveryGPS();
         }
 
-        public bool Update100(Vector3 PlayersCurrentPosition)
+        public override bool Update100(Vector3 PlayersCurrentPosition)
         {
             if (HasSpawnedGrid && GetGrid() != null)
             {

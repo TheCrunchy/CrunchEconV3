@@ -450,12 +450,12 @@ namespace CrunchEconContractModels.Contracts
         public bool SpawnAroundGps { get; set; }
         public bool WaterModSpawn { get; set; }
 
-        public List<Combat.GridDestruction> GridsToDestroy = new List<Combat.GridDestruction>();
+        public List<NewStuff.Combat.GridDestruction> GridsToDestroy = new List<NewStuff.Combat.GridDestruction>();
 
         public double PayPerDamage { get; set; }
         public long UncollectedPay = 0;
 
-        public List<Combat.SpawnWave> Waves = new List<Combat.SpawnWave>();
+        public List<NewStuff.Combat.SpawnWave> Waves = new List<NewStuff.Combat.SpawnWave>();
         public List<long> DestroyedIds = new List<long>();
     }
 
@@ -464,26 +464,26 @@ namespace CrunchEconContractModels.Contracts
         public void Setup()
         {
             DeliveryGPSes = new List<string>() { "Put a gps here" };
-            Waves = new List<Combat.SpawnWave>();
-            Waves.Add(new Combat.SpawnWave()
+            Waves = new List<NewStuff.Combat.SpawnWave>();
+            Waves.Add(new NewStuff.Combat.SpawnWave()
             {
                 WaveNumber = 1,
                 SecondsBeforeNextWave = 60,
-                GridsInWave = new List<Combat.GridSpawnModel>()
+                GridsInWave = new List<NewStuff.Combat.GridSpawnModel>()
                 {
-                    new Combat.GridSpawnModel()
+                    new NewStuff.Combat.GridSpawnModel()
                 }
             });
-            Waves.Add(new Combat.SpawnWave()
+            Waves.Add(new NewStuff.Combat.SpawnWave()
             {
                 WaveNumber = 2,
                 SecondsBeforeNextWave = 60,
-                GridsInWave = new List<Combat.GridSpawnModel>()
+                GridsInWave = new List<NewStuff.Combat.GridSpawnModel>()
                 {
-                    new Combat.GridSpawnModel()
+                    new NewStuff.Combat.GridSpawnModel()
                 }
             });
-            GridsToDestroy = new List<Combat.GridDestruction>() { new Combat.GridDestruction() };
+            GridsToDestroy = new List<NewStuff.Combat.GridDestruction>() { new NewStuff.Combat.GridDestruction() };
         }
 
         public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
@@ -647,8 +647,8 @@ namespace CrunchEconContractModels.Contracts
         public string ContractName { get; set; } = "Anti Piracy Operations Grid Death";
         public string Description { get; set; } = "Destroy enemy power sources to kill the grid!";
 
-        public List<Combat.SpawnWave> Waves = new List<Combat.SpawnWave>();
-        public List<Combat.GridDestruction> GridsToDestroy = new List<Combat.GridDestruction>();
+        public List<NewStuff.Combat.SpawnWave> Waves = new List<NewStuff.Combat.SpawnWave>();
+        public List<NewStuff.Combat.GridDestruction> GridsToDestroy = new List<NewStuff.Combat.GridDestruction>();
 
     }
     public class SpawnWave
