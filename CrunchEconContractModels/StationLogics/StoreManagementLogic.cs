@@ -393,6 +393,12 @@ namespace CrunchEconContractModels.StationLogics
                 {
                     Core.Log.Error($"{store.DisplayNameText}");
                 }
+
+                if (store.DisplayNameText.Contains("!exclude"))
+                {
+                    continue;
+                }
+
                 ClearStoreOfPlayersBuyingOffers(store);
                 var items = StoreItemsHandler.GetByBlockName(store.DisplayNameText);
                 if (DebugMessages)
