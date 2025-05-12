@@ -3,8 +3,11 @@ using Sandbox.Game.EntityComponents;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Torch.Managers.PatchManager;
 using VRage.Game.Components;
+using VRage.Game.Entity;
+using VRage.Utils;
 
 namespace CrunchEconContractModels.Contracts.NewStuff.Combat
 {
@@ -20,6 +23,30 @@ namespace CrunchEconContractModels.Contracts.NewStuff.Combat
             InitAllGrids();
         }
 
+        public static MyCubeGrid? GetRandomSalvageGrid()
+        {
+            // Return early if there's nothing to salvage
+            if (!MarkedForSalvage.Any())
+                return null;
+
+            const int maxAttempts = 2;
+            MyCubeGrid? asGrid = null;
+
+            for (int attempt = 0; attempt < maxAttempts; attempt++)
+            {
+                var random = MarkedForSalvage.GetRandomItemFromList();
+                MarkedForSalvage.Remove(random);
+
+                var asEntity = MyAPIGateway.Entities.GetEntityById(random);
+                if (asEntity is MyCubeGrid grid)
+                {
+                    asGrid = grid;
+                    break;
+                }
+            }
+
+            return asGrid;
+        }
         public static void InitAllGrids()
         {
             MyAPIGateway.Entities.GetEntities(null, (entity) =>

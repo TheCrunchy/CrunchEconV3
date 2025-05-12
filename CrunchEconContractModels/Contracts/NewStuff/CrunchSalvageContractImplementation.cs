@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CrunchEconContractModels.Contracts.NewStuff.Combat;
 using CrunchEconV3;
 using CrunchEconV3.Abstracts;
 using CrunchEconV3.Interfaces;
@@ -359,11 +360,27 @@ namespace CrunchEconContractModels.Contracts.NewStuff
             contract.ReputationGainOnComplete = CrunchEconV3.Core.random.Next(this.ReputationGainOnCompleteMin, this.ReputationGainOnCompleteMax);
             contract.ReputationLossOnAbandon = this.ReputationLossOnAbandon;
             contract.SecondsToComplete = this.SecondsToComplete;
+
+            var randomGrid = DeadGridTracker.GetRandomSalvageGrid();
+            if (randomGrid != null)
+            {
+                contract.Name = $"Salvage {randomGrid.DisplayNameText}";
+                contract.GridEntityId = randomGrid.EntityId;
+                contract.HasSpawnedGrid = true;
+                contract.BlocksAtStart = randomGrid.BlocksCount;
+                contract.BlocksToSalvage = randomGrid.BlocksCount;
+                contract.PrefabToSpawn = randomGrid.DisplayNameText;
+    
+            }
+            else
+            {
+                contract.PrefabToSpawn = prefabName;
+            }
             contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Repair";
-            contract.Name = $"Repair {prefabName.Replace(".sbc", "")}";
+            contract.Name = $"Salvage {prefabName.Replace(".sbc", "")}";
             contract.ReputationRequired = this.ReputationRequired;
             contract.ReadyToDeliver = true;
-            contract.PrefabToSpawn = prefabName;
+
             contract.CollateralToTake = (CrunchEconV3.Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));
             description.AppendLine($"{this.Description.Replace("{prefabName}", prefabName.Replace(".sbc", ""))}");
             if (this.ReputationRequired != 0)
@@ -373,10 +390,15 @@ namespace CrunchEconContractModels.Contracts.NewStuff
             var result = AssignDeliveryGPS(__instance, keenstation, idUsedForDictionary);
             contract.DeliverLocation = result.Item1;
             contract.DeliveryFactionId = result.Item2;
-            if (contract.DeliverLocation == null || contract.DeliverLocation.Equals(Vector3.Zero))
+            if (randomGrid != null)
+            {
+                contract.DeliverLocation = randomGrid.PositionComp.GetPosition();
+            }
+            else if (contract.DeliverLocation == null || contract.DeliverLocation.Equals(Vector3.Zero))
             {
                 return null;
             }
+
             contract.Description = description.ToString();
             return contract;
         }

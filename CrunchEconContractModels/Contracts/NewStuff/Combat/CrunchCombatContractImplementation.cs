@@ -210,6 +210,7 @@ namespace CrunchEconContractModels.Contracts.NewStuff.Combat
                         UncollectedPay += item.Value;
                         temp.Add(item.Key);
                         Core.SendMessage($"{this.Name}", $"{grid.DisplayName} destroyed.", Color.LightGreen, this.AssignedPlayerSteamId);
+                        DeadGridTracker.StoreGridId(grid);
                     }
                     else
                     {
@@ -218,6 +219,7 @@ namespace CrunchEconContractModels.Contracts.NewStuff.Combat
                             UncollectedPay += item.Value;
                             temp.Add(item.Key);
                             grid.SwitchPower();
+                            DeadGridTracker.StoreGridId(grid);
                             Core.SendMessage($"{this.Name}", $"{grid.DisplayName} destroyed.", Color.LightGreen, this.AssignedPlayerSteamId);
                             //      Core.Log.Info("grid has no power");
                         }
