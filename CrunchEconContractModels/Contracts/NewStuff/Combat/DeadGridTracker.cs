@@ -16,6 +16,7 @@ namespace CrunchEconContractModels.Contracts.NewStuff.Combat
         private static readonly Guid StorageGuid = new Guid("f382f0cf-fca2-42c6-ad41-1b3ac9313e89");
 
         private static List<long> MarkedForSalvage = new List<long>();
+
         public static void Patch(PatchContext ctx)
         {
             MyAPIGateway.Entities.OnEntityAdd += StoreGridId;
@@ -23,14 +24,13 @@ namespace CrunchEconContractModels.Contracts.NewStuff.Combat
             InitAllGrids();
         }
 
-        public static MyCubeGrid? GetRandomSalvageGrid()
+        public static MyCubeGrid GetRandomSalvageGrid()
         {
-            // Return early if there's nothing to salvage
             if (!MarkedForSalvage.Any())
                 return null;
 
             const int maxAttempts = 2;
-            MyCubeGrid? asGrid = null;
+            MyCubeGrid asGrid = null;
 
             for (int attempt = 0; attempt < maxAttempts; attempt++)
             {
@@ -38,7 +38,8 @@ namespace CrunchEconContractModels.Contracts.NewStuff.Combat
                 MarkedForSalvage.Remove(random);
 
                 var asEntity = MyAPIGateway.Entities.GetEntityById(random);
-                if (asEntity is MyCubeGrid grid)
+                var grid = asEntity as MyCubeGrid;
+                if (grid != null)
                 {
                     asGrid = grid;
                     break;
@@ -47,11 +48,12 @@ namespace CrunchEconContractModels.Contracts.NewStuff.Combat
 
             return asGrid;
         }
+
         public static void InitAllGrids()
         {
-            MyAPIGateway.Entities.GetEntities(null, (entity) =>
+            MyAPIGateway.Entities.GetEntities(null, entity =>
             {
-                if (entity as VRage.Game.ModAPI.IMyCubeGrid != null)
+                if (entity is VRage.Game.ModAPI.IMyCubeGrid)
                 {
                     StoreGridId(entity);
                 }
@@ -61,7 +63,8 @@ namespace CrunchEconContractModels.Contracts.NewStuff.Combat
 
         public static void StoreGridId(VRage.ModAPI.IMyEntity entity)
         {
-            if (entity is MyCubeGrid grid)
+            var grid = entity as MyCubeGrid;
+            if (grid != null)
             {
                 GetAndStoreShipsKnownId(grid);
             }
@@ -69,49 +72,42 @@ namespace CrunchEconContractModels.Contracts.NewStuff.Combat
 
         public static void RemoveGridId(VRage.ModAPI.IMyEntity entity)
         {
-            if (entity is MyCubeGrid grid)
+            var grid = entity as MyCubeGrid;
+            if (grid != null)
             {
-                MyModStorageComponentBase storage = grid.Storage;
-                if (storage == null)
-                {
-                    return;
-                }
-
-                if (storage.TryGetValue(StorageGuid, out string id))
+                var storage = grid.Storage;
+                if (storage != null && storage.ContainsKey(StorageGuid))
                 {
                     MarkedForSalvage.Remove(entity.EntityId);
                 }
             }
         }
 
-
         public static void GetAndStoreShipsKnownId(MyCubeGrid grid, bool createEntryInStorage = false)
         {
-            bool isMarkedForSalvage;
-            MyModStorageComponentBase storage = grid.Storage;
+            var storage = grid.Storage;
             if (storage == null)
             {
                 grid.Storage = new MyModStorageComponent();
                 storage = grid.Storage;
             }
 
-            if (storage.TryGetValue(StorageGuid, out string id))
+            string id;
+            if (storage.TryGetValue(StorageGuid, out id))
             {
-                if (bool.TryParse(id, out isMarkedForSalvage))
+                bool isMarkedForSalvage;
+                if (bool.TryParse(id, out isMarkedForSalvage) && isMarkedForSalvage)
                 {
-                   MarkedForSalvage.Add(grid.EntityId);
-                   return;
+                    MarkedForSalvage.Add(grid.EntityId);
+                    return;
                 }
             }
 
             if (createEntryInStorage)
             {
-                isMarkedForSalvage = true;
-                grid.Storage.SetValue(StorageGuid, isMarkedForSalvage.ToString());
+                storage.SetValue(StorageGuid, true.ToString());
+                MarkedForSalvage.Add(grid.EntityId);
             }
-
-            return;
         }
-
     }
 }
