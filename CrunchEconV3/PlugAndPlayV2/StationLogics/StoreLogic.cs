@@ -272,7 +272,6 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
         public bool IsFirstRun { get; set; } = true;
         public DateTime NextModifierReset { get; set; }
         public DateTime NextStoreRefresh { get; set; }
-        public DateTime NextInventoryRefresh { get; set; }
         public double Modifier { get; set; }
         public double MaximumModifier { get; set; } = 0.15;
         public int Priority { get; set; }
@@ -391,7 +390,35 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     Core.Log.Info($"items null, skipping");
                     continue;
                 }
-          
+                try
+                {
+                 
+                    if (items.SellHydrogen)
+                    {
+                        InsertGasOffer(store, ItemTypes.Hydrogen);
+                    }
+
+                    if (items.SellOxygn)
+                    {
+                        InsertGasOffer(store, ItemTypes.Hydrogen);
+                    }
+
+                    if (items.SellPrefabs)
+                    {
+                        foreach (var prefab in items.PrefabsToSell)
+                        {
+                            long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+                            MyStoreItem myStoreItem2 = new MyStoreItem(newid, 10, prefab.Value, StoreItemTypes.Offer, ItemTypes.Grid);
+                            myStoreItem2.IsCustomStoreItem = true;
+                            myStoreItem2.PrefabName = prefab.Key;
+                            store.PlayerItems.Add(myStoreItem2);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    CrunchEconV3.Core.Log.Error(e);
+                }
                 foreach (var item in items.SellingToPlayers)
                 {
                     var inventories = GetInventories(grid, store);
@@ -419,33 +446,11 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     try
                     {
                         DoSell(item, store, inventories);
-                        if (items.SellHydrogen)
-                        {
-                            InsertGasOffer(store, ItemTypes.Hydrogen);
-                        }
-
-                        if (items.SellOxygn)
-                        {
-                            InsertGasOffer(store, ItemTypes.Hydrogen);
-                        }
-
-                        if (items.SellPrefabs)
-                        {
-                            foreach (var prefab in items.PrefabsToSell)
-                            {
-                                long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-                                MyStoreItem myStoreItem2 = new MyStoreItem(newid, 10, prefab.Value, StoreItemTypes.Offer, ItemTypes.Grid);
-                                myStoreItem2.IsCustomStoreItem = true;
-                                myStoreItem2.PrefabName = prefab.Key;
-                                store.PlayerItems.Add(myStoreItem2);
-                            }
-                        }
                     }
                     catch (Exception e)
                     {
                         CrunchEconV3.Core.Log.Error(e);
                     }
-
                 }
              //   Core.Log.Info($"Store buy loop");
                 foreach (var item in items.BuyingFromPlayers)
@@ -533,7 +538,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     break;
             }
             long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
-            MyStoreItem myStoreItem = new MyStoreItem(newid, amountToSpawn, price, StoreItemTypes.Offer, ItemTypes.PhysicalItem);
+            MyStoreItem myStoreItem = new MyStoreItem(newid, amountToSpawn, price, StoreItemTypes.Offer, type);
             myStoreItem.IsCustomStoreItem = true;
             store.PlayerItems.Add(myStoreItem);
         }

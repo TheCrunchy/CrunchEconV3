@@ -51,7 +51,7 @@ namespace CrunchEconV3.Handlers
                     Core.Log.Error($"{station.FileName} faction not found");
                     continue;
                 }
-
+               
                 if (grid == null && station.IsFirstLoad())
                 {
                     station.SetFirstLoad(false);
