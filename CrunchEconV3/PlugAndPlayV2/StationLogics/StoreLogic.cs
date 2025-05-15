@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using CrunchEconV3.Handlers;
@@ -30,6 +31,7 @@ using Sandbox.ModAPI;
 using Sandbox.ModAPI.Ingame;
 using Torch.Commands;
 using Torch.Commands.Permissions;
+using Torch.Managers.PatchManager;
 using VRage;
 using VRage.Game;
 using VRage.Game.Definitions.SessionComponents;
@@ -221,6 +223,51 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
     public class StoreLogic : IStationLogic
     {
+        public static void Patch(PatchContext ctx)
+        {
+            Core.Log.Info("Patching buy prefab");
+            MethodInfo method = typeof(MyStoreBlock).GetMethod("BuyPrefabInternal", BindingFlags.NonPublic | BindingFlags.Instance);
+            MethodInfo patchMethod = typeof(StoreLogic).GetMethod(nameof(BuyPrefabInternalPatch), BindingFlags.NonPublic | BindingFlags.Static);
+            ctx.GetPattern(method).Prefixes.Add(patchMethod);
+            DatapadHelper.Setup();
+        }
+
+        public static Dictionary<long, long> Safezones = new Dictionary<long, long>();
+        private static bool BuyPrefabInternalPatch(
+            MyStoreBlock __instance,
+            MyStoreItem storeItem,
+            int amount,
+            MyPlayer player,
+            MyFaction faction,
+            Vector3D storePosition,
+            ref long safezoneId,
+            MyStationTypeEnum stationType,
+            MyEntity entity,
+            long totalPrice)
+        {
+            if (safezoneId == 0l)
+            {
+                if (Safezones.TryGetValue(__instance.EntityId, out var foundZone))
+                {
+                    safezoneId = foundZone;
+                    return true;
+                }
+
+
+                BoundingSphereD sphere = new BoundingSphereD(storePosition, 1000);
+
+                foreach (MySafeZone zone in MyAPIGateway.Entities.GetEntitiesInSphere(ref sphere)
+                             .OfType<MySafeZone>())
+                {
+                    Safezones[__instance.EntityId] = zone.EntityId;
+                    safezoneId = zone.EntityId;
+                    return true;
+                }
+            }
+            return true;
+        }
+
+
         public string StoreFileName;
         public bool IsFirstRun { get; set; } = true;
         public DateTime NextModifierReset { get; set; }
