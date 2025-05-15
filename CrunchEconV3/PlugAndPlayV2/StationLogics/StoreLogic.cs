@@ -322,22 +322,21 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     EconUtils.addMoney(owner, 1000000000000 - balance);
                 }
             }
-          //  Core.Log.Info("Set the balances");
             foreach (var battery in grid.GetFatBlocks().OfType<MyBatteryBlock>()
                          .Where(x => x.OwnerId == owner))
             {
                 battery.CurrentStoredPower = battery.MaxStoredPower;
             }
-           // Core.Log.Info("Set the battery charge");
+     
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == owner))
             {
                 var inventories = GetInventories(grid, store);
                 ClearInventories(grid, store);
             }
-          //  Core.Log.Info("Cleared the stores");
+       
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == owner))
             {
-             //   Core.Log.Info($"Looping store {store.CustomData}");
+    
                 ClearStoreOfPlayersBuyingOffers(store);
                 var items = GetStoreItems(store);
                 if (items == null)
@@ -345,7 +344,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     Core.Log.Info($"items null, skipping");
                     continue;
                 }
-            //    Core.Log.Info($"Store sell loop");
+          
                 foreach (var item in items.SellingToPlayers)
                 {
                     var inventories = GetInventories(grid, store);
@@ -381,6 +380,18 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                         if (items.SellOxygn)
                         {
                             InsertGasOffer(store, ItemTypes.Hydrogen);
+                        }
+
+                        if (items.SellPrefabs)
+                        {
+                            foreach (var prefab in items.PrefabsToSell)
+                            {
+                                long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
+                                MyStoreItem myStoreItem2 = new MyStoreItem(newid, 10, prefab.Value, StoreItemTypes.Offer, ItemTypes.Grid);
+                                myStoreItem2.IsCustomStoreItem = true;
+                                myStoreItem2.PrefabName = prefab.Key;
+                                store.PlayerItems.Add(myStoreItem2);
+                            }
                         }
                     }
                     catch (Exception e)
