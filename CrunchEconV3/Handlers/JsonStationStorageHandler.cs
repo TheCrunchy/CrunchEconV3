@@ -65,6 +65,7 @@ namespace CrunchEconV3.Handlers
                 {
                     try
                     {
+                        StationHandler.DoDebugMessage($"loading {item}");
                         var loaded = FileUtils.ReadFromJsonFile<StationConfig>(item);
                         loaded.FileName = Path.GetFileName(item);
                         var gps = GPSHelper.ScanChat(loaded.LocationGPS);
@@ -90,6 +91,7 @@ namespace CrunchEconV3.Handlers
                             station.UsesDefault = loaded.UsesDefault;
                             SetupContracts(station);
                         }
+                        StationHandler.DoDebugMessage($"loaded {item}");
                     }
                     catch (Exception exception)
                     {

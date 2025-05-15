@@ -36,7 +36,7 @@ namespace CrunchEconV3.Handlers
             foreach (var station in Core.StationStorage.GetAll())
             {
                 //first find the station ingame
-
+                DoDebugMessage($"{station.FileName} loop");
                 MyCubeGrid grid = station.GetGrid();
                 //MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                 //{
@@ -51,6 +51,7 @@ namespace CrunchEconV3.Handlers
                     Core.Log.Error($"{station.FileName} faction not found");
                     continue;
                 }
+
                 if (grid == null && station.IsFirstLoad())
                 {
                     station.SetFirstLoad(false);
@@ -78,12 +79,14 @@ namespace CrunchEconV3.Handlers
                     //   Core.Log.Error($"{station.FileName} grid not found");
                     continue;
                 }
-
+        
                 station.SetGrid(grid);
                 if (station.Logics != null && station.Logics.Any())
                 {
+             
                     foreach (var logic in station.Logics.OrderBy(x => x.Priority))
                     {
+                        DoDebugMessage($"{station.FileName} Running logic {logic.GetType().Name}.");
                         try
                         {
                             var ShouldNextOneRun = logic.DoLogic((MyCubeGrid)grid).Result;
@@ -218,7 +221,7 @@ namespace CrunchEconV3.Handlers
             return null;
         }
 
-        private static void DoDebugMessage(string message)
+        public static void DoDebugMessage(string message)
         {
             if (Core.config.DebugMode)
             {

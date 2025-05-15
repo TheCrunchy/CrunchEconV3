@@ -307,6 +307,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
             if (DateTime.Now < NextStoreRefresh)
             {
+                //   Core.Log.Info("Not past refresh time, returning");
                 return Task.FromResult(true);
             }
 
@@ -321,22 +322,22 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     EconUtils.addMoney(owner, 1000000000000 - balance);
                 }
             }
-
+          //  Core.Log.Info("Set the balances");
             foreach (var battery in grid.GetFatBlocks().OfType<MyBatteryBlock>()
                          .Where(x => x.OwnerId == owner))
             {
                 battery.CurrentStoredPower = battery.MaxStoredPower;
             }
-
+           // Core.Log.Info("Set the battery charge");
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == owner))
             {
                 var inventories = GetInventories(grid, store);
                 ClearInventories(grid, store);
             }
-
+          //  Core.Log.Info("Cleared the stores");
             foreach (var store in grid.GetFatBlocks().OfType<MyStoreBlock>().Where(x => x.OwnerId == owner))
             {
-
+             //   Core.Log.Info($"Looping store {store.CustomData}");
                 ClearStoreOfPlayersBuyingOffers(store);
                 var items = GetStoreItems(store);
                 if (items == null)
@@ -344,13 +345,25 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     Core.Log.Info($"items null, skipping");
                     continue;
                 }
+            //    Core.Log.Info($"Store sell loop");
                 foreach (var item in items.SellingToPlayers)
                 {
                     var inventories = GetInventories(grid, store);
                     if (inventories.Count == 0)
                     {
+                        Core.Log.Warn($"Store has no inventories it can use, adding stores inventory with reduced capacity");
+                        for (int i = 0; i < store.InventoryCount; i++)
+                        {
+                            VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)store).GetInventory(i);
+                            for (int j = 0; j < store.InventoryCount; j++)
+                            {
+                                inventories.Add(inv);
+                            }
+
+                        }
                         break;
                     }
+
                     if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id))
                     {
                         CrunchEconV3.Core.Log.Error($"{item.Type} {item.Subtype} not a valid id");
@@ -376,6 +389,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     }
 
                 }
+             //   Core.Log.Info($"Store buy loop");
                 foreach (var item in items.BuyingFromPlayers)
                 {
                     var inventories = GetInventories(grid, store);
@@ -401,7 +415,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                 }
 
             }
-            Core.Log.Info($"loop done");
+         //   Core.Log.Info($"loop done");
             return Task.FromResult(true);
         }
 
@@ -541,6 +555,10 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     if (inventory != null)
                     {
                         inventory.AddItems(1, datapadBuilder);
+                    }
+                    else
+                    {
+                        Core.Log.Info($"Cannot find an inventory to transfer to.");
                     }
 
                 }
