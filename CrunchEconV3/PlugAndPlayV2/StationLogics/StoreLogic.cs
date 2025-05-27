@@ -424,7 +424,11 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
                     var inventories = GetInventories(grid, store);
                     if (inventories.Count == 0)
                     {
-                        Core.Log.Warn($"Store has no inventories it can use, adding stores inventory with reduced capacity");
+                        if (Core.config.DebugMode)
+                        {
+                            Core.Log.Warn($"Store has no inventories it can use, adding stores inventory with reduced capacity");
+                        }
+         
                         for (int i = 0; i < store.InventoryCount; i++)
                         {
                             VRage.Game.ModAPI.IMyInventory inv = ((VRage.Game.ModAPI.IMyCubeBlock)store).GetInventory(i);

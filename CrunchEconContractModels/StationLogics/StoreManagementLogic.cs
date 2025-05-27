@@ -510,12 +510,14 @@ namespace CrunchEconContractModels.StationLogics
             int amount = CrunchEconV3.Core.random.Next((int)item.AmountToSellMin,
                 (int)item.AmountToSellMax);
             int notSpawnedAmount = 0;
-            if (quantityInGrid < amount)
+            if (!item.IsGas && !item.IsPrefab)
             {
-                if (item.SpawnItemsIfMissing && quantityInGrid < item.SpawnIfBelowThisQuantity)
+                if (quantityInGrid < amount)
                 {
-                    var amountToSpawn = amount - quantityInGrid;
-                    var used = new HashSet<String>();
+                    if (item.SpawnItemsIfMissing && quantityInGrid < item.SpawnIfBelowThisQuantity)
+                    {
+                        var amountToSpawn = amount - quantityInGrid;
+                        var used = new HashSet<String>();
                         if (id.TypeId.ToString() == "MyObjectBuilder_Datapad")
                         {
                             for (int i = 0; i < amountToSpawn; i++)
@@ -551,16 +553,17 @@ namespace CrunchEconContractModels.StationLogics
                             }
                         }
 
-                  
+
+                    }
+                    else
+                    {
+                        amount = quantityInGrid.ToIntSafe();
+                    }
                 }
                 else
                 {
                     amount = quantityInGrid.ToIntSafe();
                 }
-            }
-            else
-            {
-                amount = quantityInGrid.ToIntSafe();
             }
 
             if (amount <= 0)
@@ -638,7 +641,7 @@ namespace CrunchEconContractModels.StationLogics
         public DateTime NextRefresh { get; set; }
         public int SecondsBetweenRefresh = 600;
 
-        public bool DebugMessages { get; set; }= false;
+        public bool DebugMessages { get; set; } = false;
 
         public static MyObjectBuilder_Datapad BuildDataPad(string subtype)
         {
@@ -672,7 +675,7 @@ namespace CrunchEconContractModels.StationLogics
             }
             else
             {
-                DatapadEntriesBySubtypes.Add("Datapad", new List<string>(){"{StationGps}", "Hello! {StationGps}"});
+                DatapadEntriesBySubtypes.Add("Datapad", new List<string>() { "{StationGps}", "Hello! {StationGps}" });
                 utils.WriteToJsonFile(path, DatapadEntriesBySubtypes);
             }
         }

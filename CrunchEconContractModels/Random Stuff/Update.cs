@@ -11,7 +11,7 @@ using Torch.Managers.PatchManager;
 namespace CrunchEconContractModels.Random_Stuff
 {
     [PatchShim]
-    public class Update
+    public static class Update
     {
         private static int ticks;
 

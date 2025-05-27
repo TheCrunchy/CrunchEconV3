@@ -239,10 +239,11 @@ namespace CrunchEconV3.Handlers
             {
                 GetByStationId = MySession.Static.Factions.GetType().GetMethod("GetStationByStationId", BindingFlags.Instance | BindingFlags.NonPublic);
             }
+          
             //    Core.Log.Info(2);
             if (!MappedStations.ContainsKey(blockId) && !MappedContractBlocks.ContainsKey(blockId))
             {
-
+                
                 MyStation stat = null;
                 object[] MethodInput = new object[] { blockId };
                 var result = GetByStationId.Invoke(MySession.Static.Factions, MethodInput);
