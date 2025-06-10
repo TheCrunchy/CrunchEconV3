@@ -103,7 +103,7 @@ namespace CrunchEconV3.Utils
                         using (StreamReader streamReader = new StreamReader(fileStream))
                         {
                             string text = streamReader.ReadToEnd();
-                            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(text);
+                            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(text, path:filePath);
                             trees.Add(syntaxTree);
                         }
                     }
@@ -162,10 +162,25 @@ namespace CrunchEconV3.Utils
                 {
                     Console.WriteLine("Compilation failed:");
                     Core.CompileFailed = true;
-                    foreach (var diagnostic in result.Diagnostics)
+                    foreach (var diagnostic in result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error))
                     {
-                        Core.Log.Error(diagnostic);
+                        var location = diagnostic.Location;
+                        string filePath = "unknown file";
+
+                        if (location.IsInSource)
+                        {
+                            var syntaxTree = location.SourceTree;
+                            filePath = syntaxTree?.FilePath ?? "unknown file";
+                        }
+
+                        var lineSpan = location.GetLineSpan().StartLinePosition;
+                        int line = lineSpan.Line + 1;
+                        int character = lineSpan.Character + 1;
+
+                        Core.Log.Error($"{filePath}({line},{character}): {diagnostic.Id}: {diagnostic.GetMessage()}");
                     }
+
+
 
                     return true;
                 }

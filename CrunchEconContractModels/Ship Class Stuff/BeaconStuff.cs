@@ -18,6 +18,7 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
     public static class BeaconStuff
     {
         private static List<MyBeacon> Beacons = new List<MyBeacon>();
+        private static List<MyGyro> Gyros = new List<MyGyro>();
         private static int PatchCount = 0;
         public static void Patch(PatchContext ctx)
         {
@@ -54,24 +55,59 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
             if (ticks % 60 == 0)
             {
 
-                foreach (var beacon in Beacons)
+                //foreach (var beacon in Beacons)
+                //{
+                //    try
+                //    {
+
+                //        FieldInfo fieldInfo = beacon.GetType()
+                //            .GetField("m_radius", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                //        if (fieldInfo != null)
+                //        {
+                //            // Access the value of the field
+                //            VRage.Sync.Sync<float, SyncDirection.BothWays> fieldValue =
+                //                (Sync<float, SyncDirection.BothWays>)fieldInfo.GetValue(beacon);
+                //            fieldValue.ValidateAndSet(1);
+                //            Core.Log.Info("attempting change on beacon");
+                //        }
+                //        else
+                //        {
+                //            Core.Log.Info("it was null");
+                //        }
+                //    }
+                //    catch (Exception e)
+                //    {
+
+                //    }
+                //}
+
+                foreach (var gyro in Gyros)
                 {
-                    FieldInfo fieldInfo = beacon.GetType()
-                        .GetField("m_radius", BindingFlags.NonPublic | BindingFlags.Instance);
+                    try
+                    {
+
+                        FieldInfo fieldInfo = gyro.GetType()
+                        .GetField("m_gyroOverride", BindingFlags.NonPublic | BindingFlags.Instance);
 
                     if (fieldInfo != null)
                     {
                         // Access the value of the field
                         VRage.Sync.Sync<float, SyncDirection.BothWays> fieldValue =
-                            (Sync<float, SyncDirection.BothWays>)fieldInfo.GetValue(beacon);
+                            (Sync<float, SyncDirection.BothWays>)fieldInfo.GetValue(gyro);
                         fieldValue.ValidateAndSet(1);
-                        Core.Log.Info("attempting change");
+                        Core.Log.Info("attempting change on gyro");
                     }
                     else
                     {
                         Core.Log.Info("it was null");
                     }
+                    }
+                catch (Exception e)
+                {
+
                 }
+            }
             }
         }
         private static void OnEntityAdd(IMyEntity entity)
@@ -94,6 +130,12 @@ namespace CrunchEconContractModels.Ship_Class_Stuff
                 Core.Log.Info("Beacon");
                 var asBeacon = beacon as MyBeacon;
                 Beacons.Add(asBeacon);
+            }
+            if (block.FatBlock is IMyGyro gyro)
+            {
+                Core.Log.Info("gyro");
+                var asBeacon = gyro as MyGyro;
+                Gyros.Add(asBeacon);
             }
         }
     }
