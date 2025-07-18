@@ -189,7 +189,10 @@ namespace CrunchEconContractModels.DynamicEconomy
                 {
                     return false;
                 }
-
+                if (myStoreItem.IsCustomStoreItem || myStoreItem.ItemType == ItemTypes.Hydrogen || myStoreItem.ItemType == ItemTypes.Oxygen || myStoreItem.ItemType == ItemTypes.Grid)
+                {
+                    return true;
+                }
                 if (!PossibleLogs.ContainsKey(id))
                 {
                     PossibleLogs.Add(id,
