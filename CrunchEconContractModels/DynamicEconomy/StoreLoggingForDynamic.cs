@@ -15,6 +15,7 @@ using Sandbox.Game.GameSystems.BankingAndCurrency;
 using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
 using Torch.Managers.PatchManager;
+using VRage.Game.ObjectBuilders.Definitions;
 using VRage.Network;
 
 namespace CrunchEconContractModels.DynamicEconomy
@@ -154,7 +155,7 @@ namespace CrunchEconContractModels.DynamicEconomy
 
                     return true;
                 }
-                if (storeItem.IsCustomStoreItem)
+                if (storeItem.IsCustomStoreItem || storeItem.ItemType == ItemTypes.Hydrogen || storeItem.ItemType == ItemTypes.Oxygen || storeItem.ItemType == ItemTypes.Grid)
                 {
                     return true;
                 }
