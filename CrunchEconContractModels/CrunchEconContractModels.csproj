@@ -128,6 +128,7 @@
     <Compile Include="ProductionBuffs\RefineryPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Prozon\ProzonItemHeistContract.cs" />
+    <Compile Include="Prozon\VermilionNearestEcon.cs" />
     <Compile Include="Prozon\ReputationLogging.cs" />
     <Compile Include="Random Stuff\BlockandGridBuy %281%29.cs" />
     <Compile Include="Random Stuff\BlockBuyingButton.cs" />

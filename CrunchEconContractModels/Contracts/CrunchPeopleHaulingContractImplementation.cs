@@ -32,6 +32,10 @@ namespace CrunchEconContractModels.Contracts
         public int DeadPassengers { get; set; }
         public double PercentDeathsPerFail { get; set; } = 0.1;
         public double BaseRewardPerPassenger { get; set; }
+
+
+        public long PlayersGridId { get; set; }
+
         public MyObjectBuilder_Contract BuildUnassignedContract(string descriptionOverride = "")
         {
             string definition = this.DefinitionId;
@@ -129,21 +133,28 @@ namespace CrunchEconContractModels.Contracts
             var grids = new List<IMyCubeGrid>();
             test.GetGrids(grids);
             var capacity = 0;
+            MyCubeGrid ownedGrid = null;
             foreach (var gridInGroup in grids)
             {
 
                 var owner = FacUtils.IsOwnerOrFactionOwned(gridInGroup as MyCubeGrid, identityId, true);
                 if (owner)
                 {
-                    capacity += PassengerTransportUtils.GetPassengerCount(gridInGroup as MyCubeGrid, this);
+                    var asCube = gridInGroup as MyCubeGrid;
+                    capacity += PassengerTransportUtils.GetPassengerCount(asCube, this);
+                    if (ownedGrid == null || ownedGrid.BlocksCount < asCube.BlocksCount)
+                    {
+                        ownedGrid = asCube;
+                    }
                 }
             }
 
+        
             if (capacity <= 0)
             {
                 return Tuple.Create(false, MyContractResults.Fail_ActivationConditionsNotMet_InsufficientSpace);
             }
-
+            PlayersGridId = ownedGrid.EntityId;
             var max = capacity;
             var calculated = MySession.Static.Factions.GetRelationBetweenPlayerAndFaction(identityId,
                     this.FactionId);
@@ -317,7 +328,10 @@ namespace CrunchEconContractModels.Contracts
                 .Where(x => x.BlocksCount > 0 && FacUtils.IsOwnerOrFactionOwned(x, this.AssignedPlayerIdentityId, true)).ToList();
 
             var passengerCount = 0;
-
+            if (playersGrids.All(x => x.EntityId != PlayersGridId))
+            {
+                return false;
+            }
             foreach (var grid in playersGrids)
             {
                 passengerCount += PassengerTransportUtils.GetPassengerCount(grid, this);
