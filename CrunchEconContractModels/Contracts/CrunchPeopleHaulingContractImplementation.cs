@@ -90,7 +90,7 @@ namespace CrunchEconContractModels.Contracts
         {
             if (this.DeliverLocation.Equals(Vector3.Zero))
             {
-                Core.Log.Error("Error getting a delivery point for this contract");
+             //   Core.Log.Error("Error getting a delivery point for this contract");
                 return Tuple.Create(false, MyContractResults.Error_InvalidData);
             }
             if (this.ReputationRequired != 0)
