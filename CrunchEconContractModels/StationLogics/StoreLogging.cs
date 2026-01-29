@@ -100,7 +100,7 @@ namespace CrunchEconContractModels.StationLogics
 			if (result == MyStoreSellItemResults.Success && PossibleLogs.ContainsKey(id))
 			{
 				log.Info(PossibleLogs[id]);
-				//InsertLogIntoDatabase(id); // pass the id directly
+				
 			}
 			PossibleLogs.Remove(id);
 
@@ -114,38 +114,6 @@ namespace CrunchEconContractModels.StationLogics
 				//InsertLogIntoDatabase(id); // pass the id directly
 			}
 			PossibleLogs.Remove(id);
-		}
-
-		private static void InsertLogIntoDatabase(long id)
-		{
-			if (PossibleLogs.ContainsKey(id))
-			{
-				var logData = PossibleLogs[id];
-
-				log.Info(logData);
-
-                // Define a regex pattern to match each field from the log data
-                string pattern =
-                    @"SteamId:(?<SteamId>\d+),action:(?<Action>\w+),Amount:(?<Amount>\d+),TypeId:(?<TypeId>[\w_]+),SubTypeId:(?<SubTypeId>[\w]+),TotalMoney:(?<TotalMoney>\d+),GridId:(?<GridId>\d+),FacTag:(?<FacTag>\w+),GridName:(?<GridName>[\w\s\[\]]+)";
-
-                // Execute regex matching
-                var match = Regex.Match(logData, pattern);
-
-                if (match.Success)
-                {
-                    // Extract each variable from the match
-                    long steamId = long.Parse(match.Groups["SteamId"].Value);
-                    string action = match.Groups["Action"].Value;
-                    int amount = int.Parse(match.Groups["Amount"].Value);
-                    string typeId = match.Groups["TypeId"].Value;
-                    string subTypeId = match.Groups["SubTypeId"].Value;
-                    long totalMoney = long.Parse(match.Groups["TotalMoney"].Value);
-                    long gridId = long.Parse(match.Groups["GridId"].Value);
-                    string facTag = match.Groups["FacTag"].Value;
-                    string gridName = match.Groups["GridName"].Value;
-
-                }
-            }
 		}
 
 		public static Boolean StorePatchMethod(long id,

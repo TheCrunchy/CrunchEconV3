@@ -116,6 +116,7 @@
     <Compile Include="Contracts\testing.cs" />
     <Compile Include="Patches\ChatPatch.cs" />
     <Compile Include="Patches\ContractNullChecker.cs" />
+    <Compile Include="Patches\ReputationPatch.cs" />
     <Compile Include="ProductionBuffs\AssemblerPatch.cs" />
     <Compile Include="ProductionBuffs\DrillYieldPatch.cs" />
     <Compile Include="ProductionBuffs\ProductionContractLogger.cs" />

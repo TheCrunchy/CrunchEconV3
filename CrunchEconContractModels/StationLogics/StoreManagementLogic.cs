@@ -41,6 +41,8 @@ using VRage.ObjectBuilders;
 using VRage.Utils;
 using VRageMath;
 using IMyCubeBlock = VRage.Game.ModAPI.IMyCubeBlock;
+using IMyCubeGrid = VRage.Game.ModAPI.IMyCubeGrid;
+using IMyGasTank = Sandbox.ModAPI.IMyGasTank;
 using IMyInventory = VRage.Game.ModAPI.IMyInventory;
 
 namespace CrunchEconContractModels.StationLogics
@@ -210,8 +212,12 @@ namespace CrunchEconContractModels.StationLogics
             {
                 stored.AmountToBuyMax = thing.Amount;
                 stored.AmountToBuyMin = thing.Amount;
-                stored.Type = thing.Item.Value.TypeIdString;
-                stored.Subtype = thing.Item.Value.SubtypeId;
+                if (thing?.Item != null)
+                {
+                    stored.Type = thing?.Item.Value.TypeIdString;
+                    stored.Subtype = thing?.Item.Value.SubtypeId;
+                }
+
                 stored.SellToPlayerPriceMax = thing.PricePerUnit;
                 stored.SellToPlayerPriceMax = thing.PricePerUnit;
                 stored.SpawnIfBelowThisQuantity = thing.Amount;
@@ -222,10 +228,15 @@ namespace CrunchEconContractModels.StationLogics
 
             if (thing.StoreItemType == StoreItemTypes.Order)
             {
+                
                 stored.AmountToSellMax = thing.Amount;
                 stored.AmountToSellMin = thing.Amount;
-                stored.Type = thing.Item.Value.TypeIdString;
-                stored.Subtype = thing.Item.Value.SubtypeId;
+                if (thing?.Item != null)
+                {
+                    stored.Type = thing?.Item.Value.TypeIdString;
+                    stored.Subtype = thing?.Item.Value.SubtypeId;
+                }
+
                 stored.BuyFromPlayerPriceMax = thing.PricePerUnit;
                 stored.BuyFromPlayerPriceMax = thing.PricePerUnit;
                 stored.SpawnIfBelowThisQuantity = thing.Amount;
@@ -420,7 +431,7 @@ namespace CrunchEconContractModels.StationLogics
                     try
                     {
                         DoBuy(item, store, quantity, inventories);
-                        DoSell(item, store, quantity, inventories);
+                        DoSell(item, store, quantity, inventories, grid);
                     }
                     catch (Exception e)
                     {
@@ -485,7 +496,7 @@ namespace CrunchEconContractModels.StationLogics
             }
         }
 
-        public void DoSell(StoreEntryModel item, MyStoreBlock store, MyFixedPoint quantityInGrid, List<IMyInventory> gridInventories)
+        public void DoSell(StoreEntryModel item, MyStoreBlock store, MyFixedPoint quantityInGrid, List<IMyInventory> gridInventories, MyCubeGrid grid)
         {
             var skip = false;
             if (!item.SellToPlayers) return;
@@ -584,6 +595,41 @@ namespace CrunchEconContractModels.StationLogics
                         gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Offer, ItemTypes.Oxygen);
                         break;
                 }
+
+                if (item.GasFromTanks)
+                {
+                    var gridOwnerFac = FacUtils.GetOwner(grid);
+                    var IMyCubeGrid = grid as IMyCubeGrid;
+                    var tanks = IMyCubeGrid.GetFatBlocks<IMyGasTank>().Where(x => x.OwnerId == gridOwnerFac).ToList();
+                    var finalTanks = new List<Sandbox.ModAPI.IMyGasTank>();
+
+                    if (!string.IsNullOrWhiteSpace(item.GasTankNamesCommaSeperated))
+                    {
+                        var names = item.GasTankNamesCommaSeperated.Split(',');
+                        foreach (var name in names)
+                        {
+                            finalTanks.AddRange(tanks.Where(x => x.DisplayNameText != null && x.DisplayNameText == name));
+                        }
+                    }
+                    else
+                    {
+                        finalTanks = tanks;
+                    }
+
+                    var tankGroup = TankHelperModAPIVersion.MakeTankGroup(finalTanks, gridOwnerFac, 0, item.GasSubType);
+                    var inTanks = (int)(tankGroup.GasInTanks / 1000);
+                    if (inTanks >= 1)
+                    {
+                        gasItem.Amount = inTanks;
+                    }
+                    else
+                    {
+                        return;
+                    }
+            
+
+                }
+
                 gasItem.IsCustomStoreItem = true;
                 store.PlayerItems.Add(gasItem);
                 return;
@@ -725,6 +771,8 @@ namespace CrunchEconContractModels.StationLogics
         public bool IsGas = false;
         public string GasSubType = "Hydrogen";
         public string PrefabSubType = "Subtypehere";
+        public bool GasFromTanks = false;
+        public string GasTankNamesCommaSeperated = "";
         public string Type { get; set; } = "MyObjectBuilder_Ingot";
         public string Subtype { get; set; } = "Iron";
         public bool BuyFromPlayers { get; set; } = false;
