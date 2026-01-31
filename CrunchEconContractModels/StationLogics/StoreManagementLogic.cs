@@ -228,7 +228,7 @@ namespace CrunchEconContractModels.StationLogics
 
             if (thing.StoreItemType == StoreItemTypes.Order)
             {
-                
+
                 stored.AmountToSellMax = thing.Amount;
                 stored.AmountToSellMin = thing.Amount;
                 if (thing?.Item != null)
@@ -343,6 +343,26 @@ namespace CrunchEconContractModels.StationLogics
             return inventories;
         }
 
+        public int CountGasAmount(MyStoreBlock store, string gasType)
+        {
+            var count = 0;
+
+            foreach (MyStoreItem item in store.PlayerItems)
+            {
+                if (item.ItemType == ItemTypes.Hydrogen && gasType == "Hydrogen")
+                {
+                    count += item.Amount;
+                }
+                if (item.ItemType == ItemTypes.Oxygen && gasType == "Oxygen")
+                {
+                    count += item.Amount;
+                }
+            }
+
+
+            return count;
+        }
+
         public void ClearStoreOfPlayersBuyingOffers(MyStoreBlock store)
         {
 
@@ -412,13 +432,17 @@ namespace CrunchEconContractModels.StationLogics
                 {
                     continue;
                 }
-
+                var oxygenAmount = CountGasAmount(store, "Oxygen");
+                var hydrogenAmount = CountGasAmount(store, "Hydrogen");
                 ClearStoreOfPlayersBuyingOffers(store);
                 var items = StoreItemsHandler.GetByBlockName(store.DisplayNameText);
                 if (DebugMessages)
                 {
                     Core.Log.Error($"Checking {items.Count} entries");
                 }
+
+          
+
                 foreach (var item in items)
                 {
                     if (!MyDefinitionId.TryParse(item.Type, item.Subtype, out MyDefinitionId id))
@@ -431,7 +455,7 @@ namespace CrunchEconContractModels.StationLogics
                     try
                     {
                         DoBuy(item, store, quantity, inventories);
-                        DoSell(item, store, quantity, inventories, grid);
+                        DoSell(item, store, quantity, inventories, grid, oxygenAmount, hydrogenAmount);
                     }
                     catch (Exception e)
                     {
@@ -496,7 +520,7 @@ namespace CrunchEconContractModels.StationLogics
             }
         }
 
-        public void DoSell(StoreEntryModel item, MyStoreBlock store, MyFixedPoint quantityInGrid, List<IMyInventory> gridInventories, MyCubeGrid grid)
+        public void DoSell(StoreEntryModel item, MyStoreBlock store, MyFixedPoint quantityInGrid, List<IMyInventory> gridInventories, MyCubeGrid grid, int oxygenAmount, int hydrogenAmount)
         {
             var skip = false;
             if (!item.SellToPlayers) return;
@@ -586,13 +610,16 @@ namespace CrunchEconContractModels.StationLogics
             {
                 long gasId = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
                 MyStoreItem gasItem = null;
+                var existingAmount = 0;
                 switch (item.GasSubType.ToLower())
                 {
                     case "hydrogen":
                         gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Offer, ItemTypes.Hydrogen);
+                        existingAmount += hydrogenAmount;
                         break;
                     case "oxygen":
                         gasItem = new MyStoreItem(gasId, amount, price, StoreItemTypes.Offer, ItemTypes.Oxygen);
+                        existingAmount += oxygenAmount;
                         break;
                 }
 
@@ -618,18 +645,24 @@ namespace CrunchEconContractModels.StationLogics
 
                     var tankGroup = TankHelperModAPIVersion.MakeTankGroup(finalTanks, gridOwnerFac, 0, item.GasSubType);
                     var inTanks = (int)(tankGroup.GasInTanks / 1000);
+
                     if (inTanks >= 1)
                     {
-                        gasItem.Amount = inTanks;
+                        TankHelperModAPIVersion.RemoveGasFromTanksInGroup(tankGroup, inTanks * 1000);
+                        gasItem.Amount = inTanks + existingAmount;
                     }
                     else
                     {
-                        return;
+                        gasItem.Amount = existingAmount;
                     }
-            
+
 
                 }
 
+                if (gasItem.Amount == 0)
+                {
+                    return;
+                }
                 gasItem.IsCustomStoreItem = true;
                 store.PlayerItems.Add(gasItem);
                 return;
