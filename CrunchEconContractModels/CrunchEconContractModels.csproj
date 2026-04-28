@@ -96,6 +96,7 @@
   <ItemGroup>
     <Compile Include="Contracts\BuyReputationContractImplementation.cs" />
     <Compile Include="Contracts\CrunchGiveGasContractImplementation.cs" />
+    <Compile Include="Contracts\CrunchGridDeathCombatContractImplementation DarkFR.cs" />
     <Compile Include="Contracts\NewStuff\Combat\CrunchCombatContractImplementation.cs" />
     <Compile Include="Contracts\CrunchGridDeathCombatContractImplementation.cs" />
     <Compile Include="Contracts\CrunchItemHaulingContractImplementation.cs" />

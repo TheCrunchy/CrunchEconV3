@@ -441,7 +441,7 @@ namespace CrunchEconContractModels.StationLogics
                     Core.Log.Error($"Checking {items.Count} entries");
                 }
 
-          
+
 
                 foreach (var item in items)
                 {
@@ -625,6 +625,7 @@ namespace CrunchEconContractModels.StationLogics
 
                 if (item.GasFromTanks)
                 {
+
                     var gridOwnerFac = FacUtils.GetOwner(grid);
                     var IMyCubeGrid = grid as IMyCubeGrid;
                     var tanks = IMyCubeGrid.GetFatBlocks<IMyGasTank>().Where(x => x.OwnerId == gridOwnerFac).ToList();
@@ -646,7 +647,7 @@ namespace CrunchEconContractModels.StationLogics
                     var tankGroup = TankHelperModAPIVersion.MakeTankGroup(finalTanks, gridOwnerFac, 0, item.GasSubType);
                     var inTanks = (int)(tankGroup.GasInTanks / 1000);
 
-                    if (inTanks >= 1)
+                    if (item.AmountToSellMax > existingAmount && inTanks >= 1)
                     {
                         TankHelperModAPIVersion.RemoveGasFromTanksInGroup(tankGroup, inTanks * 1000);
                         gasItem.Amount = inTanks + existingAmount;
@@ -655,8 +656,6 @@ namespace CrunchEconContractModels.StationLogics
                     {
                         gasItem.Amount = existingAmount;
                     }
-
-
                 }
 
                 if (gasItem.Amount == 0)
