@@ -342,7 +342,7 @@ namespace CrunchEconContractModels.Contracts.MES
             GridsToDestroy = new List<GridDestruction>() { new GridDestruction() };
         }
 
-        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation,
+        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, IMyFactionStation keenstation,
             long idUsedForDictionary)
         {
             if (this.ChanceToAppear < 1)
@@ -391,7 +391,7 @@ namespace CrunchEconContractModels.Contracts.MES
 
 
 
-        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
+        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, IMyFactionStation keenstation,
             long idUsedForDictionary)
         {
             var min = 100 * 1000;

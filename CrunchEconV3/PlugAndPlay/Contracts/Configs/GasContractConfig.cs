@@ -6,6 +6,7 @@ using CrunchEconV3.Interfaces;
 using CrunchEconV3.PlugAndPlay.Helpers;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
+using VRage.Game.ModAPI;
 using VRageMath;
 
 namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
@@ -15,7 +16,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
         //check the discord for documentation on what each thing in the interface does 
         //https://discord.gg/cQFJeKvVAA
 
-        public override ICrunchContract GenerateTheRest(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public override ICrunchContract GenerateTheRest(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             if (this.ChanceToAppear < 1)
             {

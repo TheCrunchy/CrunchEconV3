@@ -10,6 +10,7 @@ using CrunchEconV3;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
 using Torch.Managers.PatchManager;
+using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Definitions;
 
 namespace CrunchEconContractModels.DynamicEconomy
@@ -33,7 +34,7 @@ namespace CrunchEconContractModels.DynamicEconomy
                 var itemsToSend = new List<KeenNPCStoreEntry>();
                 foreach (KeyValuePair<long, MyFaction> faction in MySession.Static.Factions)
                 {
-                    foreach (MyStation station in faction.Value.Stations)
+                    foreach (MyFactionStation station in faction.Value.Stations)
                     {
                         if (station.StoreItems == null)
                         {
@@ -56,7 +57,7 @@ namespace CrunchEconContractModels.DynamicEconomy
                 SendStoreData(itemsToSend);
             }
         }
-        public static KeenNPCStoreEntry ToKeenNPCStoreEntry(MyStoreItem Item,MyStation station, string ownerFactionTag)
+        public static KeenNPCStoreEntry ToKeenNPCStoreEntry(MyStoreItem Item,IMyFactionStation station, string ownerFactionTag)
         {
             return new KeenNPCStoreEntry
             {

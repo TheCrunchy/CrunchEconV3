@@ -652,7 +652,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
             MyStoreItemData itemInsert =
                 new MyStoreItemData(itemId, amountToSpawn, calcedPrice,
-                    null, null);
+                    null, null, null);
 
             MyStoreInsertResults result =
                 Store.InsertOffer(itemInsert,
@@ -715,7 +715,7 @@ namespace CrunchEconV3.PlugAndPlayV2.StationLogics
 
             MyStoreItemData itemInsert =
                 new MyStoreItemData(itemId, amount, calcedPrice,
-                    null, null);
+                    null, null, null);
 
             MyStoreInsertResults result =
                 Store.InsertOrder(itemInsert,

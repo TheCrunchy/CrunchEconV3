@@ -19,6 +19,7 @@ using Torch.Mod;
 using Torch.Mod.Messages;
 using VRage;
 using VRage.Game;
+using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRage.Network;
 using VRage.ObjectBuilder;
@@ -43,8 +44,8 @@ namespace CrunchEconV3.Patches
 
         internal static readonly MethodInfo minprices =
             typeof(MySessionComponentEconomy).GetMethod("GetMinimumItemPrice",
-                BindingFlags.Instance | BindingFlags.NonPublic) ??
-            throw new Exception("Failed to find patch method contract");
+                BindingFlags.Instance | BindingFlags.Public) ??
+            throw new Exception("Failed to find patch method contract 1");
         internal static readonly MethodInfo minPricesPatch =
             typeof(ContractPatches).GetMethod(nameof(GetMinimumItemPrice), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
@@ -53,7 +54,7 @@ namespace CrunchEconV3.Patches
         internal static readonly MethodInfo contract =
             typeof(MyContractBlock).GetMethod("AcceptContract",
                 BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(long), typeof(long) }, null) ??
-            throw new Exception("Failed to find patch method contract");
+            throw new Exception("Failed to find patch method contract 2");
         internal static readonly MethodInfo contractPatch =
             typeof(ContractPatches).GetMethod(nameof(PatchContract), BindingFlags.Static | BindingFlags.Public) ??
             throw new Exception("Failed to find patch method");
@@ -61,7 +62,7 @@ namespace CrunchEconV3.Patches
         internal static readonly MethodInfo abandonContract =
             typeof(MyContractBlock).GetMethod("AbandonContract",
                 BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(long), typeof(long) }, null) ??
-            throw new Exception("Failed to find patch method contract");
+            throw new Exception("Failed to find patch method contract 3");
 
         internal static readonly MethodInfo abandonContractPatch =
             typeof(ContractPatches).GetMethod(nameof(PatchAbandonContract), BindingFlags.Static | BindingFlags.Public) ??
@@ -70,17 +71,17 @@ namespace CrunchEconV3.Patches
         internal static readonly MethodInfo getContracts =
             typeof(MySessionComponentContractSystem).GetMethod("GetActiveContractsForPlayer_OB",
                 BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(long) }, null) ??
-            throw new Exception("Failed to find patch method contract");
+            throw new Exception("Failed to find patch method contract 4");
 
         internal static readonly MethodInfo getContracsForBlock =
             typeof(MySessionComponentContractSystem).GetMethod("GetAvailableContractsForBlock_OB",
                 BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(long) }, null) ??
-            throw new Exception("Failed to find patch method contract");
+            throw new Exception("Failed to find patch method contract 5");
 
         internal static readonly MethodInfo getContractsStation =
             typeof(MySessionComponentContractSystem).GetMethod("GetAvailableContractsForStation_OB",
-                BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(long) }, null) ??
-            throw new Exception("Failed to find patch method contract");
+                BindingFlags.Instance | BindingFlags.NonPublic, null, new Type[] { typeof(long), typeof(MyIdentity) }, null) ??
+            throw new Exception("Failed to find patch method contract 6");
 
         internal static readonly MethodInfo getContractPatch =
             typeof(ContractPatches).GetMethod(nameof(PatchGetContract), BindingFlags.Static | BindingFlags.Public) ??
@@ -97,11 +98,11 @@ namespace CrunchEconV3.Patches
         internal static readonly MethodInfo ActivateContract =
             typeof(MySessionComponentContractSystem).GetMethod("ActivateContract",
                 BindingFlags.Instance | BindingFlags.NonPublic) ??
-            throw new Exception("Failed to find patch method contract");
+            throw new Exception("Failed to find patch method contract 7");
 
         internal static readonly MethodInfo contractResultPatch =
             typeof(ContractPatches).GetMethod(nameof(ActivateContractPatch), BindingFlags.Static | BindingFlags.Public) ??
-            throw new Exception("Failed to find patch method");
+            throw new Exception("Failed to find patch method 8");
 
         public static void ActivateContractPatch(
             long identityId,
@@ -133,7 +134,7 @@ namespace CrunchEconV3.Patches
 
 
 
-        public static void PatchGetContractForStation(MySessionComponentContractSystem __instance, long stationId,
+        public static void PatchGetContractForStation(MySessionComponentContractSystem __instance, long stationId, MyIdentity identity,
             ref List<MyObjectBuilder_Contract> __result)
 
         {
@@ -382,7 +383,7 @@ namespace CrunchEconV3.Patches
                 return true;
             }
             var ID = __instance.EntityId;
-            MyStation keenstation = null;
+            IMyFactionStation keenstation = null;
             if (faction.Stations.Any(x => x.StationEntityId == __instance.CubeGrid.EntityId))
             {
                 keenstation = faction.Stations.FirstOrDefault(x => x.StationEntityId == __instance.CubeGrid.EntityId);

@@ -85,7 +85,7 @@ namespace CrunchEconV3.PlugAndPlay
 
             foreach (KeyValuePair<long, MyFaction> faction in MySession.Static.Factions)
             {
-                foreach (MyStation station in faction.Value.Stations)
+                foreach (MyFactionStation station in faction.Value.Stations)
                 {
                     if (station.StoreItems == null)
                     {
@@ -148,7 +148,7 @@ namespace CrunchEconV3.PlugAndPlay
             return true;
         }
 
-        private static void FillTheStores(List<StoreEntryModel> storesToUse, MyStation station)
+        private static void FillTheStores(List<StoreEntryModel> storesToUse, MyFactionStation station)
         {
             station.StoreItems.Clear();
             foreach (var item in storesToUse)
@@ -258,7 +258,7 @@ namespace CrunchEconV3.PlugAndPlay
             }
         }
 
-        private static void DoItemMapping(KeyValuePair<long, MyFaction> faction, MyStation station)
+        private static void DoItemMapping(KeyValuePair<long, MyFaction> faction, MyFactionStation station)
         {
             if (UpdatingStoreFiles)
             {
@@ -329,7 +329,7 @@ namespace CrunchEconV3.PlugAndPlay
             return stored;
         }
 
-        private static void MapItems(MyStation station, List<MyStoreItem> items)
+        private static void MapItems(MyFactionStation station, List<MyStoreItem> items)
         {
             if (station.StoreItems == null || !station.StoreItems.Any())
             {

@@ -15,6 +15,7 @@ using Sandbox.Game.World;
 using Torch.Managers.PatchManager;
 using Torch.Mod;
 using Torch.Mod.Messages;
+using VRage.Game.ModAPI;
 using VRage.Network;
 using VRageMath;
 
@@ -63,7 +64,7 @@ namespace CrunchEconContractModels.Random_Stuff
             ref int amount,
             MyPlayer player,
             MyAccountInfo playerAccountInfo,
-            MyStation station,
+            IMyFactionStation station,
             long targetEntityId,
             long lastEconomyTick)
 

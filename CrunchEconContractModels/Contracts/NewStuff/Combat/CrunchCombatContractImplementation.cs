@@ -514,7 +514,7 @@ namespace CrunchEconContractModels.Contracts.NewStuff.Combat
             GridsToDestroy = new List<GridDestruction>() { new GridDestruction() };
         }
 
-        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             if (this.ChanceToAppear < 1)
             {
@@ -562,7 +562,7 @@ namespace CrunchEconContractModels.Contracts.NewStuff.Combat
             return contract;
         }
 
-        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             var min = MinSpawnRangeInKM * 1000;
             var max = MaxSpawnRangeInKM * 1000;

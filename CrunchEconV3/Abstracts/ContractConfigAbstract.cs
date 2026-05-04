@@ -13,6 +13,7 @@ using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Sandbox.ModAPI.Ingame;
 using SpaceEngineers.Game.Entities.Blocks;
+using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
@@ -26,7 +27,7 @@ namespace CrunchEconV3.Abstracts
             DeliveryGPSes = new List<string>() { "Optional, not required, but put a gps here if you want" };
         }
 
-        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             var contract = GenerateTheRest(__instance, keenstation, idUsedForDictionary);
             if (contract == null)
@@ -75,9 +76,9 @@ namespace CrunchEconV3.Abstracts
             return contract;
         }
 
-        public abstract ICrunchContract GenerateTheRest(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary);
+        public abstract ICrunchContract GenerateTheRest(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary);
 
-        public virtual Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public virtual Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             //if any custom delivery gpses assigned use these
             if (this.DeliveryGPSes != null && this.DeliveryGPSes.Any())

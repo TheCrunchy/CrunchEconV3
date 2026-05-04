@@ -7,6 +7,7 @@ using CrunchEconV3.Utils;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.GameSystems;
 using Sandbox.Game.World;
+using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
@@ -20,7 +21,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
         public int MinSpawnRangeInKM { get; set; } = 50;
         public int MaxSpawnRangeInKM { get; set; } = 75;
 
-        public override ICrunchContract GenerateTheRest(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public override ICrunchContract GenerateTheRest(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             var contract = new RepairContractImplementation();
             var description = new StringBuilder();
@@ -39,7 +40,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             contract.Description = description.ToString();
             return contract;
         }
-        public override Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
+        public override Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, IMyFactionStation keenstation,
           long idUsedForDictionary)
         {
             var min = MinSpawnRangeInKM;

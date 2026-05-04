@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 using Sandbox.Game;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
+using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRageMath;
 
@@ -177,7 +178,7 @@ namespace CrunchEconContractModels.Contracts.Quests
 
     public class CrunchQuestContractConfig : ContractConfigAbstract
     {
-        public override ICrunchContract GenerateTheRest(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public override ICrunchContract GenerateTheRest(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             if (this.ChanceToAppear < 1)
             {

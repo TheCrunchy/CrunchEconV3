@@ -8,6 +8,7 @@ using CrunchEconV3.PlugAndPlay.Helpers;
 using CrunchEconV3.Utils;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
+using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
@@ -22,7 +23,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             DeliveryGPSes = new List<string>() { "Not used for this contract type" };
             OresToPickFrom = new List<string>() { "Iron", "Nickel", "Gold", "Silver" };
         }
-        public override ICrunchContract GenerateTheRest(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public override ICrunchContract GenerateTheRest(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             if (this.ChanceToAppear < 1)
             {
@@ -66,7 +67,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             return contract;
         }
 
-        public override Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
+        public override Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, IMyFactionStation keenstation,
             long idUsedForDictionary)
         {
             if (keenstation != null)

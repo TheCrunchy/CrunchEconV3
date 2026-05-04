@@ -19,7 +19,7 @@ namespace CrunchEconV3.Handlers
     public static class ContractAcceptor
     {
         public static Tuple<bool, MyContractResults> TryAcceptContract(ICrunchContract contract,
-            CrunchPlayerData playerData, long identityId, MyContractBlock __instance, MyStation keenstation,
+            CrunchPlayerData playerData, long identityId, MyContractBlock __instance, IMyFactionStation keenstation,
             long contractDictionaryId)
         {
             var result = contract.TryAcceptContract(playerData, identityId, __instance);

@@ -245,7 +245,7 @@ namespace CrunchEconContractModels.Prozon
             };
         }
 
-        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             if (this.ChanceToAppear < 1)
             {
@@ -294,7 +294,7 @@ namespace CrunchEconContractModels.Prozon
             contract.Description = description.ToString();
             return contract;
         }
-        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             List<Tuple<Vector3D, long>> availablePositions = new List<Tuple<Vector3D, long>>();
 
@@ -329,7 +329,7 @@ namespace CrunchEconContractModels.Prozon
             return availablePositions.GetRandomItemFromList() ?? Tuple.Create(Vector3D.Zero, 0l);
         }
 
-        public Tuple<Vector3D, long> GetLocation(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public Tuple<Vector3D, long> GetLocation(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             if (this.DeliveryGPSes.Any())
             {

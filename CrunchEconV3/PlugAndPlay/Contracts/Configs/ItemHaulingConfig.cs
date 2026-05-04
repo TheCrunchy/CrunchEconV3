@@ -7,6 +7,7 @@ using CrunchEconV3.Interfaces;
 using CrunchEconV3.PlugAndPlay.Models;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
+using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
@@ -14,7 +15,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
 {
     public class ItemHaulingConfig : ContractConfigAbstract
     {
-        public override ICrunchContract GenerateTheRest(MyContractBlock __instance, MyStation keenstation,
+        public override ICrunchContract GenerateTheRest(MyContractBlock __instance, IMyFactionStation keenstation,
             long idUsedForDictionary)
         {
             if (this.ChanceToAppear < 1)

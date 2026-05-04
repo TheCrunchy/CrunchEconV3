@@ -145,7 +145,7 @@ namespace CrunchEconContractModels.StationLogics
 
             foreach (KeyValuePair<long, MyFaction> faction in MySession.Static.Factions)
             {
-                foreach (MyStation station in faction.Value.Stations)
+                foreach (MyFactionStation station in faction.Value.Stations)
                 {
                     if (station.StoreItems == null)
                     {
@@ -497,7 +497,7 @@ namespace CrunchEconContractModels.StationLogics
 
             MyStoreItemData itemInsert =
                 new MyStoreItemData(itemId, amount, price,
-                    null, null);
+                    null, null, null);
 
             MyStoreInsertResults result =
                 store.InsertOrder(itemInsert,
@@ -670,7 +670,7 @@ namespace CrunchEconContractModels.StationLogics
             {
                 MyStoreItemData itemInsert =
                     new MyStoreItemData(itemId, amount, price,
-                        null, null);
+                        null, null, null);
 
                 MyStoreInsertResults result =
                     store.InsertOffer(itemInsert,

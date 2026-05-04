@@ -51,7 +51,7 @@ namespace CrunchEconContractModels.Random_Stuff
             int amount = 50000;
             foreach (KeyValuePair<long, MyFaction> faction in MySession.Static.Factions)
             {
-                foreach (MyStation station in faction.Value.Stations)
+                foreach (MyFactionStation station in faction.Value.Stations)
                 {
                     long newid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.STORE_ITEM, MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM);
                     MyStoreItem myStoreItem2 = new MyStoreItem(newid, amount, price, StoreItemTypes.Offer, ItemTypes.Grid);

@@ -20,8 +20,8 @@ namespace CrunchEconV3.Handlers
     {
         private static Dictionary<long, string> MappedContractBlocks = new Dictionary<long, string>();
         private static Dictionary<long, DateTime> RefreshAt = new Dictionary<long, DateTime>();
-        public static Dictionary<long, MyStation> MappedStations = new Dictionary<long, MyStation>();
-        public static List<MyStation> KeenStations = new List<MyStation>();
+        public static Dictionary<long, IMyFactionStation> MappedStations = new Dictionary<long, IMyFactionStation>();
+        public static List<IMyFactionStation> KeenStations = new List<IMyFactionStation>();
         public static Dictionary<long, List<ICrunchContract>> BlocksContracts = new Dictionary<long, List<ICrunchContract>>();
         public static List<IContractConfig> DefaultAvailables = new List<IContractConfig>();
 
@@ -244,12 +244,12 @@ namespace CrunchEconV3.Handlers
             if (!MappedStations.ContainsKey(blockId) && !MappedContractBlocks.ContainsKey(blockId))
             {
                 
-                MyStation stat = null;
+                IMyFactionStation stat = null;
                 object[] MethodInput = new object[] { blockId };
                 var result = GetByStationId.Invoke(MySession.Static.Factions, MethodInput);
                 if (result != null)
                 {
-                    stat = (MyStation)result;
+                    stat = (IMyFactionStation)result;
                 }
 
                 if (stat != null)

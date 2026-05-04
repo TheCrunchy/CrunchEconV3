@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CrunchEconV3.Models;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.World;
+using VRage.Game.ModAPI;
 using VRageMath;
 
 namespace CrunchEconV3.Interfaces
@@ -17,10 +18,10 @@ namespace CrunchEconV3.Interfaces
 
         //run this whenever you want to generate a delivery location, always null check the keen station!, the blockId may also be the stationId so dont assume its an entity you can grab 
         //this can return null if the contract fails to generate, example being it having a 10% chance to appear 
-        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary);
+        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary);
 
         //run this whenever you want to generate a delivery location, always null check the keen station!
-        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation,
+        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, IMyFactionStation keenstation,
             long idUsedForDictionary);
         public int AmountOfContractsToGenerate { get; set; }
         public long SecondsToComplete { get; set; }

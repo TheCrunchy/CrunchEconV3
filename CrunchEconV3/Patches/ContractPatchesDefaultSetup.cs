@@ -23,6 +23,7 @@ using Torch.Mod;
 using Torch.Mod.Messages;
 using VRage;
 using VRage.Game;
+using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRage.Network;
 using VRage.ObjectBuilder;
@@ -375,7 +376,7 @@ namespace CrunchEconV3.Patches
                 return true;
             }
             var ID = __instance.EntityId;
-            MyStation keenstation = null;
+            IMyFactionStation keenstation = null;
             if (faction.Stations.Any(x => x.StationEntityId == __instance.CubeGrid.EntityId))
             {
                 keenstation = faction.Stations.FirstOrDefault(x => x.StationEntityId == __instance.CubeGrid.EntityId);

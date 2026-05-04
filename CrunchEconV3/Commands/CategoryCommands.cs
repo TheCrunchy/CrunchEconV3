@@ -420,41 +420,5 @@ namespace CrunchEconV3.Commands
 
             Context.Respond($"Generated {generated} stations.");
         }
-
-        [Command("teststore", "test adding items to a keen NPC store")]
-        [Permission(MyPromoteLevel.Admin)]
-        public void TestStore()
-        {
-            if (!MyDefinitionId.TryParse("Ingot", "Iron", out MyDefinitionId id)) return;
-            SerializableDefinitionId itemId = new SerializableDefinitionId(id.TypeId, "Iron");
-
-            int price = 500;
-
-            int amount = 50000;
-
-            MyStoreItemData itemInsert =
-                new MyStoreItemData(itemId, amount, price,
-                    null, null);
-            ConcurrentBag<MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Group> gridWithSubGrids = GridFinder.FindLookAtGridGroup(Context.Player.Character);
-            List<MyCubeGrid> grids = new List<MyCubeGrid>();
-            foreach (var item in gridWithSubGrids)
-            {
-                foreach (MyGroups<MyCubeGrid, MyGridPhysicalGroupData>.Node groupNodes in item.Nodes)
-                {
-                    MyCubeGrid grid = groupNodes.NodeData;
-                    var station = MySession.Static.Factions.GetStationByGridId(grid.EntityId);
-                    if (station != null)
-                    {
-                        var storeid = MyEntityIdentifier.AllocateId(MyEntityIdentifier.ID_OBJECT_TYPE.CONTRACT,
-                            MyEntityIdentifier.ID_ALLOCATION_METHOD.RANDOM) + Core.random.Next(1, 200);
-                        MyStoreItem test = new MyStoreItem(storeid, itemId, amount, price, StoreItemTypes.Offer);
-                        station.StoreItems.Add(test);
-
-                    }
-
-                }
-            }
-            Context.Respond($"Done");
-        }
     }
 }

@@ -453,7 +453,7 @@ namespace CrunchEconContractModels.Contracts
             };
         }
 
-        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public ICrunchContract GenerateFromConfig(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             if (this.ChanceToAppear < 1)
             {
@@ -527,7 +527,7 @@ namespace CrunchEconContractModels.Contracts
             return contract;
         }
 
-        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, MyStation keenstation, long idUsedForDictionary)
+        public Tuple<Vector3D, long> AssignDeliveryGPS(MyContractBlock __instance, IMyFactionStation keenstation, long idUsedForDictionary)
         {
             if (keenstation != null)
             {
