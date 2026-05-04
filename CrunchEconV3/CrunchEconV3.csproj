@@ -305,6 +305,7 @@
     <Compile Include="PlugAndPlay\Prefabs\PrefabsTestCommands.cs" />
     <Compile Include="Utils\Compiler.cs" />
     <Compile Include="Utils\Econutils.cs" />
+    <Compile Include="Utils\FactionStationRewriter.cs" />
     <Compile Include="Utils\FacUtils.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Handlers\JsonPlayerStorageHandler.cs" />

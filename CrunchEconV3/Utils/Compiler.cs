@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Torch.API.Managers;
 using Torch.Commands;
 using Torch.Managers;
@@ -99,24 +100,22 @@ namespace CrunchEconV3.Utils
                 {
                     Core.Log.Error($"Compiling {filePath}");
                     using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (StreamReader streamReader = new StreamReader(fileStream))
                     {
-                        using (StreamReader streamReader = new StreamReader(fileStream))
-                        {
-                            string text = streamReader.ReadToEnd();
-                            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(text, path:filePath);
-                            trees.Add(syntaxTree);
-                        }
+                        string text = streamReader.ReadToEnd();
+                        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(text, path: filePath);
+                        trees.Add(syntaxTree);
                     }
                 }
-
             }
             catch (Exception e)
             {
                 Core.Log.Error($"Compiler file error {e}");
             }
+
             var compilation = CSharpCompilation.Create("MyAssembly")
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .AddReferences(GetRequiredRefernces()) // Add necessary references
+                .AddReferences(GetRequiredRefernces())
                 .AddSyntaxTrees(trees);
 
             using (MemoryStream memoryStream = new MemoryStream())
@@ -125,68 +124,156 @@ namespace CrunchEconV3.Utils
 
                 if (result.Success)
                 {
-                    Assembly assembly = Assembly.Load(memoryStream.ToArray());
+                    var assembly = Assembly.Load(memoryStream.ToArray());
                     Core.Log.Error("Compilation successful!");
                     Core.myAssemblies.Add(assembly);
 
-                    try
-                    {
-                        foreach (var type in assembly.GetTypes())
-                        {
-                            MethodInfo method = type.GetMethod("Patch", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
-                            if (method == null)
-                            {
-                                continue;
-                            }
-                            ParameterInfo[] ps = method.GetParameters();
-                            if (ps.Length != 1 || ps[0].IsOut || ps[0].IsOptional || ps[0].ParameterType.IsByRef ||
-                                ps[0].ParameterType != typeof(PatchContext) || method.ReturnType != typeof(void))
-                            {
-                                continue;
-                            }
-                            var context = patches.AcquireContext();
-                            method.Invoke(null, new object[] { context });
-                        }
-                        patches.Commit();
-                        foreach (var obj in assembly.GetTypes())
-                        {
-                            commands.RegisterCommandModule(obj);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Core.Log.Error($"{e}");
-                    }
+                    ExecuteAssembly(assembly, patches, commands);
+
+                    Core.CompileFailed = false;
+                    return true;
                 }
                 else
                 {
-                    Console.WriteLine("Compilation failed:");
-                    Core.CompileFailed = true;
-                    foreach (var diagnostic in result.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error))
-                    {
-                        var location = diagnostic.Location;
-                        string filePath = "unknown file";
+                    var needsFix = result.Diagnostics.Any(d =>
+                        d.Severity == DiagnosticSeverity.Error &&
+                        d.GetMessage().Contains("does not implement interface member") &&
+                        d.GetMessage().Contains("MyFactionStation"));
 
-                        if (location.IsInSource)
+                    if (needsFix)
+                    {
+                        var rewriter = new FactionStationRewriter();
+                        var newTrees = new List<SyntaxTree>();
+
+                        var errorFiles = result.Diagnostics
+                            .Where(d => d.Location.IsInSource)
+                            .Select(d => d.Location.SourceTree.FilePath)
+                            .ToHashSet();
+
+                        foreach (var tree in trees)
                         {
-                            var syntaxTree = location.SourceTree;
-                            filePath = syntaxTree?.FilePath ?? "unknown file";
+                            if (!errorFiles.Contains(tree.FilePath))
+                            {
+                                newTrees.Add(tree);
+                                continue;
+                            }
+
+                            var root = tree.GetCompilationUnitRoot();
+                            var newRoot = (CompilationUnitSyntax)rewriter.Visit(root);
+                            newRoot = EnsureUsing(newRoot);
+
+                            newTrees.Add(CSharpSyntaxTree.Create(newRoot, path: tree.FilePath));
                         }
 
-                        var lineSpan = location.GetLineSpan().StartLinePosition;
-                        int line = lineSpan.Line + 1;
-                        int character = lineSpan.Character + 1;
+                        // Rebuild compilation
+                        var retryCompilation = CSharpCompilation.Create("MyAssembly")
+                            .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                            .AddReferences(GetRequiredRefernces())
+                            .AddSyntaxTrees(newTrees);
 
-                        Core.Log.Error($"{filePath}({line},{character}): {diagnostic.Id}: {diagnostic.GetMessage()}");
+                        using (var retryStream = new MemoryStream())
+                        {
+                            var retryResult = retryCompilation.Emit(retryStream);
+
+                            if (retryResult.Success)
+                            {
+                                var assembly = Assembly.Load(retryStream.ToArray());
+                                Core.Log.Error("Recompilation successful after fix!");
+
+                                Core.myAssemblies.Add(assembly);
+
+                                ExecuteAssembly(assembly, patches, commands);
+
+                                Core.CompileFailed = false;
+                                return true;
+                            }
+                            else
+                            {
+                                Core.Log.Error("Recompilation still failed.");
+
+                                LogDiagnostics(retryResult.Diagnostics);
+                                Core.CompileFailed = true;
+                                return true;
+                            }
+                        }
                     }
 
-
-
+                    // No fix applied, log original errors
+                    LogDiagnostics(result.Diagnostics);
+                    Core.CompileFailed = true;
                     return true;
                 }
             }
-            Core.CompileFailed = false;
-            return true;
+        }
+
+        private static void ExecuteAssembly(Assembly assembly, PatchManager patches, CommandManager commands)
+        {
+            try
+            {
+                foreach (var type in assembly.GetTypes())
+                {
+                    MethodInfo method = type.GetMethod("Patch", BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static);
+                    if (method == null)
+                        continue;
+
+                    ParameterInfo[] ps = method.GetParameters();
+                    if (ps.Length != 1 || ps[0].IsOut || ps[0].IsOptional || ps[0].ParameterType.IsByRef ||
+                        ps[0].ParameterType != typeof(PatchContext) || method.ReturnType != typeof(void))
+                    {
+                        continue;
+                    }
+
+                    var context = patches.AcquireContext();
+                    method.Invoke(null, new object[] { context });
+                }
+
+                patches.Commit();
+
+                foreach (var obj in assembly.GetTypes())
+                {
+                    commands.RegisterCommandModule(obj);
+                }
+            }
+            catch (Exception e)
+            {
+                Core.Log.Error($"{e}");
+            }
+        }
+
+        private static void LogDiagnostics(IEnumerable<Diagnostic> diagnostics)
+        {
+            Console.WriteLine("Compilation failed:");
+
+            foreach (var diagnostic in diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error))
+            {
+                var location = diagnostic.Location;
+                string filePath = "unknown file";
+
+                if (location.IsInSource)
+                {
+                    var syntaxTree = location.SourceTree;
+                    filePath = syntaxTree?.FilePath ?? "unknown file";
+                }
+
+                var lineSpan = location.GetLineSpan().StartLinePosition;
+                int line = lineSpan.Line + 1;
+                int character = lineSpan.Character + 1;
+
+                Core.Log.Error($"{filePath}({line},{character}): {diagnostic.Id}: {diagnostic.GetMessage()}");
+            }
+        }
+
+
+        private static CompilationUnitSyntax EnsureUsing(CompilationUnitSyntax root)
+        {
+            if (!root.Usings.Any(u => u.Name.ToString() == "VRage.Game.ModAPI"))
+            {
+                root = root.AddUsings(
+                    SyntaxFactory.UsingDirective(
+                        SyntaxFactory.ParseName("VRage.Game.ModAPI")));
+            }
+
+            return root;
         }
     }
 }
