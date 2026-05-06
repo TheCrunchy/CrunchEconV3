@@ -140,6 +140,7 @@
     <Compile Include="Random Stuff\GridSales.cs" />
     <Compile Include="Random Stuff\GridSalesTwo.cs" />
     <Compile Include="Random Stuff\Inventory.cs" />
+    <Compile Include="Random Stuff\ModifiedStoreSearch.cs" />
     <Compile Include="Random Stuff\NexusHelper.cs" />
     <Compile Include="Random Stuff\NoBoomBoom.cs" />
     <Compile Include="Random Stuff\DisableInSphere.cs" />
