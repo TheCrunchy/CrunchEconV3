@@ -24,6 +24,7 @@ using VRage.Game.ObjectBuilders.Components.Contracts;
 using VRage.Network;
 using VRage.ObjectBuilder;
 using VRage.ObjectBuilders;
+using VRage.Utils;
 using VRageMath;
 
 namespace CrunchEconV3.Patches
@@ -251,6 +252,7 @@ namespace CrunchEconV3.Patches
 
                 if (MyDefinitionId.TryParse(definition, out var definitionId))
                 {
+              
                     MyObjectBuilder_Contract newContract;
                     newContract = new MyObjectBuilder_ContractCustom
                     {
@@ -272,6 +274,7 @@ namespace CrunchEconV3.Patches
                         RemainingTimeInS = contract.SecondsToComplete,
                         ContractCondition = null,
                         DefinitionId = definitionId,
+                        ContractTypeDefinitionId = definitionId,
                         ContractName = contractName,
                         ContractDescription = contractDescription
                     };

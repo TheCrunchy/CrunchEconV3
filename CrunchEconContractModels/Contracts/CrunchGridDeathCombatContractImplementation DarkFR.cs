@@ -519,7 +519,7 @@ namespace CrunchEconContractModels.Contracts2
             contract.ReputationGainOnComplete = Core.random.Next(this.ReputationGainOnCompleteMin, this.ReputationGainOnCompleteMax);
             contract.ReputationLossOnAbandon = this.ReputationLossOnAbandon;
             contract.SecondsToComplete = this.SecondsToComplete;
-            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Escort";
+            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Hunt";
             contract.Name = this.ContractName;
             contract.ReputationRequired = this.ReputationRequired;
             contract.CollateralToTake = (Core.random.Next((int)this.CollateralMin, (int)this.CollateralMax));

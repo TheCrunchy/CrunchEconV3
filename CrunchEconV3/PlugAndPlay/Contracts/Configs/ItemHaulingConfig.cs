@@ -36,7 +36,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
                 return null;
             }
             contract.RewardMoney = contract.ItemToDeliver.Pay;
-            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver";
+            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver_LowRisk";
             contract.Name = this.ContractName;
             contract.CargoNames = this.CargoNames;
             contract.PlaceItemsInTargetStation = this.PlaceItemsInTargetStation;

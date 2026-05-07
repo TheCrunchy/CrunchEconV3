@@ -37,7 +37,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             contract.GasAmount = CrunchEconV3.Core.random.Next((int)this.AmountInLitresMin, (int)this.AmountInLitresMax);
             contract.RewardMoney = (long)(contract.GasAmount * (pricing.Item1 + (Core.random.NextDouble() * (pricing.Item2 - pricing.Item1))));
             contract.GasName = this.GasSubType;
-            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver";
+            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver_ResearchMaterials";
             contract.Name = $"{contract.GasName} Delivery";
             contract.ReputationRequired = this.ReputationRequired;
             contract.ReadyToDeliver = true;

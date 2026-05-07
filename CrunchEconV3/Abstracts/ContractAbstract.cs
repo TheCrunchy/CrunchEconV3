@@ -39,6 +39,7 @@ namespace CrunchEconV3.Abstracts
                 ExpireAt = DateTime.Now.AddSeconds(this.SecondsToComplete);
             }
             if (!MyDefinitionId.TryParse(definition, out var definitionId)) return null;
+            Core.Log.Info("Gas contract isnt null");
             var newContract = new MyObjectBuilder_ContractCustom
             {
                 SubtypeName = definition.Replace("MyObjectBuilder_ContractTypeDefinition/", ""),
@@ -58,10 +59,10 @@ namespace CrunchEconV3.Abstracts
                 RemainingTimeInS = (ExpireAt - DateTime.Now).TotalSeconds,
                 ContractCondition = null,
                 DefinitionId = definitionId,
+                ContractTypeDefinitionId = definitionId,
                 ContractName = contractName,
                 ContractDescription = contractDescription
             };
-
             return newContract;
         }
 

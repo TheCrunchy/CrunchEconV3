@@ -166,7 +166,7 @@ namespace CrunchEconContractModels.Contracts
             contract.ReputationGainOnComplete = ReputationGiven;
             contract.ReputationLossOnAbandon = this.ReputationLossOnAbandon;
             contract.SecondsToComplete = this.SecondsToComplete;
-            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver";
+            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver_ResearchMaterials";
             contract.FactionToGiveRepFor = FactionTagsEligible.GetRandomItemFromList();
             contract.Name = $"Buy {ReputationGiven} Reputation with {contract.FactionToGiveRepFor}";
             contract.ReputationRequired = this.ReputationRequired;

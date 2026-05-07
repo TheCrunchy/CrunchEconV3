@@ -222,7 +222,7 @@ namespace CrunchEconContractModels.Contracts
             contract.ReputationGainOnComplete = CrunchEconV3.Core.random.Next(this.ReputationGainOnCompleteMin, this.ReputationGainOnCompleteMax);
             contract.ReputationLossOnAbandon = this.ReputationLossOnAbandon;
             contract.SecondsToComplete = this.SecondsToComplete;
-            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver";
+            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/Deliver_ResearchMaterials";
             contract.Name = $"{contract.GasName} Delivery";
             var planetName = "";
             contract.Name = $"{planetName} Item Delivery";

@@ -52,7 +52,7 @@ namespace CrunchEconV3.PlugAndPlay.Contracts.Configs
             contract.ContractType = contract.GetType().Name;
             contract.BlockId = idUsedForDictionary;
 
-            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/ObtainAndDeliver";
+            contract.DefinitionId = "MyObjectBuilder_ContractTypeDefinition/ObtainAndDeliver_Miner";
             contract.Name = $"{contract.OreSubTypeName} Mining Contract";
             contract.SpawnOreInStation = this.SpawnOreInStation;
             description.AppendLine($"You must go mine {contract.AmountToMine:##,###} {contract.OreSubTypeName} using a ship drill, then return here.");
