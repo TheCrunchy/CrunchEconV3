@@ -104,6 +104,15 @@ namespace CrunchEconV3.Utils
                     {
                         string text = streamReader.ReadToEnd();
                         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(text, path: filePath);
+
+                        var root = syntaxTree.GetCompilationUnitRoot();
+
+                        root = (CompilationUnitSyntax)new BuildUnassignedContractRewriter().Visit(root);
+                        root = (CompilationUnitSyntax)new FactionStationRewriter().Visit(root);
+
+                        root = EnsureUsing(root);
+                        syntaxTree = CSharpSyntaxTree.Create(root, path: filePath);
+
                         trees.Add(syntaxTree);
                     }
                 }
@@ -135,70 +144,6 @@ namespace CrunchEconV3.Utils
                 }
                 else
                 {
-                    var needsFix = result.Diagnostics.Any(d =>
-                        d.Severity == DiagnosticSeverity.Error &&
-                        d.GetMessage().Contains("does not implement interface member") &&
-                        d.GetMessage().Contains("MyFactionStation"));
-
-                    if (needsFix)
-                    {
-                        var rewriter = new FactionStationRewriter();
-                        var newTrees = new List<SyntaxTree>();
-
-                        var errorFiles = result.Diagnostics
-                            .Where(d => d.Location.IsInSource)
-                            .Select(d => d.Location.SourceTree.FilePath)
-                            .ToHashSet();
-
-                        foreach (var tree in trees)
-                        {
-                            if (!errorFiles.Contains(tree.FilePath))
-                            {
-                                newTrees.Add(tree);
-                                continue;
-                            }
-
-                            var root = tree.GetCompilationUnitRoot();
-                            var newRoot = (CompilationUnitSyntax)rewriter.Visit(root);
-                            newRoot = EnsureUsing(newRoot);
-
-                            newTrees.Add(CSharpSyntaxTree.Create(newRoot, path: tree.FilePath));
-                        }
-
-                        // Rebuild compilation
-                        var retryCompilation = CSharpCompilation.Create("MyAssembly")
-                            .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                            .AddReferences(GetRequiredRefernces())
-                            .AddSyntaxTrees(newTrees);
-
-                        using (var retryStream = new MemoryStream())
-                        {
-                            var retryResult = retryCompilation.Emit(retryStream);
-
-                            if (retryResult.Success)
-                            {
-                                var assembly = Assembly.Load(retryStream.ToArray());
-                                Core.Log.Error("Recompilation successful after fix!");
-
-                                Core.myAssemblies.Add(assembly);
-
-                                ExecuteAssembly(assembly, patches, commands);
-
-                                Core.CompileFailed = false;
-                                return true;
-                            }
-                            else
-                            {
-                                Core.Log.Error("Recompilation still failed.");
-
-                                LogDiagnostics(retryResult.Diagnostics);
-                                Core.CompileFailed = true;
-                                return true;
-                            }
-                        }
-                    }
-
-                    // No fix applied, log original errors
                     LogDiagnostics(result.Diagnostics);
                     Core.CompileFailed = true;
                     return true;

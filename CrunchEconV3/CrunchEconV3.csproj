@@ -303,6 +303,7 @@
     <Compile Include="PlugAndPlay\Prefabs\Helpers\SearchPrefabHelper.cs" />
     <Compile Include="PlugAndPlay\Prefabs\PrefabsHelperAbstract.cs" />
     <Compile Include="PlugAndPlay\Prefabs\PrefabsTestCommands.cs" />
+    <Compile Include="Utils\BuildUnassignedContractRewriter.cs" />
     <Compile Include="Utils\Compiler.cs" />
     <Compile Include="Utils\Econutils.cs" />
     <Compile Include="Utils\FactionStationRewriter.cs" />

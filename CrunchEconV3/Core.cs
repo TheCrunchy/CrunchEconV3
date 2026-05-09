@@ -38,6 +38,7 @@ using CrunchEconV3.PlugAndPlay.Helpers;
 using CrunchEconV3.PlugAndPlay.Models;
 using CrunchEconV3.PlugAndPlayV2.Handlers;
 using Sandbox.Definitions;
+using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.WorldEnvironment;
@@ -163,6 +164,23 @@ namespace CrunchEconV3
             }
             if (ticks == 0)
             {
+           
+                FieldInfo fssField = typeof(MyGridStorageHelper).GetField(
+                    "FSS",
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+
+                // Get nested private type: FolderNestedLayoutStrategy
+                Type nestedType = typeof(MyGridStorageHelper).GetNestedType(
+                    "FolderNestedLayoutStrategy",
+                    BindingFlags.NonPublic);
+
+                // Create instance of nested strategy
+                object nestedStrategy = Activator.CreateInstance(nestedType, true);
+
+                // Replace FSS
+                fssField.SetValue(MyGridStorageHelper.Instance, nestedStrategy);
+
+
                 try
                 {
                     Core.Log.Info("Running compiler");
